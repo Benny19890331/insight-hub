@@ -89,7 +89,9 @@ export function ContactList({
 
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
-        {filtered.map((contact) => (
+        {filtered.map((contact) => {
+          const hasDuplicate = filtered.filter(c => c.name === contact.name).length > 1;
+          return (
           <button
             key={contact.id}
             onClick={() => onSelect(contact)}
@@ -99,30 +101,51 @@ export function ContactList({
                 : `${t.cardHover} border-transparent`
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate">
-                {contact.name}
-                <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
-              </span>
-              <div className="flex gap-1 shrink-0">
-                {(contact.statuses ?? []).slice(0, 2).map((s) => {
-                  const color = getStatusColor(s);
-                  return (
-                    <span key={s} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
-                      {s}
-                    </span>
-                  );
-                })}
-                {(contact.statuses ?? []).length > 2 && (
-                  <span className={`text-[10px] ${t.mutedText}`}>+{(contact.statuses ?? []).length - 2}</span>
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${t.accentBg} ${t.accentBorder} border ${t.accent}`}>
+                {contact.avatarUrl ? (
+                  <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
+                ) : (
+                  contact.name.charAt(0)
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-sm truncate">
+                    {contact.name}
+                    <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
+                  </span>
+                  <div className="flex gap-1 shrink-0">
+                    {(contact.statuses ?? []).slice(0, 2).map((s) => {
+                      const color = getStatusColor(s);
+                      return (
+                        <span key={s} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
+                          {s}
+                        </span>
+                      );
+                    })}
+                    {(contact.statuses ?? []).length > 2 && (
+                      <span className={`text-[10px] ${t.mutedText}`}>+{(contact.statuses ?? []).length - 2}</span>
+                    )}
+                  </div>
+                </div>
+                <p className={`text-xs mt-0.5 truncate ${t.mutedText}`}>
+                  {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
+                </p>
+                {/* Product tags for disambiguation */}
+                {hasDuplicate && (contact.productTags ?? []).length > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {(contact.productTags ?? []).slice(0, 2).map(tag => (
+                      <span key={tag} className={`text-[10px] px-1.5 py-0.5 rounded ${t.accentBg} ${t.accent}`}>{tag}</span>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-            <p className={`text-xs mt-1 truncate ${t.mutedText}`}>
-              {contact.region}
-            </p>
           </button>
-        ))}
+          );
+        })}
         {filtered.length === 0 && (
           <p className={`text-center text-sm py-8 ${t.mutedText}`}>
             找不到符合的聯絡人
