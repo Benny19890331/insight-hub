@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
-    // Verify caller identity
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -36,7 +35,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check admin role using service role
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await adminClient
       .from("user_roles")
@@ -65,6 +63,9 @@ Deno.serve(async (req) => {
       const { data: profiles } = await adminClient.from("profiles").select("id, display_name");
       const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p.display_name]));
 
+      const { data: adminRoles } = await adminClient.from("user_roles").select("user_id").eq("role", "admin");
+      const adminSet = new Set((adminRoles ?? []).map((r: any) => r.user_id));
+
       const result = users
         .filter((u: any) => u.id !== user.id)
         .map((u: any) => ({
@@ -74,6 +75,7 @@ Deno.serve(async (req) => {
           createdAt: u.created_at,
           lastSignIn: u.last_sign_in_at,
           isBanned: bannedSet.has(u.id),
+          isAdmin: adminSet.has(u.id),
         }));
 
       return new Response(JSON.stringify({ users: result }), {
@@ -91,22 +93,43 @@ Deno.serve(async (req) => {
       }
 
       if (ban) {
-        // Ban: insert into banned_users + disable user in auth
         await adminClient.from("banned_users").upsert({
           user_id: targetUserId,
           banned_by: user.id,
         }, { onConflict: "user_id" });
-
         await adminClient.auth.admin.updateUserById(targetUserId, {
-          ban_duration: "876000h", // ~100 years
+          ban_duration: "876000h",
         });
       } else {
-        // Unban: remove from banned_users + re-enable in auth
         await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
-
         await adminClient.auth.admin.updateUserById(targetUserId, {
           ban_duration: "none",
         });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "toggle_admin") {
+      const { targetUserId, grant } = body;
+      if (!targetUserId) {
+        return new Response(JSON.stringify({ error: "Missing targetUserId" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (grant) {
+        await adminClient.from("user_roles").upsert({
+          user_id: targetUserId,
+          role: "admin",
+        }, { onConflict: "user_id,role" });
+      } else {
+        await adminClient.from("user_roles").delete()
+          .eq("user_id", targetUserId)
+          .eq("role", "admin");
       }
 
       return new Response(JSON.stringify({ success: true }), {
