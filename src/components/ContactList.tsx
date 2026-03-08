@@ -18,6 +18,9 @@ interface ContactListProps {
   onDeduplicate?: () => Promise<{ merged: number }>;
 }
 
+import { useState } from "react";
+import { toast } from "sonner";
+
 export function ContactList({
   contacts,
   searchQuery,
@@ -28,8 +31,35 @@ export function ContactList({
   onProductFilterChange,
   selectedId,
   onSelect,
+  onDeduplicate,
 }: ContactListProps) {
   const { theme: t } = useTheme();
+  const [deduping, setDeduping] = useState(false);
+
+  // Count duplicates
+  const duplicateCount = contacts.filter((c, i, arr) => {
+    if (c.memberId) {
+      return arr.findIndex(x => x.memberId === c.memberId) !== i;
+    }
+    return arr.findIndex(x => x.name === c.name) !== i;
+  }).length;
+
+  const handleDedupe = async () => {
+    if (!onDeduplicate) return;
+    setDeduping(true);
+    try {
+      const result = await onDeduplicate();
+      if (result.merged > 0) {
+        toast.success(`已合併 ${result.merged} 筆重複名單`);
+      } else {
+        toast.info("沒有找到重複的名單");
+      }
+    } catch {
+      toast.error("合併失敗");
+    } finally {
+      setDeduping(false);
+    }
+  };
 
   const filtered = contacts.filter((c) => {
     const matchesSearch =

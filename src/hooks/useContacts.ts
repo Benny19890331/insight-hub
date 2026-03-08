@@ -242,5 +242,77 @@ export function useContacts() {
     await fetchContacts();
   }, [user, fetchContacts]);
 
-  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts, refetch: fetchContacts };
+  const deduplicateContacts = useCallback(async () => {
+    if (!user) return { merged: 0 };
+
+    // Fetch all contacts
+    const { data: allContacts } = await supabase
+      .from("contacts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+
+    if (!allContacts || allContacts.length === 0) return { merged: 0 };
+
+    // Group by member_id first, then by name for those without member_id
+    const byMemberId = new Map<string, typeof allContacts>();
+    const byName = new Map<string, typeof allContacts>();
+
+    for (const c of allContacts) {
+      if (c.member_id) {
+        const existing = byMemberId.get(c.member_id) || [];
+        existing.push(c);
+        byMemberId.set(c.member_id, existing);
+      } else {
+        const existing = byName.get(c.name) || [];
+        existing.push(c);
+        byName.set(c.name, existing);
+      }
+    }
+
+    const idsToDelete: string[] = [];
+
+    // Merge duplicates with same member_id
+    for (const [_, group] of byMemberId) {
+      if (group.length > 1) {
+        // Keep the newest (last in sorted order), delete the rest
+        const [oldest, ...rest] = group;
+        const newest = rest[rest.length - 1];
+        
+        // Merge data: newest values take priority
+        const merged = { ...oldest, ...newest, id: oldest.id };
+        await supabase.from("contacts").update(merged).eq("id", oldest.id);
+        
+        // Delete duplicates
+        for (const dup of rest) {
+          idsToDelete.push(dup.id);
+        }
+      }
+    }
+
+    // Merge duplicates with same name (no member_id)
+    for (const [_, group] of byName) {
+      if (group.length > 1) {
+        const [oldest, ...rest] = group;
+        const newest = rest[rest.length - 1];
+        
+        const merged = { ...oldest, ...newest, id: oldest.id };
+        await supabase.from("contacts").update(merged).eq("id", oldest.id);
+        
+        for (const dup of rest) {
+          idsToDelete.push(dup.id);
+        }
+      }
+    }
+
+    // Delete duplicates
+    if (idsToDelete.length > 0) {
+      await supabase.from("contacts").delete().in("id", idsToDelete);
+    }
+
+    await fetchContacts();
+    return { merged: idsToDelete.length };
+  }, [user, fetchContacts]);
+
+  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts, deduplicateContacts, refetch: fetchContacts };
 }
