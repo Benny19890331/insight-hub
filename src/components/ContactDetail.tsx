@@ -480,6 +480,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   </button>
                 </div>
               )
+            </>
           )}
         </div>
       </div>
