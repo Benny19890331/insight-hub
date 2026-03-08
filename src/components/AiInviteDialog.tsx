@@ -4,15 +4,22 @@ import { Contact } from "@/data/contacts";
 import { Copy, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
+interface ContactInsights {
+  summary: string;
+  tags: string[];
+  next_action: string;
+}
+
 interface AiInviteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contact: Contact;
+  insights?: ContactInsights | null;
 }
 
 const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
 
-export function AiInviteDialog({ open, onOpenChange, contact }: AiInviteDialogProps) {
+export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInviteDialogProps) {
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -33,7 +40,7 @@ export function AiInviteDialog({ open, onOpenChange, contact }: AiInviteDialogPr
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ contact }),
+        body: JSON.stringify({ contact, insights: insights || null }),
         signal: controller.signal,
       });
 

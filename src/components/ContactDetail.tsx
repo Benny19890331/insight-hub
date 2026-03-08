@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Contact, Interaction, statusOptions, heatOptionsRaw, HeatLevel, getReferrerChain } from "@/data/contacts";
 import { MentionTextarea, MentionText } from "@/components/MentionTextarea";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -71,6 +72,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpAction, setFollowUpAction] = useState<"complete" | "cancel" | null>(null);
   const [followUpActionDate, setFollowUpActionDate] = useState("");
   const [followUpActionContent, setFollowUpActionContent] = useState("");
+  const [cachedInsights, setCachedInsights] = useState<{ summary: string; tags: string[]; next_action: string } | null>(null);
 
   const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
   const iconClass = t.accent;
@@ -81,6 +83,18 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     setFollowUpTime(contact?.nextFollowUpTime ?? "");
     setFollowUpNote(contact?.nextFollowUpNote ?? "");
     setEditingFollowUp(false);
+  }, [contact?.id]);
+
+  useEffect(() => {
+    if (!contact) return;
+    supabase
+      .from("contact_insights")
+      .select("summary, tags, next_action")
+      .eq("contact_id", contact.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCachedInsights(data ? { summary: (data as any).summary, tags: (data as any).tags, next_action: (data as any).next_action } : null);
+      });
   }, [contact?.id]);
 
   if (!contact) {
@@ -162,7 +176,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Plus className="h-3 w-3" />互動
           </button>
           <button onClick={() => setAiOpen(true)} className="neon-btn-magenta flex-1 justify-center">
-            <Sparkles className="h-3 w-3" />邀約
+            <Sparkles className="h-3 w-3" />AI邀約
           </button>
           <button onClick={() => setEditOpen(true)} className="neon-btn-amber flex-1 justify-center">
             <Pencil className="h-3 w-3" />編輯
@@ -722,6 +736,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         open={aiOpen}
         onOpenChange={setAiOpen}
         contact={contact}
+        insights={cachedInsights}
       />
     </div>
   );

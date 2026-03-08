@@ -17,7 +17,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { contact } = await req.json();
+    const { contact, insights } = await req.json();
     if (!contact) {
       return new Response(JSON.stringify({ error: "Missing contact data" }), {
         status: 400,
@@ -56,6 +56,18 @@ serve(async (req) => {
 - 不要使用「親愛的」這類過於正式的開頭
 - 每次生成都要有不同的風格和切入角度`;
 
+    let insightsBlock = "";
+    if (insights) {
+      insightsBlock = `
+【AI 分析報告(C單) 參考】
+現況總結：${insights.summary || "無"}
+特性標籤：${(insights.tags || []).join("、") || "無"}
+下一步建議：${insights.next_action || "無"}
+
+請將以上分析報告的洞察融入邀約內容中，讓邀約更精準貼合客戶狀態。
+`;
+    }
+
     const userPrompt = `請根據以下客戶資料撰寫一封個人化邀約訊息：
 
 姓名：${contact.name}
@@ -69,7 +81,7 @@ ${genderText ? `性別：${genderText}` : ""}
 特殊註記：${contact.notes || "無"}
 聯絡方式：${contact.contactMethod || "未知"}
 最後聯絡日期：${contact.lastContactDate || "未知"}
-
+${insightsBlock}
 請直接輸出邀約訊息內容，不要加任何前綴說明。`;
 
     const response = await fetch(
