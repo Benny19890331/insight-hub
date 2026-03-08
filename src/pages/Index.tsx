@@ -9,7 +9,7 @@ import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { AddContactDialog } from "@/components/AddContactDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts } from "@/hooks/useContacts";
-import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
+import { useTheme, ThemeSwitcher, FontSizeSwitcher, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
@@ -192,6 +192,7 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
+          <FontSizeSwitcher />
           <button
             onClick={() => setAddContactOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
