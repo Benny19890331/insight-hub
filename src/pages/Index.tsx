@@ -1,14 +1,18 @@
 import { useState, useCallback } from "react";
-import { Upload, UserPlus, Download, Infinity } from "lucide-react";
-import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
+import { Upload, UserPlus, Download, Infinity, LogOut, Loader2 } from "lucide-react";
+import { Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { AddContactDialog } from "@/components/AddContactDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { useContacts } from "@/hooks/useContacts";
 import { toast } from "sonner";
 
 const Index = () => {
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts);
+  const { signOut } = useAuth();
+  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
   const [productFilter, setProductFilter] = useState("");
@@ -35,9 +39,9 @@ const Index = () => {
     setShowDetail(false);
   }, []);
 
-  const handleCsvImport = useCallback((imported: Contact[]) => {
-    setContacts((prev) => [...prev, ...imported]);
-  }, []);
+  const handleCsvImport = useCallback(async (imported: Contact[]) => {
+    await importContacts(imported);
+  }, [importContacts]);
 
   const handleCsvExport = useCallback(() => {
     const headers = ["姓名","綽號","地區","背景","狀態","熱度","聯絡方式","生日","產品標籤","註記","最後聯絡","下次追蹤"];
@@ -58,21 +62,35 @@ const Index = () => {
     toast.success(`已匯出 ${contacts.length} 筆聯絡人`);
   }, [contacts]);
 
-  const handleAddContact = useCallback((contact: Contact) => {
-    setContacts((prev) => [...prev, contact]);
-  }, []);
+  const handleAddContact = useCallback(async (contact: Contact) => {
+    await addContact(contact);
+  }, [addContact]);
 
-  const handleUpdateContact = useCallback((updated: Contact) => {
-    setContacts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  const handleUpdateContact = useCallback(async (updated: Contact) => {
+    await updateContact(updated);
     setSelectedContact(updated);
-  }, []);
+  }, [updateContact]);
 
-  const handleDeleteContact = useCallback((id: string) => {
-    setContacts((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteContact = useCallback(async (id: string) => {
+    await deleteContact(id);
     setSelectedContact(null);
     setShowDetail(false);
-    toast.success("已刪除聯絡人");
-  }, []);
+  }, [deleteContact]);
+
+  const handleAddInteraction = useCallback(async (contactId: string, interaction: { date: string; summary: string }) => {
+    await addInteraction(contactId, interaction);
+  }, [addInteraction]);
+
+  // Keep selectedContact in sync with contacts array
+  const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -117,6 +135,9 @@ const Index = () => {
             <Upload className="h-4 w-4" />
             <span className="hidden sm:inline">匯出</span>
           </button>
+          <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors" title="登出">
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </header>
 
@@ -130,13 +151,13 @@ const Index = () => {
             onHeatFilterChange={setHeatFilter}
             productFilter={productFilter}
             onProductFilterChange={setProductFilter}
-            selectedId={selectedContact?.id ?? null}
+            selectedId={currentSelected?.id ?? null}
             onSelect={handleSelect}
           />
         </aside>
         <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`}>
           <ContactDetail
-            contact={selectedContact}
+            contact={currentSelected}
             contacts={contacts}
             onBack={handleBack}
             onUpdateContact={handleUpdateContact}
