@@ -43,6 +43,7 @@ export type Database = {
           birthday_reminder: string
           contact_method: string | null
           created_at: string
+          gender: string | null
           heat: string
           id: string
           last_contact_date: string
@@ -67,6 +68,7 @@ export type Database = {
           birthday_reminder?: string
           contact_method?: string | null
           created_at?: string
+          gender?: string | null
           heat?: string
           id?: string
           last_contact_date?: string
@@ -91,6 +93,7 @@ export type Database = {
           birthday_reminder?: string
           contact_method?: string | null
           created_at?: string
+          gender?: string | null
           heat?: string
           id?: string
           last_contact_date?: string
