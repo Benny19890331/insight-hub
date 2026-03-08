@@ -81,6 +81,11 @@ const Index = () => {
   const handleAddInteraction = useCallback(async (contactId: string, interaction: { date: string; summary: string }) => {
     await addInteraction(contactId, interaction);
   }, [addInteraction]);
+  const handleSeedData = useCallback(async () => {
+    const seedData = generateSeedContacts();
+    await importContacts(seedData);
+    toast.success(`已生成 ${seedData.length} 筆虛擬名單`);
+  }, [importContacts]);
 
   // Keep selectedContact in sync with contacts array
   const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
