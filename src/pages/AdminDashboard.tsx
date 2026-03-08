@@ -207,6 +207,15 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex items-center gap-2 ml-3 shrink-0">
                       <button
+                        onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
+                        disabled={toggling === u.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                        title="重設密碼"
+                      >
+                        <KeyRound className="h-3 w-3" />
+                        密碼
+                      </button>
+                      <button
                         onClick={() => toggleAdmin(u.id, !u.isAdmin)}
                         disabled={toggling === u.id}
                         className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
