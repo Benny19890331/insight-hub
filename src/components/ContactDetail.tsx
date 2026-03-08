@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
 import { AiInviteDialog } from "@/components/AiInviteDialog";
+import { AiInsightsPanel } from "@/components/AiInsightsPanel";
 import { GridDateTimePicker } from "@/components/GridDateTimePicker";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
