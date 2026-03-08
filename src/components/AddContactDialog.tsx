@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -23,6 +23,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [background, setBackground] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [heat, setHeat] = useState<HeatLevel>("cold");
+  const [gender, setGender] = useState<Gender>("");
   const [notes, setNotes] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [contactMethod, setContactMethod] = useState("");
@@ -43,7 +44,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   const reset = () => {
     setName(""); setNickname(""); setRegion(""); setBackground("");
-    setSelectedStatuses([]); setHeat("cold"); setNotes("");
+    setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes("");
     setSelectedTags([]); setContactMethod(""); setReferrerId("");
     setBirthday(""); setBirthdayReminder("none"); setReferrerSearch("");
   };
@@ -57,6 +58,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       region: region.trim() || "未填寫",
       background: background.trim() || "未填寫",
       statuses: selectedStatuses,
+      gender,
       heat,
       notes: notes.trim(),
       lastContactDate: today,
@@ -94,6 +96,19 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">綽號</label>
               <input value={nickname} onChange={e => setNickname(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">性別</label>
+            <div className="flex flex-wrap gap-1.5">
+              {genderOptions.filter(g => g.value !== "").map(g => (
+                <button key={g.value} type="button" onClick={() => setGender(gender === g.value ? "" : g.value)}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${gender === g.value ? "bg-primary/15 text-primary border-primary/30" : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"}`}>
+                  {g.label}
+                </button>
+              ))}
             </div>
           </div>
 

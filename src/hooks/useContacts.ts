@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { Contact, Interaction, HeatLevel, BirthdayReminder } from "@/data/contacts";
+import { Contact, Interaction, HeatLevel, BirthdayReminder, Gender } from "@/data/contacts";
 import { toast } from "sonner";
 
 interface DbContact {
@@ -25,6 +25,7 @@ interface DbContact {
   referrer_name: string | null;
   birthday: string | null;
   birthday_reminder: string;
+  gender: string | null;
   product_tags: string[];
   created_at: string;
 }
@@ -58,6 +59,7 @@ function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
     referrerName: db.referrer_name ?? undefined,
     birthday: db.birthday ?? undefined,
     birthdayReminder: (db.birthday_reminder as BirthdayReminder) ?? "none",
+    gender: (db.gender as Gender) ?? "",
     interactions: interactions
       .filter((i) => i.contact_id === db.id)
       .map((i) => ({ date: i.date, summary: i.summary })),
@@ -117,6 +119,7 @@ export function useContacts() {
       referrer_name: contact.referrerName || null,
       birthday: contact.birthday || null,
       birthday_reminder: contact.birthdayReminder || "none",
+      gender: contact.gender || null,
       product_tags: contact.productTags,
     });
     if (error) { toast.error("新增失敗"); return; }
@@ -157,6 +160,7 @@ export function useContacts() {
       referrer_name: contact.referrerName || null,
       birthday: contact.birthday || null,
       birthday_reminder: contact.birthdayReminder || "none",
+      gender: contact.gender || null,
       product_tags: contact.productTags,
     }).eq("id", contact.id).eq("user_id", user.id);
     if (error) { toast.error("更新失敗"); return; }

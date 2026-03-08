@@ -2,6 +2,15 @@ export type HeatLevel = "cold" | "warm" | "hot" | "loyal";
 
 export type BirthdayReminder = "none" | "1month" | "1week" | "3days" | "today";
 
+export type Gender = "male" | "female" | "other" | "";
+
+export const genderOptions: { value: Gender; label: string }[] = [
+  { value: "", label: "未設定" },
+  { value: "male", label: "男" },
+  { value: "female", label: "女" },
+  { value: "other", label: "其他" },
+];
+
 export interface Interaction {
   date: string;
   summary: string;
@@ -35,6 +44,7 @@ export interface Contact {
   name: string;
   nickname?: string;
   memberId?: string;
+  gender?: Gender;
   region: string;
   background: string;
   statuses: string[];

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [referrerId, setReferrerId] = useState(contact.referrerId ?? "");
   const [birthday, setBirthday] = useState(contact.birthday ?? "");
   const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>(contact.birthdayReminder ?? "none");
+  const [gender, setGender] = useState<Gender>(contact.gender ?? "");
   const [referrerSearch, setReferrerSearch] = useState("");
   const [referrerOpen, setReferrerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +52,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setReferrerId(contact.referrerId ?? "");
     setBirthday(contact.birthday ?? "");
     setBirthdayReminder(contact.birthdayReminder ?? "none");
+    setGender(contact.gender ?? "");
     setReferrerSearch("");
   }, [contact]);
 
@@ -107,6 +109,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       region,
       background,
       statuses: selectedStatuses,
+      gender,
       heat,
       notes,
       productTags: selectedTags,
@@ -157,6 +160,26 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <Field label="地區"><input value={region} onChange={(e) => setRegion(e.target.value)} className={fieldClass} /></Field>
           <Field label="背景 / 職業"><input value={background} onChange={(e) => setBackground(e.target.value)} className={fieldClass} /></Field>
           <Field label="聯絡方式"><input value={contactMethod} onChange={(e) => setContactMethod(e.target.value)} placeholder="LINE ID / 電話 / Email" className={fieldClass} /></Field>
+
+          {/* Gender */}
+          <Field label="性別">
+            <div className="flex flex-wrap gap-2">
+              {genderOptions.filter(g => g.value !== "").map((g) => (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() => setGender(gender === g.value ? "" : g.value)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                    gender === g.value
+                      ? "product-tag ring-1 ring-primary/40"
+                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </Field>
 
           {/* Status as multi-select chips */}
           <Field label="當前狀態（可複選）">
