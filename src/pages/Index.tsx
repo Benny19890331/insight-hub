@@ -50,8 +50,8 @@ const Index = () => {
             <Users className="h-4 w-4 text-primary" />
           </div>
           <h1 className="text-sm font-semibold tracking-tight">
-            <span className="text-primary glow-text">CRM</span>
-            <span className="text-muted-foreground ml-1.5 font-normal hidden sm:inline">名單管理</span>
+            <span className="text-amber-400 glow-text" style={{ textShadow: '0 0 8px rgba(251, 191, 36, 0.4)' }}>RICH</span>
+            <span className="text-muted-foreground ml-1.5 font-normal hidden sm:inline">系統名單管理</span>
           </h1>
         </div>
         <button onClick={handleCsvImport} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">

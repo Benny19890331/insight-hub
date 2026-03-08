@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Interaction } from "@/data/contacts";
+import { Contact, Interaction } from "@/data/contacts";
+import { MentionTextarea } from "@/components/MentionTextarea";
 import { toast } from "sonner";
 
 interface AddInteractionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contactName: string;
+  contacts?: Contact[];
   onSave: (interaction: Interaction) => void;
 }
 
-export function AddInteractionDialog({ open, onOpenChange, contactName, onSave }: AddInteractionDialogProps) {
+export function AddInteractionDialog({ open, onOpenChange, contactName, contacts = [], onSave }: AddInteractionDialogProps) {
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
   const [summary, setSummary] = useState("");
@@ -46,12 +48,13 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, onSave }
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">互動內容</label>
-            <textarea
+            <MentionTextarea
               value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              placeholder="例如：一起喝咖啡，聊到健康話題⋯"
+              onChange={setSummary}
+              contacts={contacts}
+              placeholder="例如：一起喝咖啡，聊到健康話題⋯ 輸入 @ 可提及名單人物"
               rows={3}
-              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+              className="rounded-lg bg-muted/50"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">

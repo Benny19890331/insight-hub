@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Contact, Interaction, statusOptions, heatOptionsRaw, HeatLevel, getReferrerChain } from "@/data/contacts";
+import { MentionTextarea, MentionText } from "@/components/MentionTextarea";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
@@ -371,12 +372,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 onChange={(e) => setFollowUpDate(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
-              <textarea
+              <MentionTextarea
                 value={followUpNote}
-                onChange={(e) => setFollowUpNote(e.target.value)}
-                placeholder="追蹤內容備註⋯"
+                onChange={setFollowUpNote}
+                contacts={contacts}
+                placeholder="追蹤內容備註⋯ 輸入 @ 可提及名單人物"
                 rows={2}
-                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
               />
               <div className="flex gap-2">
                 <button
@@ -406,7 +407,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <>
               <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate}</p>
               {contact.nextFollowUpNote && (
-                <p className="text-xs text-muted-foreground">{contact.nextFollowUpNote}</p>
+                <MentionText text={contact.nextFollowUpNote} contacts={contacts} onSelectContact={onSelectContact} />
               )}
             </>
           )}
@@ -428,7 +429,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground font-mono">{item.date}</p>
-                <p className="text-sm mt-0.5">{item.summary}</p>
+                <div className="text-sm mt-0.5">
+                  <MentionText text={item.summary} contacts={contacts} onSelectContact={onSelectContact} />
+                </div>
               </div>
             </div>
           ))}
@@ -440,6 +443,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         open={addOpen}
         onOpenChange={setAddOpen}
         contactName={contact.name}
+        contacts={contacts}
         onSave={handleAddInteraction}
       />
       <EditContactDialog
