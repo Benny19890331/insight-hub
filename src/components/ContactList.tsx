@@ -182,6 +182,20 @@ export function ContactList({
             找不到符合的聯絡人
           </p>
         )}
+
+        {/* Deduplicate button at bottom */}
+        {onDeduplicate && duplicateCount > 0 && (
+          <div className="pt-4 pb-2 px-2">
+            <button
+              onClick={handleDedupe}
+              disabled={deduping}
+              className={`w-full flex items-center justify-center gap-2 rounded-lg border py-2.5 text-xs font-medium transition-all ${t.btnOutline} hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive disabled:opacity-50`}
+            >
+              {deduping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Merge className="h-4 w-4" />}
+              {deduping ? "合併中..." : `合併 ${duplicateCount} 筆重複名單`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
