@@ -95,6 +95,7 @@ export const mockContacts: Contact[] = [
     notes: "女兒介紹認識，本人較保守。需要更多產品見證資料。",
     lastContactDate: "2026-02-28",
     nextFollowUpDate: "2026-03-20",
+    contactMethod: "電話: 0912-345-678",
     productTags: ["水素水"],
     interactions: [
       { date: "2026-02-28", summary: "女兒陪同參加產品說明會，態度保留但有禮貌" },
