@@ -25,6 +25,7 @@ interface DbContact {
   referrer_name: string | null;
   birthday: string | null;
   birthday_reminder: string;
+  gender: string | null;
   product_tags: string[];
   created_at: string;
 }
