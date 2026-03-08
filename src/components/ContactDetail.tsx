@@ -604,7 +604,31 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
       </div>
 
-      {/* Dialogs */}
+      {/* Delete zone */}
+      <div className="h-px bg-border" />
+      <div className="pt-4 pb-8 flex justify-center">
+        {!confirmDelete ? (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="text-xs text-muted-foreground/50 hover:text-destructive transition-colors"
+          >
+            <Trash2 className="h-3 w-3 inline mr-1" />刪除此聯絡人
+          </button>
+        ) : (
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-destructive">確定要刪除「{contact.name}」嗎？</span>
+            <button
+              onClick={() => { onDeleteContact?.(contact.id); setConfirmDelete(false); }}
+              className="bg-destructive/15 text-destructive border border-destructive/30 px-3 py-1 rounded-md hover:bg-destructive/25"
+            >確認刪除</button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              className="text-muted-foreground hover:text-foreground px-3 py-1"
+            >取消</button>
+          </div>
+        )}
+      </div>
+
       <AddInteractionDialog
         open={addOpen}
         onOpenChange={setAddOpen}
