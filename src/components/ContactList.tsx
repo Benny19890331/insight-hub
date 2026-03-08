@@ -36,10 +36,18 @@ export function ContactList({
   const { theme: t } = useTheme();
   const [deduping, setDeduping] = useState(false);
 
-  // Count duplicates
+  // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
+  const getBaseMemberId = (mid?: string) => {
+    if (!mid) return null;
+    const match = mid.match(/^(\d+)-\d+$/);
+    return match ? match[1] : mid;
+  };
+
+  // Count duplicates by base member_id or name
   const duplicateCount = contacts.filter((c, i, arr) => {
-    if (c.memberId) {
-      return arr.findIndex(x => x.memberId === c.memberId) !== i;
+    const base = getBaseMemberId(c.memberId);
+    if (base) {
+      return arr.findIndex(x => getBaseMemberId(x.memberId) === base) !== i;
     }
     return arr.findIndex(x => x.name === c.name) !== i;
   }).length;
