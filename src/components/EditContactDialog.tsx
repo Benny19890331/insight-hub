@@ -52,6 +52,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setReferrerId(contact.referrerId ?? "");
     setBirthday(contact.birthday ?? "");
     setBirthdayReminder(contact.birthdayReminder ?? "none");
+    setGender(contact.gender ?? "");
     setReferrerSearch("");
   }, [contact]);
 
