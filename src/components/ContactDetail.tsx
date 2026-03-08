@@ -409,6 +409,45 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               {contact.nextFollowUpNote && (
                 <MentionText text={contact.nextFollowUpNote} contacts={contacts} onSelectContact={onSelectContact} />
               )}
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    const today = new Date().toISOString().split("T")[0];
+                    const note = contact.nextFollowUpNote ? ` — ${contact.nextFollowUpNote}` : "";
+                    const record: Interaction = { date: today, summary: `✅ 追蹤完成（${contact.nextFollowUpDate}）${note}` };
+                    if (onUpdateContact) {
+                      onUpdateContact({
+                        ...contact,
+                        interactions: [record, ...(contact.interactions ?? [])],
+                        lastContactDate: today,
+                        nextFollowUpDate: "",
+                        nextFollowUpNote: "",
+                      });
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md hover:bg-emerald-500/25 transition-colors"
+                >
+                  <CheckCircle2 className="h-3 w-3" />完成
+                </button>
+                <button
+                  onClick={() => {
+                    const today = new Date().toISOString().split("T")[0];
+                    const note = contact.nextFollowUpNote ? ` — ${contact.nextFollowUpNote}` : "";
+                    const record: Interaction = { date: today, summary: `❌ 追蹤取消（${contact.nextFollowUpDate}）${note}` };
+                    if (onUpdateContact) {
+                      onUpdateContact({
+                        ...contact,
+                        interactions: [record, ...(contact.interactions ?? [])],
+                        nextFollowUpDate: "",
+                        nextFollowUpNote: "",
+                      });
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-md hover:bg-rose-500/25 transition-colors"
+                >
+                  <XCircle className="h-3 w-3" />取消
+                </button>
+              </div>
             </>
           )}
         </div>
