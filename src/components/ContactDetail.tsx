@@ -253,7 +253,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 <Users className={`h-4 w-4 ${iconClass}`} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">推薦人數</p>
+                <p className={`text-xs ${labelClass}`}>推薦人數</p>
                 <p className="text-sm font-medium mt-0.5">{downlines.length} 人</p>
                 {downlines.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
