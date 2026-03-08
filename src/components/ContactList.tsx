@@ -2,6 +2,7 @@ import { Search, Filter, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
+import { getStatusColor } from "@/data/statusColors";
 import { FunnelStats } from "@/components/FunnelStats";
 
 interface ContactListProps {
