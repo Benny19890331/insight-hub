@@ -8,7 +8,7 @@ export interface AppTheme {
   headerBorder: string;
   titleColor: string;
   titleGlow: string;
-  sidebarBg: string;
+  textColor: string;
   mainBg: string;
   cardBg: string;
   cardBorder: string;
