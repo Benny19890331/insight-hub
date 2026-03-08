@@ -9,6 +9,7 @@ interface DbContact {
   user_id: string;
   name: string;
   nickname: string | null;
+  member_id: string | null;
   region: string;
   background: string;
   statuses: string[];
