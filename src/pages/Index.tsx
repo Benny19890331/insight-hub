@@ -13,9 +13,11 @@ const Index = () => {
   const [showDetail, setShowDetail] = useState(false);
 
   const handleSelect = useCallback((c: Contact) => {
-    setSelectedContact(c);
+    // Always use the latest version from state
+    const fresh = contacts.find((x) => x.id === c.id) ?? c;
+    setSelectedContact(fresh);
     setShowDetail(true);
-  }, []);
+  }, [contacts]);
 
   const handleBack = useCallback(() => {
     setShowDetail(false);
