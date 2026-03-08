@@ -429,6 +429,11 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
       <div className="h-px bg-border" />
 
+      {/* AI Insights */}
+      <AiInsightsPanel contact={contact} />
+
+      <div className="h-px bg-border" />
+
       {/* Date Tracking */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className={`rounded-lg border p-4 space-y-1 ${t.cardBorder} ${t.cardBg}`}>
