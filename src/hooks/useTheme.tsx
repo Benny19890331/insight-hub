@@ -188,9 +188,9 @@ export const themes: AppTheme[] = [
 ];
 
 const FONT_SIZES = [
-  { label: "小", value: "text-sm", scale: 0.875 },
-  { label: "中", value: "text-base", scale: 1 },
-  { label: "大", value: "text-lg", scale: 1.125 },
+  { label: "小", cls: "font-scale-sm" },
+  { label: "中", cls: "font-scale-md" },
+  { label: "大", cls: "font-scale-lg" },
 ];
 
 interface ThemeContextType {
