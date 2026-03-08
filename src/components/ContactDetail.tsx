@@ -39,7 +39,7 @@ function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; l
   );
 }
 
-export function ContactDetail({ contact, onBack, onUpdateContact, onSelectContact }: ContactDetailProps) {
+export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact }: ContactDetailProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
