@@ -32,7 +32,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-md">
+      <DialogContent className="bg-card border-border max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">新增互動紀錄</DialogTitle>
           <DialogDescription>為 {contactName} 記錄一筆新的互動</DialogDescription>
