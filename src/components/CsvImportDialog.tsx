@@ -89,12 +89,21 @@ function parsePurchaseDate(raw: string): string {
   return `${year}-${m[2]}-${m[3]}`;
 }
 
+// Parse rank designation from PAY field (e.g., "4:IM" → { level: 4, rank: "IM" })
+function parsePayField(pay: string): { level: number; rank: string; raw: string } {
+  const raw = pay.trim();
+  const m = raw.match(/^(\d+):?\s*(.*)$/);
+  const level = m ? parseInt(m[1], 10) : 0;
+  const rank = m ? m[2].trim() : "";
+  return { level, rank, raw };
+}
+
 function determineHeatFromPay(pay: string, sp: string): HeatLevel {
-  const payNum = parseInt(pay.replace(/[^0-9]/g, ""), 10) || 0;
+  const { level } = parsePayField(pay);
   const spNum = parseInt(sp, 10) || 0;
-  if (payNum >= 4 || spNum >= 2) return "hot";
-  if (payNum >= 3) return "warm";
-  if (payNum >= 1) return "warm";
+  if (level >= 4 || spNum >= 2) return "hot";
+  if (level >= 3) return "warm";
+  if (level >= 1) return "warm";
   return "cold";
 }
 
