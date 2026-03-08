@@ -152,9 +152,18 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
     const parsedLastPurchase = parsePurchaseDate(primary.lastPurchaseRaw);
     const heat = determineHeatFromPay(primary.pay, primary.sp);
 
-    // Collect extra 經營權 IDs (skip the first/primary one)
-    const extraIds = group.slice(1).map(r => r.idCol);
-    const extraNote = extraIds.length > 0 ? ` / 其他經營權: ${extraIds.join(", ")}` : "";
+    // Collect extra 經營權 with PAY and SP values
+    const extraEntries = group.slice(1);
+    let extraNote = "";
+    if (extraEntries.length > 0) {
+      const extraDetails = extraEntries.map(r => {
+        let detail = r.idCol;
+        if (r.pay) detail += ` (PAY: ${r.pay})`;
+        if (r.sp && r.sp !== "0") detail += ` (SP: ${r.sp})`;
+        return detail;
+      }).join(", ");
+      extraNote = ` / 其他經營權: ${extraDetails}`;
+    }
 
     const c: Contact = {
       id: crypto.randomUUID(),
