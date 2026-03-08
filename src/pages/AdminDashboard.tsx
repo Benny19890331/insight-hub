@@ -230,13 +230,23 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       <div className={`text-xs ${t.authSubtext}`}>{u.email}</div>
-                      <div className={`text-xs ${t.authSubtext}`}>
-                        註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}
-                        {u.lastSignIn && ` · 最後登入: ${new Date(u.lastSignIn).toLocaleDateString("zh-TW")}`}
+                      <div className={`text-xs ${t.authSubtext} flex flex-wrap items-center gap-x-2`}>
+                        <span>註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}</span>
+                        {u.lastSignIn && <span>最後登入: {new Date(u.lastSignIn).toLocaleDateString("zh-TW")}</span>}
+                        {(() => {
+                          const usage = usageLevel(u);
+                          return (
+                            <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium ${usage.color}`}>
+                              <Activity className="h-2.5 w-2.5" />
+                              {usage.label} ({u.contactCount}人/{u.interactionCount}互動)
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      {/* Left: safe actions */}
+                      <div className="flex flex-col gap-2">
                          <button
                            onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
                            disabled={toggling === u.id}
@@ -264,7 +274,8 @@ export default function AdminDashboard() {
                            {u.isAdmin ? "取消" : "授權"}
                          </button>
                        </div>
-                       <div className="flex gap-3">
+                       {/* Right: dangerous actions */}
+                       <div className="flex flex-col gap-2 items-end">
                          <button
                            onClick={() => toggleBan(u.id, !u.isBanned)}
                            disabled={toggling === u.id}
