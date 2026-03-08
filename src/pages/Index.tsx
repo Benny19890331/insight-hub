@@ -39,7 +39,10 @@ const Index = () => {
     setContacts((prev) => [...prev, ...imported]);
   }, []);
 
-  const handleUpdateContact = useCallback((updated: Contact) => {
+  const handleAddContact = useCallback((contact: Contact) => {
+    setContacts((prev) => [...prev, contact]);
+  }, []);
+
     setContacts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     setSelectedContact(updated);
   }, []);
