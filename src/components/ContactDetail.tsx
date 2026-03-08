@@ -407,7 +407,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <>
               <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate}</p>
               {contact.nextFollowUpNote && (
-                <p className="text-xs text-muted-foreground">{contact.nextFollowUpNote}</p>
+                <MentionText text={contact.nextFollowUpNote} contacts={contacts} onSelectContact={onSelectContact} />
               )}
             </>
           )}
