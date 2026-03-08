@@ -39,7 +39,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     return contacts.filter(c => c.name.toLowerCase().includes(q) || (c.nickname ?? "").toLowerCase().includes(q) || c.region.toLowerCase().includes(q)).slice(0, 10);
   }, [contacts, referrerSearch]);
 
-  const selectedReferrer = contacts.find(c => c.id === referrerId);
+  const selectedReferrer = referrerId === "self" ? { id: "self", name: userName } : contacts.find(c => c.id === referrerId);
 
   const reset = () => {
     setName(""); setNickname(""); setRegion(""); setBackground("");
