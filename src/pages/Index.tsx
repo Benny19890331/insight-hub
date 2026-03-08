@@ -192,6 +192,7 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
+          <FontSizeSwitcher />
           <button
             onClick={() => setAddContactOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
