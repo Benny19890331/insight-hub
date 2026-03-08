@@ -207,13 +207,42 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           <span className="text-sm">{heatLabel[contact.heat]}</span>
         </DetailRow>
 
-        {/* Referrer chain (up to 3 levels) */}
+        {/* Downline / referrals */}
+        {(() => {
+          const downlines = contacts.filter(c => c.referrerId === contact.id);
+          return (
+            <div className="flex gap-3 items-start">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">推薦人數</p>
+                <p className="text-sm font-medium mt-0.5">{downlines.length} 人</p>
+                {downlines.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {downlines.map(d => (
+                      <button
+                        key={d.id}
+                        onClick={() => onSelectContact?.(d.id)}
+                        className="text-xs text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5 hover:bg-primary/20 transition-colors"
+                      >
+                        {d.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Referrer chain */}
         <div className="flex gap-3 items-start">
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
             <Users className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈（上溯三階）</p>
+            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
             {referrerChain.length > 0 ? (
               <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                 <span className="text-sm text-muted-foreground">{contact.name}</span>
