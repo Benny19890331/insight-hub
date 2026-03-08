@@ -67,6 +67,13 @@ const Index = () => {
     setSelectedContact(updated);
   }, []);
 
+  const handleDeleteContact = useCallback((id: string) => {
+    setContacts((prev) => prev.filter((c) => c.id !== id));
+    setSelectedContact(null);
+    setShowDetail(false);
+    toast.success("已刪除聯絡人");
+  }, []);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="flex items-center justify-between border-b border-border px-4 md:px-6 h-14 shrink-0">
