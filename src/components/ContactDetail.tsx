@@ -454,26 +454,57 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               </div>
             </div>
           ) : (
-            /* Default view: show date + edit/cancel buttons */
+            /* Default view: show date/time + edit/cancel/export buttons */
             <>
-              <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate || "未設定"}</p>
+              <p className="text-sm font-medium font-mono tracking-wide text-primary">
+                {contact.nextFollowUpDate || "未設定"}
+                {contact.nextFollowUpTime && <span className="ml-2">{contact.nextFollowUpTime}</span>}
+              </p>
               {contact.nextFollowUpNote && (
                 <MentionText text={contact.nextFollowUpNote} contacts={contacts} onSelectContact={onSelectContact} />
               )}
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 flex-wrap">
                 <button
-                  onClick={() => { setEditingFollowUp(true); setFollowUpDate(contact.nextFollowUpDate || new Date().toISOString().split("T")[0]); setFollowUpNote(contact.nextFollowUpNote ?? ""); }}
+                  onClick={() => { setEditingFollowUp(true); setFollowUpDate(contact.nextFollowUpDate || new Date().toISOString().split("T")[0]); setFollowUpTime(contact.nextFollowUpTime ?? ""); setFollowUpNote(contact.nextFollowUpNote ?? ""); }}
                   className="inline-flex items-center gap-1 text-xs bg-primary/15 text-primary border border-primary/30 px-2.5 py-1 rounded-md hover:bg-primary/25 transition-colors"
                 >
                   <Pencil className="h-3 w-3" />編輯
                 </button>
                 {contact.nextFollowUpDate && (
-                  <button
-                    onClick={() => setFollowUpAction("cancel")}
-                    className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-md hover:bg-rose-500/25 transition-colors"
-                  >
-                    <XCircle className="h-3 w-3" />取消
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setFollowUpAction("cancel")}
+                      className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-md hover:bg-rose-500/25 transition-colors"
+                    >
+                      <XCircle className="h-3 w-3" />取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        const d = contact.nextFollowUpDate.replace(/-/g, "");
+                        const t = contact.nextFollowUpTime ? contact.nextFollowUpTime.replace(":", "") + "00" : "090000";
+                        const endH = contact.nextFollowUpTime ? String(parseInt(contact.nextFollowUpTime.split(":")[0]) + 1).padStart(2, "0") + contact.nextFollowUpTime.split(":")[1] + "00" : "100000";
+                        const title = contact.nextFollowUpNote ? `追蹤 ${contact.name}：${contact.nextFollowUpNote}` : `追蹤 ${contact.name}`;
+                        const ics = [
+                          "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//RICH//CRM//TW",
+                          "BEGIN:VEVENT",
+                          `DTSTART:${d}T${t}`,
+                          `DTEND:${d}T${endH}`,
+                          `SUMMARY:${title}`,
+                          `DESCRIPTION:RICH 系統追蹤提醒 - ${contact.name}`,
+                          "END:VEVENT", "END:VCALENDAR"
+                        ].join("\r\n");
+                        const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url; a.download = `追蹤_${contact.name}_${contact.nextFollowUpDate}.ics`;
+                        a.click(); URL.revokeObjectURL(url);
+                        toast.success("已下載行事曆檔案，開啟即可加入手機行事曆");
+                      }}
+                      className="inline-flex items-center gap-1 text-xs bg-sky-500/15 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-md hover:bg-sky-500/25 transition-colors"
+                    >
+                      <Calendar className="h-3 w-3" />匯出行事曆
+                    </button>
+                  </>
                 )}
               </div>
             </>
