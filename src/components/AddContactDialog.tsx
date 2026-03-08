@@ -85,7 +85,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
-          <DialogDescription>手動新增一位新客戶到名單中</DialogDescription>
+          <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           {/* Name + Nickname */}
