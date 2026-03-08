@@ -187,10 +187,10 @@ export default function AdminDashboard() {
                 {users.map((u) => (
                   <div
                     key={u.id}
-                    className={`flex items-center justify-between rounded-lg border px-4 py-3 transition-colors ${t.authCard} ${u.isBanned ? "opacity-60" : ""}`}
+                    className={`rounded-lg border px-4 py-3 transition-colors space-y-2 ${t.authCard} ${u.isBanned ? "opacity-60" : ""}`}
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className={`text-sm font-medium truncate ${t.authCardText}`}>
+                    <div className="min-w-0">
+                      <div className={`text-sm font-medium ${t.authCardText}`}>
                         {u.displayName || "(未命名)"}
                         {u.isAdmin && (
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: `${t.titleColor}22`, color: t.titleColor }}>管理員</span>
@@ -199,13 +199,13 @@ export default function AdminDashboard() {
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">已停權</span>
                         )}
                       </div>
-                      <div className={`text-xs truncate ${t.authSubtext}`}>{u.email}</div>
+                      <div className={`text-xs ${t.authSubtext}`}>{u.email}</div>
                       <div className={`text-xs ${t.authSubtext}`}>
                         註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}
                         {u.lastSignIn && ` · 最後登入: ${new Date(u.lastSignIn).toLocaleDateString("zh-TW")}`}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-3 shrink-0">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
                         disabled={toggling === u.id}
