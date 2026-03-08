@@ -55,10 +55,10 @@ export interface Contact {
 
 export const heatOptions: { value: HeatLevel | "all"; label: string }[] = [
   { value: "all", label: "全部熱度" },
+  { value: "loyal", label: "💎 忠實" },
   { value: "hot", label: "🔥 熱" },
   { value: "warm", label: "🌤 溫" },
   { value: "cold", label: "🧊 冷" },
-  { value: "loyal", label: "💎 忠實" },
 ];
 
 // Helper to get referrer chain up to 3 levels
