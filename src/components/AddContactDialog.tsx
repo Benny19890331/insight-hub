@@ -64,8 +64,8 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       interactions: [],
       productTags: selectedTags,
       contactMethod: contactMethod.trim() || undefined,
-      referrerId: referrerId || undefined,
-      referrerName: selectedReferrer?.name,
+      referrerId: referrerId === "self" ? undefined : (referrerId || undefined),
+      referrerName: selectedReferrer?.name ?? (referrerId === "self" ? userName : undefined),
       birthday: birthday || undefined,
       birthdayReminder,
     };
