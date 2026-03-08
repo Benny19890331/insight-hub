@@ -19,10 +19,19 @@ import bgWisdom from "@/assets/bg-wisdom.jpg";
 const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 const Index = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
   const { theme: t } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
+        .then(({ data }) => setIsAdmin(!!data));
+    });
+  }, [user]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
