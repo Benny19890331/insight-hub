@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { Contact, Interaction, HeatLevel, BirthdayReminder } from "@/data/contacts";
+import { Contact, Interaction, HeatLevel, BirthdayReminder, Gender } from "@/data/contacts";
 import { toast } from "sonner";
 
 interface DbContact {
