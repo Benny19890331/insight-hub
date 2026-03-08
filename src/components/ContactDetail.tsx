@@ -12,6 +12,7 @@ import {
 
 interface ContactDetailProps {
   contact: Contact | null;
+  contacts?: Contact[];
   onBack?: () => void;
   onUpdateContact?: (updated: Contact) => void;
   onSelectContact?: (id: string) => void;
