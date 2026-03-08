@@ -118,6 +118,24 @@ export default function AdminDashboard() {
     setToggling(null);
   };
 
+  const deleteUser = async () => {
+    if (!deleteTarget) return;
+    setToggling(deleteTarget);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "delete_user", targetUserId: deleteTarget },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget));
+      toast.success("使用者已刪除");
+      setDeleteTarget(null);
+    } catch (err: any) {
+      toast.error(err.message || "刪除失敗");
+    }
+    setToggling(null);
+  };
+
   const fieldClass = `w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`;
 
 
