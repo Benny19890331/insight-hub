@@ -339,12 +339,65 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   return null;
                 })()}
               </div>
-              {contact.birthdayReminder && contact.birthdayReminder !== "none" && (
-                <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5">
-                  <Bell className="h-3 w-3" />
-                  {reminderLabel[contact.birthdayReminder]}
-                </span>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                {contact.birthdayReminder && contact.birthdayReminder !== "none" && (
+                  <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5">
+                    <Bell className="h-3 w-3" />
+                    {reminderLabel[contact.birthdayReminder]}
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    const parts = contact.birthday!.split("-").map(Number);
+                    if (parts.length < 2) return;
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const [m, d] = parts.length === 3 ? [parts[1], parts[2]] : [parts[0], parts[1]];
+                    let nextBday = new Date(year, m - 1, d);
+                    if (nextBday < now) nextBday = new Date(year + 1, m - 1, d);
+                    const dateStr = `${nextBday.getFullYear()}${String(nextBday.getMonth() + 1).padStart(2, "0")}${String(nextBday.getDate()).padStart(2, "0")}`;
+                    const title = `🎂 ${contact.name} 生日`;
+
+                    // Calculate alarm trigger based on reminder setting
+                    const reminderAlarms: string[] = [];
+                    const reminder = contact.birthdayReminder ?? "none";
+                    if (reminder === "1month") {
+                      reminderAlarms.push("BEGIN:VALARM", "TRIGGER:-P30D", "ACTION:DISPLAY", `DESCRIPTION:${contact.name} 的生日在一個月後`, "END:VALARM");
+                    } else if (reminder === "1week") {
+                      reminderAlarms.push("BEGIN:VALARM", "TRIGGER:-P7D", "ACTION:DISPLAY", `DESCRIPTION:${contact.name} 的生日在一週後`, "END:VALARM");
+                    } else if (reminder === "3days") {
+                      reminderAlarms.push("BEGIN:VALARM", "TRIGGER:-P3D", "ACTION:DISPLAY", `DESCRIPTION:${contact.name} 的生日在三天後`, "END:VALARM");
+                    } else if (reminder === "today") {
+                      reminderAlarms.push("BEGIN:VALARM", "TRIGGER:-PT0S", "ACTION:DISPLAY", `DESCRIPTION:今天是 ${contact.name} 的生日！`, "END:VALARM");
+                    }
+                    // Always add a day-of reminder as well (unless already "today")
+                    if (reminder !== "none" && reminder !== "today") {
+                      reminderAlarms.push("BEGIN:VALARM", "TRIGGER:-PT0S", "ACTION:DISPLAY", `DESCRIPTION:今天是 ${contact.name} 的生日！`, "END:VALARM");
+                    }
+
+                    const ics = [
+                      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//RICH//CRM//TW",
+                      "BEGIN:VEVENT",
+                      `DTSTART;VALUE=DATE:${dateStr}`,
+                      `DTEND;VALUE=DATE:${dateStr}`,
+                      `SUMMARY:${title}`,
+                      `DESCRIPTION:RICH 系統生日提醒 - ${contact.name}${contact.nickname ? `（${contact.nickname}）` : ""}`,
+                      "RRULE:FREQ=YEARLY",
+                      ...reminderAlarms,
+                      "END:VEVENT", "END:VCALENDAR"
+                    ].join("\r\n");
+                    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = `生日_${contact.name}.ics`;
+                    a.click(); URL.revokeObjectURL(url);
+                    toast.success("已下載生日行事曆，開啟即可加入手機行事曆（每年重複）");
+                  }}
+                  className="inline-flex items-center gap-1 text-xs bg-sky-500/15 text-sky-400 border border-sky-500/30 px-2.5 py-0.5 rounded-md hover:bg-sky-500/25 transition-colors cursor-pointer"
+                >
+                  <Calendar className="h-3 w-3" />匯出生日行事曆
+                </button>
+              </div>
             </div>
           ) : (
             <span className="text-muted-foreground">尚未填寫</span>
