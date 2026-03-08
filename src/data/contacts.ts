@@ -61,7 +61,8 @@ export const mockContacts: Contact[] = [
     notes: "已購買三次，主動分享給同事。可培養為潛在經銷夥伴。",
     lastContactDate: "2026-03-05",
     nextFollowUpDate: "2026-03-12",
-    productTags: ["水素水", "識霸", "三茶"],
+    contactMethod: "Email: mei.lin@techcorp.com",
+    productTags: ["水素水", "識霸"],
     interactions: [
       { date: "2026-03-05", summary: "第三次回購，主動詢問經銷方案細節" },
       { date: "2026-02-20", summary: "分享使用心得到公司群組，帶來兩位新客戶" },
