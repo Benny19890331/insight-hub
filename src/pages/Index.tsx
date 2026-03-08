@@ -8,11 +8,13 @@ import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { AddContactDialog } from "@/components/AddContactDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts } from "@/hooks/useContacts";
+import { useTheme, ThemeSwitcher } from "@/hooks/useTheme";
 import { toast } from "sonner";
 
 const Index = () => {
   const { signOut } = useAuth();
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
+  const { theme: t } = useTheme();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
@@ -36,9 +38,7 @@ const Index = () => {
     }
   }, [contacts]);
 
-  const handleBack = useCallback(() => {
-    setShowDetail(false);
-  }, []);
+  const handleBack = useCallback(() => setShowDetail(false), []);
 
   const handleCsvImport = useCallback(async (imported: Contact[]) => {
     await importContacts(imported);
@@ -81,26 +81,40 @@ const Index = () => {
   const handleAddInteraction = useCallback(async (contactId: string, interaction: { date: string; summary: string }) => {
     await addInteraction(contactId, interaction);
   }, [addInteraction]);
+
   const handleSeedData = useCallback(async () => {
     const seedData = generateSeedContacts();
     await importContacts(seedData);
     toast.success(`已生成 ${seedData.length} 筆虛擬名單`);
   }, [importContacts]);
 
-  // Keep selectedContact in sync with contacts array
   const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
+
+  // Themed button styles
+  const primaryBtnStyle: React.CSSProperties = {
+    color: t.btnPrimary.color,
+    border: `1px solid ${t.btnPrimary.border}`,
+    background: t.btnPrimary.bg,
+    boxShadow: `0 0 12px -2px ${t.btnPrimary.shadow}, inset 0 0 10px -6px ${t.btnPrimary.shadow}`,
+  };
+  const secondaryBtnStyle: React.CSSProperties = {
+    color: t.btnSecondary.color,
+    border: `1px solid ${t.btnSecondary.border}`,
+    background: t.btnSecondary.bg,
+    boxShadow: `0 0 10px -2px ${t.btnSecondary.shadow}, inset 0 0 8px -6px ${t.btnSecondary.shadow}`,
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className={`min-h-screen flex items-center justify-center ${t.mainBg}`}>
+        <Loader2 className={`h-8 w-8 animate-spin ${t.accent}`} />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
-      <header className="flex items-center justify-between border-b border-border px-4 md:px-6 h-14 shrink-0">
+    <div className={`flex flex-col h-screen overflow-hidden ${t.mainBg}`}>
+      <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 ${t.headerBg} ${t.headerBorder}`}>
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center shrink-0">
             <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5 }} />
@@ -124,37 +138,54 @@ const Index = () => {
             </svg>
           </div>
           <h1 className="text-sm font-semibold tracking-tight">
-            <span className="text-amber-400 glow-text" style={{ textShadow: '0 0 8px rgba(251, 191, 36, 0.4)' }}>RICH系統</span>
-            <span className="text-foreground ml-1.5 font-normal hidden sm:inline">名單管理</span>
+            <span style={{ color: t.titleColor, textShadow: `0 0 8px ${t.titleGlow}` }}>RICH系統</span>
+            <span className={`ml-1.5 font-normal hidden sm:inline ${t.mutedText}`}>名單管理</span>
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setAddContactOpen(true)} className="neon-btn-cyan">
+          <ThemeSwitcher />
+          <button
+            onClick={() => setAddContactOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
+            style={primaryBtnStyle}
+            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.hoverBg; }}
+            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.bg; }}
+          >
             <UserPlus className="h-4 w-4" />
             <span className="hidden sm:inline">新增</span>
           </button>
-          <button onClick={() => setCsvOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+          <button
+            onClick={() => setCsvOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
+            style={secondaryBtnStyle}
+            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = t.btnSecondary.hoverBg; }}
+            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnSecondary.bg; }}
+          >
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">匯入</span>
           </button>
-          <button onClick={handleCsvExport} className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors">
+          <button onClick={handleCsvExport} className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors ${t.btnOutline}`}>
             <Upload className="h-4 w-4" />
             <span className="hidden sm:inline">匯出</span>
           </button>
           {contacts.length === 0 && (
-            <button onClick={handleSeedData} className="neon-btn-magenta" title="生成虛擬名單">
+            <button
+              onClick={handleSeedData}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${t.btnOutline}`}
+              title="生成虛擬名單"
+            >
               <DatabaseZap className="h-4 w-4" />
-              <span className="hidden sm:inline">測試資料</span>
+              <span className="hidden sm:inline">測試</span>
             </button>
           )}
-          <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors" title="登出">
+          <button onClick={signOut} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${t.btnOutline}`} title="登出">
             <LogOut className="h-4 w-4" />
           </button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`w-full md:w-80 lg:w-96 border-r border-border shrink-0 overflow-hidden flex-col ${showDetail ? "hidden md:flex" : "flex"}`}>
+        <aside className={`w-full md:w-80 lg:w-96 border-r shrink-0 overflow-hidden flex-col transition-colors duration-500 ${t.sidebarBg} ${t.cardBorder} ${showDetail ? "hidden md:flex" : "flex"}`}>
           <ContactList
             contacts={contacts}
             searchQuery={searchQuery}
@@ -178,18 +209,8 @@ const Index = () => {
           />
         </main>
       </div>
-      <CsvImportDialog
-        open={csvOpen}
-        onOpenChange={setCsvOpen}
-        onImport={handleCsvImport}
-        existingContacts={contacts}
-      />
-      <AddContactDialog
-        open={addContactOpen}
-        onOpenChange={setAddContactOpen}
-        onSave={handleAddContact}
-        contacts={contacts}
-      />
+      <CsvImportDialog open={csvOpen} onOpenChange={setCsvOpen} onImport={handleCsvImport} existingContacts={contacts} />
+      <AddContactDialog open={addContactOpen} onOpenChange={setAddContactOpen} onSave={handleAddContact} contacts={contacts} />
     </div>
   );
 };
