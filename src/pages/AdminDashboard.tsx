@@ -96,7 +96,29 @@ export default function AdminDashboard() {
     setToggling(null);
   };
 
+  const resetPassword = async () => {
+    if (!resetTarget || newPwd.length < 6) {
+      toast.error("密碼至少需要 6 個字元");
+      return;
+    }
+    setToggling(resetTarget);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "reset_password", targetUserId: resetTarget, newPassword: newPwd },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("密碼已重設");
+      setResetTarget(null);
+      setNewPwd("");
+    } catch (err: any) {
+      toast.error(err.message || "重設失敗");
+    }
+    setToggling(null);
+  };
+
   const fieldClass = `w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`;
+
 
   const btnStyle: React.CSSProperties = {
     color: t.btnPrimary.color,
