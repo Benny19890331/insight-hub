@@ -359,6 +359,17 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <span className="text-xs">最後聯絡日期</span>
           </div>
           <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
+          {contact.lastContactDate && (() => {
+            const diff = Math.floor((Date.now() - new Date(contact.lastContactDate).getTime()) / (1000 * 60 * 60 * 24));
+            const isOverdue = diff > 30;
+            const isWarning = diff > 14;
+            return (
+              <p className={`text-xs mt-1 ${isOverdue ? "text-rose-400" : isWarning ? "text-amber-400" : "text-muted-foreground"}`}>
+                {diff === 0 ? "📍 今天聯絡過" : diff === 1 ? "昨天聯絡" : `已 ${diff} 天未聯絡`}
+                {isOverdue && " ⚠️ 建議盡快追蹤"}
+              </p>
+            );
+          })()}
         </div>
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
           <div className="flex items-center gap-2 text-muted-foreground">
