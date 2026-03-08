@@ -9,6 +9,7 @@ const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [searchQuery, setSearchQuery] = useState("");
   const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
+  const [productFilter, setProductFilter] = useState("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -16,6 +17,14 @@ const Index = () => {
     const fresh = contacts.find((x) => x.id === c.id) ?? c;
     setSelectedContact(fresh);
     setShowDetail(true);
+  }, [contacts]);
+
+  const handleSelectById = useCallback((id: string) => {
+    const found = contacts.find((c) => c.id === id);
+    if (found) {
+      setSelectedContact(found);
+      setShowDetail(true);
+    }
   }, [contacts]);
 
   const handleBack = useCallback(() => {
@@ -60,6 +69,8 @@ const Index = () => {
             onSearchChange={setSearchQuery}
             heatFilter={heatFilter}
             onHeatFilterChange={setHeatFilter}
+            productFilter={productFilter}
+            onProductFilterChange={setProductFilter}
             selectedId={selectedContact?.id ?? null}
             onSelect={handleSelect}
           />
@@ -67,8 +78,10 @@ const Index = () => {
         <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`}>
           <ContactDetail
             contact={selectedContact}
+            contacts={contacts}
             onBack={handleBack}
             onUpdateContact={handleUpdateContact}
+            onSelectContact={handleSelectById}
           />
         </main>
       </div>

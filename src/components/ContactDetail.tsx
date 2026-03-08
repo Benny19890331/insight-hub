@@ -7,12 +7,15 @@ import { AiInviteDialog } from "@/components/AiInviteDialog";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
   CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
+  Users, Cake,
 } from "lucide-react";
 
 interface ContactDetailProps {
   contact: Contact | null;
+  contacts?: Contact[];
   onBack?: () => void;
   onUpdateContact?: (updated: Contact) => void;
+  onSelectContact?: (id: string) => void;
 }
 
 const heatLabel: Record<string, string> = {
@@ -30,13 +33,13 @@ function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; l
       </div>
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm mt-0.5">{children}</p>
+        <div className="text-sm mt-0.5">{children}</div>
       </div>
     </div>
   );
 }
 
-export function ContactDetail({ contact, onBack, onUpdateContact }: ContactDetailProps) {
+export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact }: ContactDetailProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -118,6 +121,26 @@ export function ContactDetail({ contact, onBack, onUpdateContact }: ContactDetai
         <DetailRow icon={Phone} label="聯絡方式">{contact.contactMethod || "尚未填寫"}</DetailRow>
         <DetailRow icon={Flame} label="當前狀態 / 熱度">{contact.status} — {heatLabel[contact.heat]}</DetailRow>
 
+        {/* Referrer */}
+        <DetailRow icon={Users} label="推薦人 / 關係鏈">
+          {contact.referrerName ? (
+            <button
+              onClick={() => contact.referrerId && onSelectContact?.(contact.referrerId)}
+              className="text-primary hover:underline cursor-pointer font-medium"
+            >
+              {contact.referrerName} →
+            </button>
+          ) : (
+            <span className="text-muted-foreground">尚未填寫</span>
+          )}
+        </DetailRow>
+
+        {/* Birthday */}
+        <DetailRow icon={Cake} label="生日 / 重要紀念日">
+          {contact.birthday || <span className="text-muted-foreground">尚未填寫</span>}
+        </DetailRow>
+
+        {/* Product tags */}
         <div className="flex gap-3 items-start">
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
             <Package className="h-4 w-4 text-primary" />
@@ -191,6 +214,7 @@ export function ContactDetail({ contact, onBack, onUpdateContact }: ContactDetai
         open={editOpen}
         onOpenChange={setEditOpen}
         contact={contact}
+        contacts={contacts}
         onSave={handleEditSave}
       />
       <AiInviteDialog

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptions, productOptions, statusOptions } from "@/data/contacts";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
 
@@ -9,9 +9,10 @@ interface EditContactDialogProps {
   onOpenChange: (open: boolean) => void;
   contact: Contact;
   onSave: (updated: Contact) => void;
+  contacts?: Contact[];
 }
 
-export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditContactDialogProps) {
+export function EditContactDialog({ open, onOpenChange, contact, onSave, contacts = [] }: EditContactDialogProps) {
   const [name, setName] = useState(contact.name);
   const [region, setRegion] = useState(contact.region);
   const [background, setBackground] = useState(contact.background);
@@ -21,6 +22,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.productTags ?? []);
   const [contactMethod, setContactMethod] = useState(contact.contactMethod ?? "");
   const [avatarUrl, setAvatarUrl] = useState(contact.avatarUrl ?? "");
+  const [referrerId, setReferrerId] = useState(contact.referrerId ?? "");
+  const [birthday, setBirthday] = useState(contact.birthday ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -33,6 +36,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
     setSelectedTags(contact.productTags ?? []);
     setContactMethod(contact.contactMethod ?? "");
     setAvatarUrl(contact.avatarUrl ?? "");
+    setReferrerId(contact.referrerId ?? "");
+    setBirthday(contact.birthday ?? "");
   }, [contact]);
 
   const toggleTag = (tag: string) => {
@@ -50,6 +55,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
     }
   };
 
+  const selectedReferrer = contacts.find((c) => c.id === referrerId);
+
   const handleSave = () => {
     const updated: Contact = {
       ...contact,
@@ -57,6 +64,9 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
+      referrerId: referrerId || undefined,
+      referrerName: selectedReferrer?.name ?? undefined,
+      birthday: birthday || undefined,
     };
     onSave(updated);
     onOpenChange(false);
@@ -64,6 +74,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
   };
 
   const fieldClass = "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
+  const otherContacts = contacts.filter((c) => c.id !== contact.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,7 +107,16 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
           <Field label="地區"><input value={region} onChange={(e) => setRegion(e.target.value)} className={fieldClass} /></Field>
           <Field label="背景 / 職業"><input value={background} onChange={(e) => setBackground(e.target.value)} className={fieldClass} /></Field>
           <Field label="聯絡方式"><input value={contactMethod} onChange={(e) => setContactMethod(e.target.value)} placeholder="LINE ID / 電話 / Email" className={fieldClass} /></Field>
-          <Field label="當前狀態"><input value={status} onChange={(e) => setStatus(e.target.value)} className={fieldClass} /></Field>
+
+          {/* Status dropdown */}
+          <Field label="當前狀態">
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${fieldClass} cursor-pointer`}>
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </Field>
+
           <Field label="熱度">
             <select value={heat} onChange={(e) => setHeat(e.target.value as HeatLevel)} className={`${fieldClass} cursor-pointer`}>
               {heatOptions.filter((o) => o.value !== "all").map((o) => (
@@ -105,7 +125,22 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave }: EditC
             </select>
           </Field>
 
-          {/* Product tags as multi-select chips */}
+          {/* Referrer */}
+          <Field label="推薦人 / 關係鏈">
+            <select value={referrerId} onChange={(e) => setReferrerId(e.target.value)} className={`${fieldClass} cursor-pointer`}>
+              <option value="">無推薦人</option>
+              {otherContacts.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </Field>
+
+          {/* Birthday */}
+          <Field label="生日 / 重要紀念日">
+            <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className={fieldClass} />
+          </Field>
+
+          {/* Product tags */}
           <Field label="產品關注（點選切換）">
             <div className="flex flex-wrap gap-2">
               {productOptions.map((tag) => (
