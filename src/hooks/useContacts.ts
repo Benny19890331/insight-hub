@@ -119,6 +119,7 @@ export function useContacts() {
       referrer_name: contact.referrerName || null,
       birthday: contact.birthday || null,
       birthday_reminder: contact.birthdayReminder || "none",
+      gender: contact.gender || null,
       product_tags: contact.productTags,
     });
     if (error) { toast.error("新增失敗"); return; }
