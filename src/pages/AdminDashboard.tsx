@@ -19,7 +19,18 @@ interface AdminUser {
   lastSignIn: string | null;
   isBanned: boolean;
   isAdmin: boolean;
+  contactCount: number;
+  interactionCount: number;
 }
+
+const usageLevel = (u: AdminUser): { label: string; color: string; level: number } => {
+  const total = u.contactCount + u.interactionCount;
+  if (total >= 100) return { label: "重度", color: "text-red-400 border-red-500/40 bg-red-500/10", level: 5 };
+  if (total >= 50) return { label: "高頻", color: "text-orange-400 border-orange-500/40 bg-orange-500/10", level: 4 };
+  if (total >= 20) return { label: "中頻", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10", level: 3 };
+  if (total >= 5) return { label: "低頻", color: "text-blue-400 border-blue-500/40 bg-blue-500/10", level: 2 };
+  return { label: "極少", color: "text-gray-400 border-gray-500/40 bg-gray-500/10", level: 1 };
+};
 
 export default function AdminDashboard() {
   const { theme: t, themeIndex } = useTheme();
