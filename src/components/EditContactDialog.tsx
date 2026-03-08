@@ -109,8 +109,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
-      referrerId: referrerId || undefined,
-      referrerName: selectedReferrer?.name ?? undefined,
+      referrerId: referrerId === "self" ? undefined : (referrerId || undefined),
+      referrerName: referrerId === "self" ? userName : (selectedReferrer?.name ?? undefined),
       birthday: birthday || undefined,
       birthdayReminder,
     };
