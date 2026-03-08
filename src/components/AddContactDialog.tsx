@@ -82,7 +82,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
           <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
