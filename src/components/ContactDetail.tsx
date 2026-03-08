@@ -540,7 +540,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 {editingInteractionIdx === i ? (
                   <div className="space-y-1.5">
                     <input type="date" value={editInteractionDate} onChange={e => setEditInteractionDate(e.target.value)}
-                      className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                      className="w-full rounded-md border border-border bg-secondary text-foreground px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
                     <MentionTextarea value={editInteractionSummary} onChange={setEditInteractionSummary} contacts={contacts}
                       placeholder="互動內容⋯" rows={2} />
                     <div className="flex gap-1.5">
