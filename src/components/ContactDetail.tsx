@@ -463,15 +463,49 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </h3>
         <div className="relative pl-5 space-y-4">
           <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border" />
-          {(contact.interactions ?? []).map((item, i) => (
-            <div key={i} className="relative flex gap-3">
+           {(contact.interactions ?? []).map((item, i) => (
+            <div key={i} className="relative flex gap-3 group">
               <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground font-mono">{item.date}</p>
-                <div className="text-sm mt-0.5">
-                  <MentionText text={item.summary} contacts={contacts} onSelectContact={onSelectContact} />
-                </div>
+              <div className="min-w-0 flex-1">
+                {editingInteractionIdx === i ? (
+                  <div className="space-y-1.5">
+                    <input type="date" value={editInteractionDate} onChange={e => setEditInteractionDate(e.target.value)}
+                      className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                    <MentionTextarea value={editInteractionSummary} onChange={setEditInteractionSummary} contacts={contacts}
+                      placeholder="互動內容⋯" rows={2} />
+                    <div className="flex gap-1.5">
+                      <button onClick={() => {
+                        const updated = [...(contact.interactions ?? [])];
+                        updated[i] = { date: editInteractionDate, summary: editInteractionSummary };
+                        if (onUpdateContact) onUpdateContact({ ...contact, interactions: updated });
+                        setEditingInteractionIdx(null);
+                      }} className="inline-flex items-center gap-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-md">
+                        <Check className="h-3 w-3" />儲存
+                      </button>
+                      <button onClick={() => setEditingInteractionIdx(null)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5">
+                        取消
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground font-mono">{item.date}</p>
+                    <div className="text-sm mt-0.5">
+                      <MentionText text={item.summary} contacts={contacts} onSelectContact={onSelectContact} />
+                    </div>
+                  </>
+                )}
               </div>
+              {editingInteractionIdx !== i && (
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <button onClick={() => { setEditingInteractionIdx(i); setEditInteractionDate(item.date); setEditInteractionSummary(item.summary); }}
+                    className="text-muted-foreground hover:text-primary p-0.5"><Edit3 className="h-3 w-3" /></button>
+                  <button onClick={() => {
+                    const updated = (contact.interactions ?? []).filter((_, idx) => idx !== i);
+                    if (onUpdateContact) onUpdateContact({ ...contact, interactions: updated });
+                  }} className="text-muted-foreground hover:text-destructive p-0.5"><Trash2 className="h-3 w-3" /></button>
+                </div>
+              )}
             </div>
           ))}
         </div>
