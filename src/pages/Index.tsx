@@ -158,9 +158,9 @@ const Index = () => {
     <div className="flex flex-col h-screen overflow-hidden relative">
       {/* Background images */}
       {bgImages.map((img, i) => (
-        <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === themeIndex ? 1 : 0, zIndex: 0 }}>
-          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/60" />
+        <div key={i} className="absolute inset-0 transition-opacity duration-700 overflow-hidden" style={{ opacity: i === themeIndex ? 1 : 0, zIndex: 0 }}>
+          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+          <div className="absolute inset-0 bg-black/50" />
         </div>
       ))}
       <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>
