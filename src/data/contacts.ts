@@ -16,6 +16,7 @@ export interface Contact {
   lastContactDate: string;
   nextFollowUpDate: string;
   interactions: Interaction[];
+  productTags: string[];
 }
 
 export const heatOptions: { value: HeatLevel | "all"; label: string }[] = [
@@ -37,6 +38,7 @@ export const mockContacts: Contact[] = [
     notes: "對健康數據敏感，太太有在用保健品。週末較有空，偏好 LINE 聯繫。",
     lastContactDate: "2026-03-01",
     nextFollowUpDate: "2026-03-15",
+    productTags: ["識霸", "舒壓ستان"],
     interactions: [
       { date: "2026-03-01", summary: "一起喝咖啡，聊到健康話題，對血壓管理有興趣" },
       { date: "2026-02-18", summary: "LINE 初次聯繫，寄送產品型錄 PDF" },
@@ -52,6 +54,7 @@ export const mockContacts: Contact[] = [
     notes: "已購買三次，主動分享給同事。可培養為潛在經銷夥伴。",
     lastContactDate: "2026-03-05",
     nextFollowUpDate: "2026-03-12",
+    productTags: ["水素水", "識霸", "三茶"],
     interactions: [
       { date: "2026-03-05", summary: "第三次回購，主動詢問經銷方案細節" },
       { date: "2026-02-20", summary: "分享使用心得到公司群組，帶來兩位新客戶" },
@@ -67,6 +70,7 @@ export const mockContacts: Contact[] = [
     notes: "對蛋白質補充品系列很感興趣，想了解經銷方案。下週二可約見面。",
     lastContactDate: "2026-03-06",
     nextFollowUpDate: "2026-03-11",
+    productTags: ["高蛋白飲", "識霸"],
     interactions: [
       { date: "2026-03-06", summary: "參觀工作室，現場試用產品，反應非常正面" },
       { date: "2026-02-25", summary: "IG 私訊初次接觸，對高蛋白系列感興趣" },
@@ -82,6 +86,7 @@ export const mockContacts: Contact[] = [
     notes: "女兒介紹認識，本人較保守。需要更多產品見證資料。",
     lastContactDate: "2026-02-28",
     nextFollowUpDate: "2026-03-20",
+    productTags: ["水素水"],
     interactions: [
       { date: "2026-02-28", summary: "女兒陪同參加產品說明會，態度保留但有禮貌" },
       { date: "2026-02-15", summary: "透過女兒取得聯繫方式，電話簡短問候" },
@@ -97,6 +102,7 @@ export const mockContacts: Contact[] = [
     notes: "對被動收入概念有興趣，但擔心時間不夠。可先從消費者開始。",
     lastContactDate: "2026-03-03",
     nextFollowUpDate: "2026-03-17",
+    productTags: ["三茶", "識霸"],
     interactions: [
       { date: "2026-03-03", summary: "早餐店拜訪，聊到副業收入，表示願意再了解" },
       { date: "2026-02-22", summary: "朋友介紹認識，電話中初步介紹商業模式" },

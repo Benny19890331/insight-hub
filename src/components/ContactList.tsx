@@ -2,6 +2,7 @@ import { Search, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact, HeatLevel, heatOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
+import { FunnelStats } from "@/components/FunnelStats";
 
 interface ContactListProps {
   contacts: Contact[];
@@ -33,8 +34,11 @@ export function ContactList({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Funnel Stats */}
+      <FunnelStats contacts={contacts} />
+
       {/* Search & Filter */}
-      <div className="p-4 space-y-2">
+      <div className="px-4 pb-3 space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
