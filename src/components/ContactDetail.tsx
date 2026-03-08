@@ -40,14 +40,14 @@ const reminderLabel: Record<string, string> = {
   today: "當天提醒",
 };
 
-function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass }: { icon: React.ElementType; label: string; children: React.ReactNode; iconBoxClass?: string; iconClass?: string }) {
+function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass, labelClass }: { icon: React.ElementType; label: string; children: React.ReactNode; iconBoxClass?: string; iconClass?: string; labelClass?: string }) {
   return (
     <div className="flex gap-3 items-start">
       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass ?? "bg-muted"}`}>
         <Icon className={`h-4 w-4 ${iconClass ?? "text-primary"}`} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className={`text-xs ${labelClass ?? "text-muted-foreground"}`}>{label}</p>
         <div className="text-sm mt-0.5">{children}</div>
       </div>
     </div>
