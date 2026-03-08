@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
 import { AiInviteDialog } from "@/components/AiInviteDialog";
+import { AiInsightsPanel } from "@/components/AiInsightsPanel";
 import { GridDateTimePicker } from "@/components/GridDateTimePicker";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
@@ -425,6 +426,11 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         <DetailRow icon={StickyNote} label="特殊註記" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.notes}</DetailRow>
       </div>
+
+      <div className="h-px bg-border" />
+
+      {/* AI Insights */}
+      <AiInsightsPanel contact={contact} />
 
       <div className="h-px bg-border" />
 
