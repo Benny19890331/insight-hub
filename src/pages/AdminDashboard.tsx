@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -29,6 +29,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [resetTarget, setResetTarget] = useState<string | null>(null);
+  const [newPwd, setNewPwd] = useState("");
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +96,29 @@ export default function AdminDashboard() {
     setToggling(null);
   };
 
+  const resetPassword = async () => {
+    if (!resetTarget || newPwd.length < 6) {
+      toast.error("密碼至少需要 6 個字元");
+      return;
+    }
+    setToggling(resetTarget);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "reset_password", targetUserId: resetTarget, newPassword: newPwd },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("密碼已重設");
+      setResetTarget(null);
+      setNewPwd("");
+    } catch (err: any) {
+      toast.error(err.message || "重設失敗");
+    }
+    setToggling(null);
+  };
+
   const fieldClass = `w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`;
+
 
   const btnStyle: React.CSSProperties = {
     color: t.btnPrimary.color,
@@ -183,6 +207,15 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex items-center gap-2 ml-3 shrink-0">
                       <button
+                        onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
+                        disabled={toggling === u.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                        title="重設密碼"
+                      >
+                        <KeyRound className="h-3 w-3" />
+                        密碼
+                      </button>
+                      <button
                         onClick={() => toggleAdmin(u.id, !u.isAdmin)}
                         disabled={toggling === u.id}
                         className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
@@ -225,6 +258,41 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Reset password modal */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl ${t.authCard} w-full max-w-sm mx-4`}>
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>
+              重設密碼 — {users.find(u => u.id === resetTarget)?.displayName || users.find(u => u.id === resetTarget)?.email}
+            </h3>
+            <input
+              type="text"
+              value={newPwd}
+              onChange={(e) => setNewPwd(e.target.value)}
+              placeholder="輸入新密碼（至少 6 字元）"
+              className={fieldClass}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={resetPassword}
+                disabled={toggling === resetTarget || newPwd.length < 6}
+                className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer disabled:opacity-50"
+                style={btnStyle}
+              >
+                {toggling === resetTarget ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "確認重設"}
+              </button>
+              <button
+                onClick={() => { setResetTarget(null); setNewPwd(""); }}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm ${t.authLink} hover:underline`}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

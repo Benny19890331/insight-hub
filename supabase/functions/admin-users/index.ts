@@ -137,6 +137,25 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "reset_password") {
+      const { targetUserId, newPassword } = body;
+      if (!targetUserId || !newPassword || newPassword.length < 6) {
+        return new Response(JSON.stringify({ error: "密碼至少需要 6 個字元" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error: resetError } = await adminClient.auth.admin.updateUserById(targetUserId, {
+        password: newPassword,
+      });
+      if (resetError) throw resetError;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
