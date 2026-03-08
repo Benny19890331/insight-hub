@@ -42,6 +42,7 @@ function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
     id: db.id,
     name: db.name,
     nickname: db.nickname ?? undefined,
+    memberId: db.member_id ?? undefined,
     region: db.region,
     background: db.background,
     statuses: db.statuses ?? [],
