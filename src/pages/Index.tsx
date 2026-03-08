@@ -78,6 +78,7 @@ const Index = () => {
         <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`}>
           <ContactDetail
             contact={selectedContact}
+            contacts={contacts}
             onBack={handleBack}
             onUpdateContact={handleUpdateContact}
             onSelectContact={handleSelectById}

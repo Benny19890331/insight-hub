@@ -214,6 +214,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         open={editOpen}
         onOpenChange={setEditOpen}
         contact={contact}
+        contacts={contacts}
         onSave={handleEditSave}
       />
       <AiInviteDialog
