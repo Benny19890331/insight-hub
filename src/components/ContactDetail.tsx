@@ -56,7 +56,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpDate, setFollowUpDate] = useState(contact?.nextFollowUpDate ?? "");
   const [followUpNote, setFollowUpNote] = useState(contact?.nextFollowUpNote ?? "");
 
-  if (!contact) {
+  useEffect(() => {
+    setFollowUpDate(contact?.nextFollowUpDate ?? "");
+    setFollowUpNote(contact?.nextFollowUpNote ?? "");
+    setEditingFollowUp(false);
+  }, [contact?.id]);
+
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
         <div className="text-center space-y-2">
