@@ -106,7 +106,7 @@ export default function Auth() {
           </div>
           <h1 className="text-2xl font-semibold">
             <span style={{ color: t.titleColor, textShadow: `0 0 16px ${t.titleGlow}` }}>RICH系統</span>
-            <span className={`ml-2 font-normal ${t.authCardText}`}>名單管理</span>
+            <span className={`ml-2 font-normal ${t.authCardText}`}>名單管理系統</span>
           </h1>
         </div>
 
