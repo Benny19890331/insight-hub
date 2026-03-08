@@ -103,6 +103,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       ...contact,
       name,
       nickname: nickname || undefined,
+      memberId: memberId || undefined,
       region,
       background,
       statuses: selectedStatuses,
