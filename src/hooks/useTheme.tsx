@@ -187,16 +187,28 @@ export const themes: AppTheme[] = [
   },
 ];
 
+const FONT_SIZES = [
+  { label: "小", value: "text-sm", scale: 0.875 },
+  { label: "中", value: "text-base", scale: 1 },
+  { label: "大", value: "text-lg", scale: 1.125 },
+];
+
 interface ThemeContextType {
   themeIndex: number;
   theme: AppTheme;
   setThemeIndex: (i: number) => void;
+  fontSizeIndex: number;
+  setFontSizeIndex: (i: number) => void;
+  fontScale: number;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   themeIndex: 2,
   theme: themes[2],
   setThemeIndex: () => {},
+  fontSizeIndex: 1,
+  setFontSizeIndex: () => {},
+  fontScale: 1,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -204,13 +216,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("rich-theme");
     return saved ? parseInt(saved, 10) : 2;
   });
+  const [fontSizeIndex, setFontSizeIndex] = useState(() => {
+    const saved = localStorage.getItem("rich-font-size");
+    return saved ? parseInt(saved, 10) : 1;
+  });
 
   useEffect(() => {
     localStorage.setItem("rich-theme", String(themeIndex));
   }, [themeIndex]);
 
+  useEffect(() => {
+    localStorage.setItem("rich-font-size", String(fontSizeIndex));
+    const scale = FONT_SIZES[fontSizeIndex]?.scale ?? 1;
+    document.documentElement.style.fontSize = `${scale * 16}px`;
+  }, [fontSizeIndex]);
+
   return (
-    <ThemeContext.Provider value={{ themeIndex, theme: themes[themeIndex], setThemeIndex }}>
+    <ThemeContext.Provider value={{ themeIndex, theme: themes[themeIndex], setThemeIndex, fontSizeIndex, setFontSizeIndex, fontScale: FONT_SIZES[fontSizeIndex]?.scale ?? 1 }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -225,10 +247,25 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
   return (
     <button
       onClick={handleClick}
-      title={`切換風格（目前：${current.name}）`}
+      title="切換風格"
       className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all duration-200 border border-white/10 bg-black/20 backdrop-blur-md hover:bg-white/10 ${current.switcherActive} ${className}`}
     >
       {current.emoji}
+    </button>
+  );
+}
+
+export function FontSizeSwitcher({ className = "" }: { className?: string }) {
+  const { fontSizeIndex, setFontSizeIndex } = useTheme();
+  const handleClick = () => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length);
+  const current = FONT_SIZES[fontSizeIndex];
+  return (
+    <button
+      onClick={handleClick}
+      title={`文字大小：${current.label}`}
+      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 border border-white/10 bg-black/20 backdrop-blur-md hover:bg-white/10 text-white/80 text-xs font-bold ${className}`}
+    >
+      {current.label}
     </button>
   );
 }
