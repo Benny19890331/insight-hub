@@ -396,9 +396,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             return null;
           })()}
         </div>
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
+        <div className={`rounded-lg border p-4 space-y-2 ${t.accentBorder} ${t.accentBg}`}>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <CalendarClock className="h-4 w-4 text-primary" />
+            <CalendarClock className={`h-4 w-4 ${iconClass}`} />
             <span className="text-xs">下次追蹤日期</span>
           </div>
 
