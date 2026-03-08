@@ -440,13 +440,15 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   onClick={() => {
                     if (!followUpNote.trim()) { toast.error("請輸入追蹤內容"); return; }
                     const record: Interaction = { date: followUpDate, summary: `✅ 追蹤完成：${followUpNote.trim()}` };
+                    const newInteractions = [record, ...(contact.interactions ?? [])];
                     if (onUpdateContact) {
                       onUpdateContact({
                         ...contact,
-                        interactions: [record, ...(contact.interactions ?? [])],
-                        lastContactDate: followUpDate,
+                        interactions: newInteractions,
+                        lastContactDate: getLatestDate(newInteractions),
                         nextFollowUpDate: "",
                         nextFollowUpNote: "",
+                        nextFollowUpTime: "",
                       });
                     }
                     setEditingFollowUp(false);
