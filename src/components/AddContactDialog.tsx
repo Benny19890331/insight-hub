@@ -44,7 +44,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   const reset = () => {
     setName(""); setNickname(""); setRegion(""); setBackground("");
-    setSelectedStatuses([]); setHeat("cold"); setNotes("");
+    setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes("");
     setSelectedTags([]); setContactMethod(""); setReferrerId("");
     setBirthday(""); setBirthdayReminder("none"); setReferrerSearch("");
   };
