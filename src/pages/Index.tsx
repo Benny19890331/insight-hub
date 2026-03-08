@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap } from "lucide-react";
 import { generateSeedContacts } from "@/data/seedContacts";
@@ -19,10 +19,19 @@ import bgWisdom from "@/assets/bg-wisdom.jpg";
 const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 const Index = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
   const { theme: t } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
+        .then(({ data }) => setIsAdmin(!!data));
+    });
+  }, [user]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
@@ -35,6 +44,7 @@ const Index = () => {
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleInfinityTap = useCallback(() => {
+    if (!isAdmin) return;
     tapCountRef.current += 1;
     if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
     if (tapCountRef.current >= 10) {
@@ -43,7 +53,7 @@ const Index = () => {
       return;
     }
     tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 3000);
-  }, [navigate]);
+  }, [navigate, isAdmin]);
 
   const handleSelect = useCallback((c: Contact) => {
     const fresh = contacts.find((x) => x.id === c.id) ?? c;
