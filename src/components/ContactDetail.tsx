@@ -245,10 +245,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
             {referrerChain.length > 0 ? (
               <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                <span className="text-sm text-muted-foreground">{contact.name}</span>
-                {referrerChain.map((ref, i) => (
+                {[...referrerChain].reverse().map((ref, i) => (
                   <span key={ref.id} className="flex items-center gap-1">
-                    <span className="text-xs text-muted-foreground">←</span>
                     <button
                       onClick={() => onSelectContact?.(ref.id)}
                       className="text-sm text-primary hover:underline cursor-pointer font-medium"
@@ -256,8 +254,10 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                       {ref.name}
                       {ref.nickname && <span className="text-xs text-muted-foreground ml-0.5">({ref.nickname})</span>}
                     </button>
+                    <span className="text-xs text-muted-foreground">→</span>
                   </span>
                 ))}
+                <span className="text-sm text-muted-foreground">{contact.name}</span>
               </div>
             ) : (
               <p className="text-sm mt-0.5 text-muted-foreground">無上級推薦人</p>
