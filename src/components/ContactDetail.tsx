@@ -11,6 +11,7 @@ import {
   Users, Cake, Bell, UserCircle, Thermometer, CheckCircle2, XCircle, Edit3, Trash2, Check, X,
 } from "lucide-react";
 import { statusColorMap } from "@/data/statusColors";
+import { toast } from "sonner";
 
 interface ContactDetailProps {
   contact: Contact | null;
