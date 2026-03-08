@@ -556,14 +556,14 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       {/* Interaction Timeline */}
       <div>
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${t.accentBg}`} style={{ background: t.titleColor }} />
           歷史互動紀錄
         </h3>
         <div className="relative pl-5 space-y-4">
-          <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border" />
+          <div className={`absolute left-[7px] top-1 bottom-1 w-px ${t.accentBorder}`} style={{ background: t.titleColor, opacity: 0.3 }} />
            {(contact.interactions ?? []).map((item, i) => (
             <div key={i} className="relative flex gap-3 group">
-              <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
+              <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-background" style={{ borderColor: t.titleColor }} />
               <div className="min-w-0 flex-1">
                 {editingInteractionIdx === i ? (
                   <div className="space-y-1.5">
