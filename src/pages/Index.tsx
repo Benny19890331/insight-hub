@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap } from "lucide-react";
 import { generateSeedContacts } from "@/data/seedContacts";
 import { Contact, HeatLevel } from "@/data/contacts";
@@ -19,6 +20,7 @@ const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 const Index = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
   const { theme: t } = useTheme();
 
@@ -29,6 +31,19 @@ const Index = () => {
   const [showDetail, setShowDetail] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleInfinityTap = useCallback(() => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= 10) {
+      tapCountRef.current = 0;
+      navigate("/admin");
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 3000);
+  }, [navigate]);
 
   const handleSelect = useCallback((c: Contact) => {
     const fresh = contacts.find((x) => x.id === c.id) ?? c;
@@ -138,7 +153,7 @@ const Index = () => {
       ))}
       <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center shrink-0 cursor-pointer" onClick={handleInfinityTap}>
             <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5 }} />
             <svg width="0" height="0">
               <defs>
