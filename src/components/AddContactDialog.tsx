@@ -58,6 +58,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       region: region.trim() || "未填寫",
       background: background.trim() || "未填寫",
       statuses: selectedStatuses,
+      gender,
       heat,
       notes: notes.trim(),
       lastContactDate: today,
