@@ -141,6 +141,7 @@ export function useContacts() {
     const { error } = await supabase.from("contacts").update({
       name: contact.name,
       nickname: contact.nickname || null,
+      member_id: contact.memberId || null,
       region: contact.region,
       background: contact.background,
       statuses: contact.statuses,
