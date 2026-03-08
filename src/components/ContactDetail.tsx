@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Contact, Interaction, statusOptions, heatOptionsRaw, HeatLevel, getReferrerChain } from "@/data/contacts";
 import { MentionTextarea, MentionText } from "@/components/MentionTextarea";
 import { StatusBadge } from "@/components/StatusBadge";
