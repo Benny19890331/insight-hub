@@ -4,10 +4,17 @@ import { Contact } from "@/data/contacts";
 import { Copy, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
+interface ContactInsights {
+  summary: string;
+  tags: string[];
+  next_action: string;
+}
+
 interface AiInviteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contact: Contact;
+  insights?: ContactInsights | null;
 }
 
 const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
