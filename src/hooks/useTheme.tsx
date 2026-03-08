@@ -227,12 +227,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("rich-font-size", String(fontSizeIndex));
-    const scale = FONT_SIZES[fontSizeIndex]?.scale ?? 1;
-    document.documentElement.style.fontSize = `${scale * 16}px`;
+    // Remove old classes, add new
+    FONT_SIZES.forEach(f => document.documentElement.classList.remove(f.cls));
+    document.documentElement.classList.add(FONT_SIZES[fontSizeIndex]?.cls ?? "font-scale-md");
   }, [fontSizeIndex]);
 
   return (
-    <ThemeContext.Provider value={{ themeIndex, theme: themes[themeIndex], setThemeIndex, fontSizeIndex, setFontSizeIndex, fontScale: FONT_SIZES[fontSizeIndex]?.scale ?? 1 }}>
+    <ThemeContext.Provider value={{ themeIndex, theme: themes[themeIndex], setThemeIndex, fontSizeIndex, setFontSizeIndex, fontSizeClass: FONT_SIZES[fontSizeIndex]?.cls ?? "font-scale-md" }}>
       {children}
     </ThemeContext.Provider>
   );
