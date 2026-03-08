@@ -114,10 +114,11 @@ const Index = () => {
   }, [addInteraction]);
 
   const handleSeedData = useCallback(async () => {
+    if (!isAdmin) return;
     const seedData = generateSeedContacts();
     await importContacts(seedData);
     toast.success(`已生成 ${seedData.length} 筆虛擬名單`);
-  }, [importContacts]);
+  }, [importContacts, isAdmin]);
 
   const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
 
