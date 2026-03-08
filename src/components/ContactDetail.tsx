@@ -54,6 +54,7 @@ function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass }: { i
 }
 
 export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact }: ContactDetailProps) {
+  const { theme: t } = useTheme();
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -68,6 +69,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpAction, setFollowUpAction] = useState<"complete" | "cancel" | null>(null);
   const [followUpActionDate, setFollowUpActionDate] = useState("");
   const [followUpActionContent, setFollowUpActionContent] = useState("");
+
+  const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
+  const iconClass = t.accent;
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
