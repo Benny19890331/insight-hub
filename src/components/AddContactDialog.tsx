@@ -3,9 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Search, X, UserCircle } from "lucide-react";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 interface AddContactDialogProps {
   open: boolean;
@@ -16,6 +23,7 @@ interface AddContactDialogProps {
 
 export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddContactDialogProps) {
   const { user } = useAuth();
+  const { themeIndex } = useTheme();
   const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const today = new Date().toISOString().split("T")[0];
   const [name, setName] = useState("");
@@ -82,12 +90,19 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="bg-card border-border max-w-lg">
+      <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: '96dvh' }} onOpenAutoFocus={(e) => e.preventDefault()}>
+        <div className="relative overflow-hidden rounded-lg h-full">
+          {/* Background image */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+          <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
           <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 pt-2 pb-20">
+        <div className="space-y-4 pt-2">
           {/* AI Voice Input */}
           <div className="flex justify-center py-2 border-b border-border/50 mb-2">
             <VoiceInputButton
@@ -202,12 +217,12 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">生日</label>
-              <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+              <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 h-[38px]" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">生日提醒</label>
               <select value={birthdayReminder} onChange={e => setBirthdayReminder(e.target.value as BirthdayReminder)}
-                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer">
+                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer h-[38px]">
                 {birthdayReminderOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
@@ -258,8 +273,10 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={() => { reset(); onOpenChange(false); }} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-surface-hover transition-colors">取消</button>
+            <button onClick={() => { reset(); onOpenChange(false); }} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">取消</button>
             <button onClick={handleSave} className="neon-btn-cyan">新增聯絡人</button>
+          </div>
+        </div>
           </div>
         </div>
       </DialogContent>
