@@ -141,6 +141,7 @@ const Index = () => {
             onBack={handleBack}
             onUpdateContact={handleUpdateContact}
             onSelectContact={handleSelectById}
+            onDeleteContact={handleDeleteContact}
           />
         </main>
       </div>
