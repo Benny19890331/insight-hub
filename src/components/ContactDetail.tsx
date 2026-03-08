@@ -8,7 +8,7 @@ import { AiInviteDialog } from "@/components/AiInviteDialog";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
   CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
-  Users, Cake, Bell, UserCircle, Thermometer,
+  Users, Cake, Bell, UserCircle, Thermometer, CheckCircle2, XCircle, Edit3, Trash2, Check, X,
 } from "lucide-react";
 import { statusColorMap } from "@/data/statusColors";
 
