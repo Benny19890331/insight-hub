@@ -101,7 +101,7 @@ export function ContactList({
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">{contact.name}</span>
-              <StatusBadge heat={contact.heat} label={contact.status} />
+              <StatusBadge heat={contact.heat} label={(contact.statuses ?? []).join("、") || "未設定"} />
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {contact.region}
