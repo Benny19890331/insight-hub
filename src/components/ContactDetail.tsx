@@ -281,7 +281,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   <span key={ref.id} className="flex items-center gap-1">
                     <button
                       onClick={() => onSelectContact?.(ref.id)}
-                      className="text-sm text-primary hover:underline cursor-pointer font-medium"
+                      className={`text-sm hover:underline cursor-pointer font-medium ${t.accent}`}
                     >
                       {ref.name}
                       {ref.nickname && <span className="text-xs text-muted-foreground ml-0.5">({ref.nickname})</span>}
@@ -289,6 +289,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                     <span className="text-xs text-muted-foreground">→</span>
                   </span>
                 ))}
+                <span className="text-sm text-muted-foreground">{contact.name}</span>
+              </div>
+            ) : contact.referrerName && !contact.referrerId ? (
+              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                <span className={`text-sm font-medium ${t.accent}`}>👤 {contact.referrerName}（本人推薦）</span>
+                <span className="text-xs text-muted-foreground">→</span>
                 <span className="text-sm text-muted-foreground">{contact.name}</span>
               </div>
             ) : (
