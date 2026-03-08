@@ -144,7 +144,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
             <div className="absolute inset-0 bg-black/60" />
           </div>
-          <div className="relative z-10 p-6 overflow-y-auto max-h-[85vh]">
+          <div className="relative z-10 p-6 pb-10 overflow-y-auto max-h-[85vh] overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className={t.authCardText}>編輯客戶資料</DialogTitle>
           <DialogDescription className={t.mutedText}>修改 {contact.name} 的資訊</DialogDescription>
