@@ -144,6 +144,18 @@
   100% { background: hsl(0 90% 60% / 0.08); }
 }
 
+/* Cyan Pulse - Elegant breathing animation for AI button */
+@keyframes cyan-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px -2px hsl(var(--primary) / 0.3), inset 0 0 10px -4px hsl(var(--primary) / 0.08);
+    opacity: 0.9;
+  }
+  50% {
+    box-shadow: 0 0 20px -2px hsl(var(--primary) / 0.6), inset 0 0 15px -4px hsl(var(--primary) / 0.2);
+    opacity: 1;
+  }
+}
+
 @layer components {
   .neon-btn-cyan,
   .neon-btn-magenta,
