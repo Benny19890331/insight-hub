@@ -3,6 +3,7 @@ import { Upload, Users } from "lucide-react";
 import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
+import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { toast } from "sonner";
 
 const Index = () => {
