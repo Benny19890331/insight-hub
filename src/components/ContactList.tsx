@@ -1,9 +1,9 @@
 import { Search, Filter, Package } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
 import { FunnelStats } from "@/components/FunnelStats";
+import { useTheme } from "@/hooks/useTheme";
 
 interface ContactListProps {
   contacts: Contact[];
@@ -28,6 +28,8 @@ export function ContactList({
   selectedId,
   onSelect,
 }: ContactListProps) {
+  const { theme: t } = useTheme();
+
   const filtered = contacts.filter((c) => {
     const matchesSearch =
       c.name.includes(searchQuery) ||
@@ -45,44 +47,42 @@ export function ContactList({
       {/* Search & Filters */}
       <div className="px-4 pb-3 space-y-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${t.mutedText}`} />
           <input
             type="text"
             placeholder="搜尋姓名、地區、狀態⋯"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full rounded-lg border border-border bg-muted/50 py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+            className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {/* Heat filter */}
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none ${t.mutedText}`} />
             <select
               value={heatFilter}
               onChange={(e) => onHeatFilterChange(e.target.value as HeatLevel | "all")}
-              className="w-full appearance-none rounded-lg border border-border bg-muted/50 py-2 pl-9 pr-6 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer"
+              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
             >
               {heatOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▼</div>
+            <div className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs ${t.mutedText}`}>▼</div>
           </div>
-          {/* Product filter */}
           <div className="relative">
-            <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Package className={`absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none ${t.mutedText}`} />
             <select
               value={productFilter}
               onChange={(e) => onProductFilterChange(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-border bg-muted/50 py-2 pl-9 pr-6 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer"
+              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
             >
               <option value="">全部產品</option>
               {productOptions.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
-            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▼</div>
+            <div className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs ${t.mutedText}`}>▼</div>
           </div>
         </div>
       </div>
@@ -93,12 +93,11 @@ export function ContactList({
           <button
             key={contact.id}
             onClick={() => onSelect(contact)}
-            className={cn(
-              "w-full text-left rounded-lg px-4 py-3 transition-all duration-150",
+            className={`w-full text-left rounded-lg px-4 py-3 transition-all duration-150 border ${
               selectedId === contact.id
-                ? "bg-primary/10 border border-primary/30 glow-border"
-                : "hover:bg-surface-hover border border-transparent"
-            )}
+                ? `${t.selectedCard} ${t.selectedBorder} ${t.selectedGlow}`
+                : `${t.cardHover} border-transparent`
+            }`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">
@@ -115,17 +114,17 @@ export function ContactList({
                   );
                 })}
                 {(contact.statuses ?? []).length > 2 && (
-                  <span className="text-[10px] text-muted-foreground">+{(contact.statuses ?? []).length - 2}</span>
+                  <span className={`text-[10px] ${t.mutedText}`}>+{(contact.statuses ?? []).length - 2}</span>
                 )}
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1 truncate">
+            <p className={`text-xs mt-1 truncate ${t.mutedText}`}>
               {contact.region}
             </p>
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground text-sm py-8">
+          <p className={`text-center text-sm py-8 ${t.mutedText}`}>
             找不到符合的聯絡人
           </p>
         )}
