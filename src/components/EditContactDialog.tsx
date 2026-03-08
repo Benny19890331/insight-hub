@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Camera, Search, X } from "lucide-react";
+import { Camera, Search, X, UserCircle } from "lucide-react";
 
 interface EditContactDialogProps {
   open: boolean;
