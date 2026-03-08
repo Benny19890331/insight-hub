@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { Upload, UserPlus, Download, Infinity, LogOut, Loader2 } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap } from "lucide-react";
+import { generateSeedContacts } from "@/data/seedContacts";
 import { Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
@@ -80,6 +81,11 @@ const Index = () => {
   const handleAddInteraction = useCallback(async (contactId: string, interaction: { date: string; summary: string }) => {
     await addInteraction(contactId, interaction);
   }, [addInteraction]);
+  const handleSeedData = useCallback(async () => {
+    const seedData = generateSeedContacts();
+    await importContacts(seedData);
+    toast.success(`已生成 ${seedData.length} 筆虛擬名單`);
+  }, [importContacts]);
 
   // Keep selectedContact in sync with contacts array
   const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
@@ -135,6 +141,12 @@ const Index = () => {
             <Upload className="h-4 w-4" />
             <span className="hidden sm:inline">匯出</span>
           </button>
+          {contacts.length === 0 && (
+            <button onClick={handleSeedData} className="neon-btn-magenta" title="生成虛擬名單">
+              <DatabaseZap className="h-4 w-4" />
+              <span className="hidden sm:inline">測試資料</span>
+            </button>
+          )}
           <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors" title="登出">
             <LogOut className="h-4 w-4" />
           </button>
