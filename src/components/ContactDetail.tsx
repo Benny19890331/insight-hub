@@ -52,6 +52,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [editingFollowUp, setEditingFollowUp] = useState(false);
+  const [followUpDate, setFollowUpDate] = useState(contact?.nextFollowUpDate ?? "");
+  const [followUpNote, setFollowUpNote] = useState(contact?.nextFollowUpNote ?? "");
 
   if (!contact) {
     return (
