@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Upload, Users } from "lucide-react";
-import { mockContacts, Contact } from "@/data/contacts";
+import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 const Index = () => {
   const [contacts] = useState<Contact[]>(mockContacts);
   const [searchQuery, setSearchQuery] = useState("");
+  const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -54,7 +55,6 @@ const Index = () => {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: Contact List */}
         <aside
           className={`w-full md:w-80 lg:w-96 border-r border-border shrink-0 overflow-hidden flex-col ${
             showDetail ? "hidden md:flex" : "flex"
@@ -64,12 +64,13 @@ const Index = () => {
             contacts={contacts}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            heatFilter={heatFilter}
+            onHeatFilterChange={setHeatFilter}
             selectedId={selectedContact?.id ?? null}
             onSelect={handleSelect}
           />
         </aside>
 
-        {/* Right: Detail */}
         <main
           className={`flex-1 overflow-hidden ${
             !showDetail ? "hidden md:block" : "block"
