@@ -143,10 +143,10 @@ const Index = () => {
     return (
       <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
         {bgImages.map((img, i) => (
-          <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === themeIndex ? 1 : 0 }}>
-            <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div key={i} className="absolute inset-0 transition-opacity duration-700 overflow-hidden" style={{ opacity: i === themeIndex ? 1 : 0 }}>
+            <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
             <div className={`absolute inset-0 ${themes[i].authOverlay.replace('bg-gradient-to-b', 'bg-gradient-to-b')}`} />
-            <div className="absolute inset-0 bg-black/60" />
+            <div className="absolute inset-0 bg-black/50" />
           </div>
         ))}
         <Loader2 className={`h-8 w-8 animate-spin ${t.accent} relative z-10`} />
