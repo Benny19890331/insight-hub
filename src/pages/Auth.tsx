@@ -97,110 +97,56 @@ export default function Auth() {
                 transformStyle: "preserve-3d",
               }}
             >
-              {/* Layer 1: Deep shadow (back of tube) */}
+              {/* Layer 1: Dark metallic base + shadow */}
               <Infinity
                 className="absolute inset-0 w-32 h-32"
                 style={{
-                  stroke: '#1a1a1a',
-                  strokeWidth: 6,
-                  strokeLinecap: 'round',
-                  fill: 'none',
-                  transform: 'translate(2px, 3px)',
-                  filter: 'blur(4px)',
-                  opacity: 0.6,
-                }}
-              />
-              {/* Layer 2: Dark metallic base */}
-              <Infinity
-                className="absolute inset-0 w-32 h-32"
-                style={{
-                  stroke: '#5a5a5a',
+                  stroke: '#4a4a4a',
                   strokeWidth: 5.5,
                   strokeLinecap: 'round',
                   fill: 'none',
+                  filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.5))',
                 }}
               />
-              {/* Layer 3: Mid metallic tone */}
+              {/* Layer 2: Metallic gradient body */}
               <Infinity
                 className="absolute inset-0 w-32 h-32"
                 style={{
-                  stroke: 'url(#tubeBase)',
-                  strokeWidth: 4.5,
+                  stroke: 'url(#tubeBody)',
+                  strokeWidth: 4,
                   strokeLinecap: 'round',
                   fill: 'none',
                 }}
               />
-              {/* Layer 4: Upper highlight (tube top) */}
+              {/* Layer 3: Top specular highlight */}
               <Infinity
                 className="absolute inset-0 w-32 h-32"
                 style={{
-                  stroke: 'url(#tubeHighlight)',
-                  strokeWidth: 3,
-                  strokeLinecap: 'round',
-                  fill: 'none',
-                  transform: 'translate(-0.5px, -1px)',
-                }}
-              />
-              {/* Layer 5: Specular highlight (bright reflection) */}
-              <Infinity
-                className="absolute inset-0 w-32 h-32"
-                style={{
-                  stroke: 'url(#tubeSpecular)',
-                  strokeWidth: 1.2,
-                  strokeLinecap: 'round',
-                  fill: 'none',
-                  transform: 'translate(-1px, -1.5px)',
-                }}
-              />
-              {/* Layer 6: Bottom edge shadow */}
-              <Infinity
-                className="absolute inset-0 w-32 h-32"
-                style={{
-                  stroke: 'rgba(0,0,0,0.3)',
+                  stroke: 'url(#tubeShine)',
                   strokeWidth: 1.5,
                   strokeLinecap: 'round',
                   fill: 'none',
-                  transform: 'translate(0.8px, 2px)',
-                  filter: 'blur(0.5px)',
+                  transform: 'translate(-0.5px, -1.2px)',
                 }}
               />
             </div>
             <svg width="0" height="0">
               <defs>
-                {/* Base metallic gradient - animated */}
-                <linearGradient id="tubeBase" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#a8a8a8">
-                    <animate attributeName="stop-color" values="#a8a8a8;#c9b458;#a8a8a8" dur="4s" repeatCount="indefinite" />
+                <linearGradient id="tubeBody" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#d0d0d0">
+                    <animate attributeName="stop-color" values="#d0d0d0;#e8d888;#d0d0d0" dur="4s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="30%" stopColor="#8a8a8a">
-                    <animate attributeName="stop-color" values="#8a8a8a;#b09840;#8a8a8a" dur="4s" repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="70%" stopColor="#6e6e6e">
-                    <animate attributeName="stop-color" values="#6e6e6e;#8a7830;#6e6e6e" dur="4s" repeatCount="indefinite" />
+                  <stop offset="50%" stopColor="#888">
+                    <animate attributeName="stop-color" values="#888;#b09840;#888" dur="4s" repeatCount="indefinite" />
                   </stop>
                   <stop offset="100%" stopColor="#4a4a4a">
                     <animate attributeName="stop-color" values="#4a4a4a;#6a5820;#4a4a4a" dur="4s" repeatCount="indefinite" />
                   </stop>
                 </linearGradient>
-                {/* Top highlight gradient - animated */}
-                <linearGradient id="tubeHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff">
-                    <animate attributeName="stop-color" values="#ffffff;#fff8dc;#ffffff" dur="3s" repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="20%" stopColor="#d0d0d0">
-                    <animate attributeName="stop-color" values="#d0d0d0;#f0e68c;#d0d0d0" dur="3s" repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="50%" stopColor="transparent" />
-                  <stop offset="100%" stopColor="transparent" />
-                </linearGradient>
-                {/* Specular shine - animated position */}
-                <linearGradient id="tubeSpecular" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient id="tubeShine" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="transparent" />
-                  <stop offset="20%" stopColor="transparent">
-                    <animate attributeName="offset" values="0.1;0.3;0.1" dur="5s" repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="35%" stopColor="rgba(255,255,255,0.9)">
-                    <animate attributeName="offset" values="0.25;0.45;0.25" dur="5s" repeatCount="indefinite" />
+                  <stop offset="30%" stopColor="rgba(255,255,255,0.85)">
+                    <animate attributeName="offset" values="0.2;0.4;0.2" dur="5s" repeatCount="indefinite" />
                   </stop>
                   <stop offset="50%" stopColor="transparent">
                     <animate attributeName="offset" values="0.4;0.6;0.4" dur="5s" repeatCount="indefinite" />
