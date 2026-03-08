@@ -14,7 +14,7 @@ interface CsvImportDialogProps {
 const FIELD_MAP: Record<string, keyof Contact | "statuses" | "productTags"> = {
   "姓名": "name",
   "name": "name",
-  "綽號": "nickname",
+  "暱稱": "nickname",
   "nickname": "nickname",
   "會員編號": "memberId",
   "memberid": "memberId",
@@ -74,7 +74,6 @@ function isOrgChartCsv(lines: string[]): boolean {
 }
 
 function parseOrgChartDate(raw: string): string {
-  // Format: YY/MM/DD → 20YY-MM-DD
   const m = raw.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
   if (!m) return "";
   const yy = parseInt(m[1], 10);
@@ -83,8 +82,7 @@ function parseOrgChartDate(raw: string): string {
 }
 
 function parsePurchaseDate(raw: string): string {
-  // Format: (MM)YY/MM/DD XX → 20YY-MM-DD
-  const m = raw.match(/\(?\d{1,2}\)?(\d{2})\/(\d{2})\/(\d{2})/);
+  const m = raw.match(/\(?(\d{1,2}\)?(\d{2})\/(\d{2})\/(\d{2})/);
   if (!m) return "";
   const yy = parseInt(m[1], 10);
   const year = yy >= 50 ? 1900 + yy : 2000 + yy;
@@ -109,14 +107,11 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
 
   for (let i = 0; i < lines.length; i++) {
     const cols = parseCsvLine(lines[i]);
-    // Data rows have ID in col 2 matching pattern like 1596887-001
     const idCol = cols[2]?.trim() ?? "";
     if (!/^\d{5,}-\d{3}$/.test(idCol)) continue;
 
     const name = cols[3]?.trim() ?? "";
-    // Skip masked names
     if (!name || name.includes("********")) continue;
-    // Skip duplicates (same person with multiple IDs)
     if (seenIds.has(idCol)) { errors.push(`第 ${i + 1} 行：重複 ID ${idCol}，已跳過`); continue; }
     seenIds.add(idCol);
 
@@ -159,7 +154,6 @@ function parseCsv(text: string, existingContacts: Contact[]): { contacts: Contac
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) return { contacts: [], errors: ["CSV 檔案至少需要標題列和一筆資料"] };
 
-  // Auto-detect org chart format
   if (isOrgChartCsv(lines)) {
     return parseOrgChartCsv(text);
   }
@@ -257,10 +251,10 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="bg-card border-border max-w-lg w-[calc(100vw-2rem)] overflow-hidden w-[calc(100vw-2rem)] overflow-hidden w-[calc(100vw-2rem)] overflow-hidden">
+      <DialogContent className="bg-card border-border max-w-lg w-[calc(100vw-2rem)] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-foreground">匯入 CSV</DialogTitle>
-          <DialogDescription>上傳 CSV 檔案，系統將自動解析並加入名單</DialogDescription>
+          <DialogTitle className="text-foreground">{"匯入 CSV"}</DialogTitle>
+          <DialogDescription>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
         </DialogHeader>
 
         {!preview ? (
@@ -272,16 +266,16 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
               className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
             >
               <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">拖拽 CSV 檔案至此，或點擊選擇</p>
-              <p cl MAP text-xs text-muted-foregroun MAP ��援一般 CSV 及組織圖ＭＡＰ格式（自動偵測）</p>
+              <p className="text-sm text-muted-foreground">{"拖曳 CSV 檔案至此，或點擊選擇"}</p>
+              <p className="text-xs text-muted-foreground mt-1">{"支援一般 CSV 及組織圖 MAP 格式（自動偵測）"}</p>
             </div>
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
             <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-1">
-              <p className="text-xs font-medium text-foreground">CSV 格式範例：</p>
-              <pre className="text-[11px] text-muted-foreground overflow-x-auto font-mono">
+              <p className="text-xs font-medium text-foreground">{"CSV 格式範例："}</p>
+              <pre className="text-[11px] text-muted-foreground overflow-x-auto font-mono whitespace-pre-wrap break-all">
 {`姓名,地區,背景,狀態,熱度,聯絡方式,生日,產品標籤
-王小明,台北,工程師,愛用者、鐵粉,熱,https://instagram.com/wang,1990-05-15,識霸、水素水
+王小明,台北,工程師,愛用者、鐵粉,熱,https://instagram.com/wang,1990-05-15,辨霸、水素水
 李美麗,高雄,護理師,初步接觸,溫,LINE: beauty123,1985-12-01,明利多`}
               </pre>
             </div>
@@ -290,30 +284,30 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-primary" />
-              <span className="text-sm">{fileName}</span>
-              <span className="text-xs text-muted-foreground ml-auto">解析到 {preview.length} 筆</span>
+              <span className="text-sm truncate">{fileName}</span>
+              <span className="text-xs text-muted-foreground ml-auto shrink-0">{"解析到"} {preview.length} {"筆"}</span>
             </div>
 
             {errors.length > 0 && (
               <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-destructive font-medium">
                   <AlertTriangle className="h-3.5 w-3.5" />
-                  {errors.length} 個警告
+                  {errors.length} {"個警告"}
                 </div>
                 {errors.slice(0, 3).map((e, i) => <p key={i} className="text-xs text-destructive/80">{e}</p>)}
-                {errors.length > 3 && <p className="text-xs text-destructive/60">⋯還有 {errors.length - 3} 個</p>}
+                {errors.length > 3 && <p className="text-xs text-destructive/60">{"…還有"} {errors.length - 3} {"個"}</p>}
               </div>
             )}
 
             {preview.length > 0 && (
-              <div className="rounded-lg border border-border max-h-48 overflow-y-auto">
+              <div className="rounded-lg border border-border max-h-48 overflow-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50 sticky top-0">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">姓名</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">地區</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">狀態</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">熱度</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">{"姓名"}</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">{"地區"}</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">{"狀態"}</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">{"熱度"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -327,17 +321,17 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
                     ))}
                   </tbody>
                 </table>
-                {preview.length > 10 && <p className="text-xs text-muted-foreground text-center py-2">⋯還有 {preview.length - 10} 筆</p>}
+                {preview.length > 10 && <p className="text-xs text-muted-foreground text-center py-2">{"…還有"} {preview.length - 10} {"筆"}</p>}
               </div>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
               <button onClick={() => { reset(); }} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-surface-hover transition-colors">
-                重新選擇
+                {"重新選擇"}
               </button>
               <button onClick={handleConfirm} disabled={preview.length === 0} className="neon-btn-cyan disabled:opacity-50">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                確認匯入 {preview.length} 筆
+                {"確認匯入"} {preview.length} {"筆"}
               </button>
             </div>
           </div>
