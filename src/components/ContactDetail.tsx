@@ -423,44 +423,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           ) : editingFollowUp ? (
             /* Edit flow: date + content + complete/cancel-save */
             <div className="space-y-3">
-              <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground">日期</p>
-                <div className="flex items-center gap-1">
-                  <ScrollPicker
-                    items={Array.from({ length: 5 }, (_, i) => String(2025 + i))}
-                    value={followUpDate.split("-")[0] || "2026"}
-                    onChange={(y) => { const parts = followUpDate.split("-"); setFollowUpDate(`${y}-${parts[1] || "01"}-${parts[2] || "01"}`); }}
-                  />
-                  <span className="text-muted-foreground font-mono text-sm">/</span>
-                  <ScrollPicker
-                    items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"))}
-                    value={followUpDate.split("-")[1] || "01"}
-                    onChange={(m) => { const parts = followUpDate.split("-"); setFollowUpDate(`${parts[0] || "2026"}-${m}-${parts[2] || "01"}`); }}
-                  />
-                  <span className="text-muted-foreground font-mono text-sm">/</span>
-                  <ScrollPicker
-                    items={Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"))}
-                    value={followUpDate.split("-")[2] || "01"}
-                    onChange={(d) => { const parts = followUpDate.split("-"); setFollowUpDate(`${parts[0] || "2026"}-${parts[1] || "01"}-${d}`); }}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground">時間</p>
-                <div className="flex items-center gap-2">
-                  <ScrollPicker
-                    items={Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))}
-                    value={followUpTime.split(":")[0] || "09"}
-                    onChange={(h) => { const m = followUpTime.split(":")[1] || "00"; setFollowUpTime(`${h}:${m}`); }}
-                  />
-                  <span className="text-foreground font-mono text-lg font-bold">:</span>
-                  <ScrollPicker
-                    items={["00","10","20","30","40","50"]}
-                    value={followUpTime.split(":")[1] || "00"}
-                    onChange={(m) => { const h = followUpTime.split(":")[0] || "09"; setFollowUpTime(`${h}:${m}`); }}
-                  />
-                </div>
-              </div>
+              <GridDateTimePicker
+                date={followUpDate}
+                time={followUpTime || "09:00"}
+                onDateChange={setFollowUpDate}
+                onTimeChange={setFollowUpTime}
+              />
               <MentionTextarea
                 value={followUpNote}
                 onChange={setFollowUpNote}
