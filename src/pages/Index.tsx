@@ -20,6 +20,7 @@ const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 const Index = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
   const { theme: t } = useTheme();
 
