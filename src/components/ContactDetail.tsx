@@ -343,8 +343,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Product tags */}
         <div className="flex gap-3 items-start">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Package className="h-4 w-4 text-primary" />
+          <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
+            <Package className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground">產品關注 / 消費標籤</p>
