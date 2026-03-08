@@ -429,7 +429,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground font-mono">{item.date}</p>
-                <p className="text-sm mt-0.5">{item.summary}</p>
+                <div className="text-sm mt-0.5">
+                  <MentionText text={item.summary} contacts={contacts} onSelectContact={onSelectContact} />
+                </div>
               </div>
             </div>
           ))}
