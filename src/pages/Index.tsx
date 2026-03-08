@@ -241,6 +241,7 @@ const Index = () => {
             onProductFilterChange={setProductFilter}
             selectedId={currentSelected?.id ?? null}
             onSelect={handleSelect}
+            onDeduplicate={deduplicateContacts}
           />
         </aside>
         <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`}>
