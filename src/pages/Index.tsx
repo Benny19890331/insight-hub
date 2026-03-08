@@ -114,10 +114,11 @@ const Index = () => {
   }, [addInteraction]);
 
   const handleSeedData = useCallback(async () => {
+    if (!isAdmin) return;
     const seedData = generateSeedContacts();
     await importContacts(seedData);
     toast.success(`已生成 ${seedData.length} 筆虛擬名單`);
-  }, [importContacts]);
+  }, [importContacts, isAdmin]);
 
   const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
 
@@ -215,16 +216,6 @@ const Index = () => {
             <Upload className="h-4 w-4" />
             <span className="hidden sm:inline">匯出</span>
           </button>
-          {contacts.length === 0 && (
-            <button
-              onClick={handleSeedData}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${t.btnOutline}`}
-              title="生成虛擬名單"
-            >
-              <DatabaseZap className="h-4 w-4" />
-              <span className="hidden sm:inline">測試</span>
-            </button>
-          )}
           <button onClick={signOut} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${t.btnOutline}`} title="登出">
             <LogOut className="h-4 w-4" />
           </button>
