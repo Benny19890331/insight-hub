@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, Interaction } from "@/data/contacts";
 import { MentionTextarea } from "@/components/MentionTextarea";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { toast } from "sonner";
 
 interface AddInteractionDialogProps {
@@ -37,6 +38,16 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
           <DialogDescription>為 {contactName} 記錄一筆新的互動</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
+          {/* AI Voice Input */}
+          <div className="flex justify-center py-2 border-b border-border/50 mb-2">
+            <VoiceInputButton
+              mode="interaction"
+              onResult={(data: any) => {
+                if (data.date) setDate(data.date);
+                if (data.summary) setSummary(data.summary);
+              }}
+            />
+          </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">日期</label>
             <input
