@@ -1,0 +1,222 @@
+import { useState, useMemo, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions } from "@/data/contacts";
+import { getStatusColor } from "@/data/statusColors";
+import { toast } from "sonner";
+import { Search, X } from "lucide-react";
+
+interface AddContactDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (contact: Contact) => void;
+  contacts: Contact[];
+}
+
+export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddContactDialogProps) {
+  const today = new Date().toISOString().split("T")[0];
+  const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [region, setRegion] = useState("");
+  const [background, setBackground] = useState("");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [heat, setHeat] = useState<HeatLevel>("cold");
+  const [notes, setNotes] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [contactMethod, setContactMethod] = useState("");
+  const [referrerId, setReferrerId] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>("none");
+  const [referrerSearch, setReferrerSearch] = useState("");
+  const [showReferrerList, setShowReferrerList] = useState(false);
+  const referrerRef = useRef<HTMLDivElement>(null);
+
+  const filteredReferrers = useMemo(() => {
+    if (!referrerSearch) return contacts.slice(0, 10);
+    const q = referrerSearch.toLowerCase();
+    return contacts.filter(c => c.name.toLowerCase().includes(q) || (c.nickname ?? "").toLowerCase().includes(q) || c.region.toLowerCase().includes(q)).slice(0, 10);
+  }, [contacts, referrerSearch]);
+
+  const selectedReferrer = contacts.find(c => c.id === referrerId);
+
+  const reset = () => {
+    setName(""); setNickname(""); setRegion(""); setBackground("");
+    setSelectedStatuses([]); setHeat("cold"); setNotes("");
+    setSelectedTags([]); setContactMethod(""); setReferrerId("");
+    setBirthday(""); setBirthdayReminder("none"); setReferrerSearch("");
+  };
+
+  const handleSave = () => {
+    if (!name.trim()) { toast.error("請輸入姓名"); return; }
+    const newContact: Contact = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      nickname: nickname.trim() || undefined,
+      region: region.trim() || "未填寫",
+      background: background.trim() || "未填寫",
+      statuses: selectedStatuses,
+      heat,
+      notes: notes.trim(),
+      lastContactDate: today,
+      nextFollowUpDate: today,
+      interactions: [],
+      productTags: selectedTags,
+      contactMethod: contactMethod.trim() || undefined,
+      referrerId: referrerId || undefined,
+      referrerName: selectedReferrer?.name,
+      birthday: birthday || undefined,
+      birthdayReminder,
+    };
+    onSave(newContact);
+    reset();
+    onOpenChange(false);
+    toast.success(`已新增聯絡人「${newContact.name}」`);
+  };
+
+  const heatLabel: Record<string, string> = { cold: "🧊 冷", warm: "🌤 溫", hot: "🔥 熱", loyal: "💎 忠實" };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
+      <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
+          <DialogDescription>手動新增一位新客戶到名單中</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          {/* Name + Nickname */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">姓名 *</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="必填" className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">綽號</label>
+              <input value={nickname} onChange={e => setNickname(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+            </div>
+          </div>
+
+          {/* Region + Background */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">地區</label>
+              <input value={region} onChange={e => setRegion(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">背景 / 職業</label>
+              <input value={background} onChange={e => setBackground(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+            </div>
+          </div>
+
+          {/* Contact Method */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">聯絡方式</label>
+            <input value={contactMethod} onChange={e => setContactMethod(e.target.value)} placeholder="電話、LINE、社群連結等" className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+          </div>
+
+          {/* Status chips */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">狀態（可複選）</label>
+            <div className="flex flex-wrap gap-1.5">
+              {statusOptions.map(s => {
+                const active = selectedStatuses.includes(s);
+                const color = getStatusColor(s);
+                return (
+                  <button key={s} type="button" onClick={() => setSelectedStatuses(prev => active ? prev.filter(x => x !== s) : [...prev, s])}
+                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${active ? `${color.bg} ${color.text} ${color.border}` : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"}`}>
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Heat chips */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">熱度</label>
+            <div className="flex flex-wrap gap-1.5">
+              {heatOptionsRaw.map(h => (
+                <button key={h.value} type="button" onClick={() => setHeat(h.value)}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${heat === h.value ? "bg-primary/15 text-primary border-primary/30" : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"}`}>
+                  {h.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Product tags */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">產品標籤</label>
+            <div className="flex flex-wrap gap-1.5">
+              {productOptions.map(p => {
+                const active = selectedTags.includes(p);
+                return (
+                  <button key={p} type="button" onClick={() => setSelectedTags(prev => active ? prev.filter(x => x !== p) : [...prev, p])}
+                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${active ? "bg-primary/15 text-primary border-primary/30" : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"}`}>
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Birthday */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">生日</label>
+              <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">生日提醒</label>
+              <select value={birthdayReminder} onChange={e => setBirthdayReminder(e.target.value as BirthdayReminder)}
+                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer">
+                {birthdayReminderOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Referrer search */}
+          <div ref={referrerRef} className="relative">
+            <label className="text-xs text-muted-foreground mb-1.5 block">推薦人</label>
+            {selectedReferrer ? (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5">
+                <span className="text-sm">{selectedReferrer.name}</span>
+                {selectedReferrer.nickname && <span className="text-xs text-muted-foreground">({selectedReferrer.nickname})</span>}
+                <button type="button" onClick={() => setReferrerId("")} className="ml-auto"><X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input value={referrerSearch} onChange={e => { setReferrerSearch(e.target.value); setShowReferrerList(true); }}
+                  onFocus={() => setShowReferrerList(true)} placeholder="搜尋推薦人⋯"
+                  className="w-full rounded-lg border border-border bg-muted/50 pl-9 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+              </div>
+            )}
+            {showReferrerList && !selectedReferrer && filteredReferrers.length > 0 && (
+              <div className="absolute z-50 left-0 right-0 mt-1 rounded-lg border border-border bg-card shadow-lg max-h-36 overflow-y-auto">
+                {filteredReferrers.map(c => (
+                  <button key={c.id} type="button" onClick={() => { setReferrerId(c.id); setShowReferrerList(false); setReferrerSearch(""); }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
+                    {c.name} {c.nickname && <span className="text-xs text-muted-foreground">({c.nickname})</span>}
+                    <span className="text-xs text-muted-foreground ml-2">{c.region}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">特殊註記</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="備註⋯"
+              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none" />
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={() => { reset(); onOpenChange(false); }} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-surface-hover transition-colors">取消</button>
+            <button onClick={handleSave} className="neon-btn-cyan">新增聯絡人</button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
