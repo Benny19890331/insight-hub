@@ -23,6 +23,7 @@ interface AddContactDialogProps {
 
 export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddContactDialogProps) {
   const { user } = useAuth();
+  const { themeIndex } = useTheme();
   const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const today = new Date().toISOString().split("T")[0];
   const [name, setName] = useState("");
