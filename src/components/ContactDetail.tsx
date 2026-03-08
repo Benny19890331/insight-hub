@@ -376,6 +376,18 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               </p>
             );
           })()}
+          {(() => {
+            const latest = (contact.interactions ?? []).find(i => i.date === contact.lastContactDate) || (contact.interactions ?? [])[0];
+            if (latest) {
+              return (
+                <div className="mt-2 rounded-md bg-muted/40 border border-border px-3 py-2">
+                  <p className="text-xs text-muted-foreground mb-0.5">{latest.date === contact.lastContactDate ? "最近互動：" : `${latest.date}：`}</p>
+                  <p className="text-xs text-foreground/80 line-clamp-2">{latest.summary}</p>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
           <div className="flex items-center gap-2 text-muted-foreground">
