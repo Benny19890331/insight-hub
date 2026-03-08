@@ -143,7 +143,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       {/* Header + Actions */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary text-xl font-bold glow-border shrink-0 overflow-hidden">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border text-xl font-bold glow-border shrink-0 overflow-hidden" style={{ background: contact.avatarUrl ? undefined : `${t.titleColor}18`, borderColor: contact.avatarUrl ? undefined : `${t.titleColor}40`, color: t.titleColor }}>
             {contact.avatarUrl ? (
               <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
             ) : (
