@@ -2,7 +2,7 @@ import { Contact } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
-  CalendarDays, CalendarClock, Plus, Sparkles, Pencil,
+  CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,32 +37,6 @@ function DetailRow({
         <p className="text-sm mt-0.5">{children}</p>
       </div>
     </div>
-  );
-}
-
-function ActionButton({
-  icon: Icon,
-  label,
-  onClick,
-  variant = "default",
-}: {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-  variant?: "default" | "accent";
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
-        variant === "accent"
-          ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-          : "border-border bg-muted/50 text-secondary-foreground hover:bg-surface-hover"
-      }`}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      {label}
-    </button>
   );
 }
 
@@ -110,11 +84,29 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Neon Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          <ActionButton icon={Plus} label="新增互動" onClick={() => handleAction("新增互動紀錄")} />
-          <ActionButton icon={Sparkles} label="AI 邀約" variant="accent" onClick={() => handleAction("AI 擬定邀約")} />
-          <ActionButton icon={Pencil} label="編輯資料" onClick={() => handleAction("編輯資料")} />
+          <button
+            onClick={() => handleAction("新增互動紀錄")}
+            className="neon-btn-cyan"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            新增互動
+          </button>
+          <button
+            onClick={() => handleAction("AI 擬定邀約")}
+            className="neon-btn-magenta"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            AI 邀約
+          </button>
+          <button
+            onClick={() => handleAction("編輯資料")}
+            className="neon-btn-amber"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            編輯資料
+          </button>
         </div>
       </div>
 
@@ -127,6 +119,30 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
         <DetailRow icon={Flame} label="當前狀態 / 熱度">
           {contact.status} — {heatLabel[contact.heat]}
         </DetailRow>
+
+        {/* Product Tags */}
+        <div className="flex gap-3 items-start">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+            <Package className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">產品關注 / 消費標籤</p>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {(contact.productTags ?? []).map((tag) => (
+                <span
+                  key={tag}
+                  className="product-tag"
+                >
+                  {tag}
+                </span>
+              ))}
+              {(contact.productTags ?? []).length === 0 && (
+                <span className="text-sm text-muted-foreground">尚無標籤</span>
+              )}
+            </div>
+          </div>
+        </div>
+
         <DetailRow icon={StickyNote} label="特殊註記">{contact.notes}</DetailRow>
       </div>
 
@@ -159,7 +175,6 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
           歷史互動紀錄
         </h3>
         <div className="relative pl-5 space-y-4">
-          {/* Timeline line */}
           <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border" />
           {(contact.interactions ?? []).map((item, i) => (
             <div key={i} className="relative flex gap-3">
