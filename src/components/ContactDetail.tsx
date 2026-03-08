@@ -9,6 +9,7 @@ import {
   CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
   Users, Cake, Bell, UserCircle, Thermometer,
 } from "lucide-react";
+import { statusColorMap } from "@/data/statusColors";
 
 interface ContactDetailProps {
   contact: Contact | null;
