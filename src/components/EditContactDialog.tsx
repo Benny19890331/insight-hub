@@ -137,14 +137,14 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[92vh] overflow-hidden p-0 border-0 bg-transparent !top-[4vh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%]" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="max-w-lg max-h-[92vh] overflow-hidden p-0 border-0 bg-transparent !top-[4vh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
             <div className="absolute inset-0 bg-black/60" />
           </div>
-          <div className="relative z-10 p-6 pb-10 overflow-y-auto max-h-[85vh] overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="relative z-10 p-6 pt-10 pb-[max(2.5rem,env(safe-area-inset-bottom))] overflow-y-auto max-h-[92vh] overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className={t.authCardText}>編輯客戶資料</DialogTitle>
           <DialogDescription className={t.mutedText}>修改 {contact.name} 的資訊</DialogDescription>
