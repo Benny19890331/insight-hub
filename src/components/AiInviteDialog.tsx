@@ -40,7 +40,7 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ contact }),
+        body: JSON.stringify({ contact, insights: insights || null }),
         signal: controller.signal,
       });
 

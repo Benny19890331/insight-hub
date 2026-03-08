@@ -113,7 +113,7 @@ export function AiInsightsPanel({ contact }: Props) {
           <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: `${t.titleColor}20` }}>
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4" style={{ color: t.titleColor }} />
-              <span className="text-xs font-semibold tracking-wide" style={{ color: t.titleColor }}>AI 分析報告</span>
+              <span className="text-xs font-semibold tracking-wide" style={{ color: t.titleColor }}>AI 分析報告(C單)</span>
             </div>
             <button
               onClick={generate}

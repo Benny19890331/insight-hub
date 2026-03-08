@@ -162,7 +162,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Plus className="h-3 w-3" />互動
           </button>
           <button onClick={() => setAiOpen(true)} className="neon-btn-magenta flex-1 justify-center">
-            <Sparkles className="h-3 w-3" />邀約
+            <Sparkles className="h-3 w-3" />AI邀約
           </button>
           <button onClick={() => setEditOpen(true)} className="neon-btn-amber flex-1 justify-center">
             <Pencil className="h-3 w-3" />編輯
