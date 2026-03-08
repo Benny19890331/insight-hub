@@ -270,8 +270,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Referrer chain */}
         <div className="flex gap-3 items-start">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Users className="h-4 w-4 text-primary" />
+          <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
+            <Users className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
