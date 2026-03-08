@@ -441,7 +441,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 <button
                   onClick={() => {
                     if (onUpdateContact) {
-                      onUpdateContact({ ...contact, nextFollowUpDate: followUpDate, nextFollowUpNote: followUpNote });
+                      onUpdateContact({ ...contact, nextFollowUpDate: followUpDate, nextFollowUpTime: followUpTime, nextFollowUpNote: followUpNote });
                     }
                     setEditingFollowUp(false);
                   }}
