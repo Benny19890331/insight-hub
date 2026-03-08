@@ -132,7 +132,7 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
       id: crypto.randomUUID(),
       name,
       region: region === "TWN" ? "台灣" : region,
-      background: `組織ID: ${idCol}`,
+      background: `會員編號: ${idCol}`,
       statuses: [],
       heat,
       notes: `登錄日: ${parsedRegDate || regDate}${pay ? ` / PAY: ${pay}` : ""}${sp && sp !== "0" ? ` / SP: ${sp}` : ""}`,
