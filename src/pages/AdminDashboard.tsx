@@ -258,6 +258,41 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Reset password modal */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl ${t.authCard} w-full max-w-sm mx-4`}>
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>
+              重設密碼 — {users.find(u => u.id === resetTarget)?.displayName || users.find(u => u.id === resetTarget)?.email}
+            </h3>
+            <input
+              type="text"
+              value={newPwd}
+              onChange={(e) => setNewPwd(e.target.value)}
+              placeholder="輸入新密碼（至少 6 字元）"
+              className={fieldClass}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={resetPassword}
+                disabled={toggling === resetTarget || newPwd.length < 6}
+                className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer disabled:opacity-50"
+                style={btnStyle}
+              >
+                {toggling === resetTarget ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "確認重設"}
+              </button>
+              <button
+                onClick={() => { setResetTarget(null); setNewPwd(""); }}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm ${t.authLink} hover:underline`}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
