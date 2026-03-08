@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "surface-hover": "hsl(var(--surface-hover))",
+        glow: "hsl(var(--glow-primary))",
+        badge: {
+          warm: "hsl(var(--badge-warm))",
+          "warm-foreground": "hsl(var(--badge-warm-foreground))",
+          cool: "hsl(var(--badge-cool))",
+          "cool-foreground": "hsl(var(--badge-cool-foreground))",
+          hot: "hsl(var(--badge-hot))",
+          "hot-foreground": "hsl(var(--badge-hot-foreground))",
+          success: "hsl(var(--badge-success))",
+          "success-foreground": "hsl(var(--badge-success-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
