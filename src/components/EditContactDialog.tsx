@@ -137,8 +137,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden p-0 border-0 bg-transparent">
-        <div className="relative overflow-hidden rounded-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden p-0 border-0 bg-transparent" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
