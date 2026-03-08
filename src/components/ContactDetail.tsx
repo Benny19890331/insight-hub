@@ -425,8 +425,19 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)}
                   className="w-full rounded-md border border-border bg-secondary text-foreground px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
-                <input type="time" step="600" value={followUpTime} onChange={(e) => setFollowUpTime(e.target.value)}
-                  className="w-full rounded-md border border-border bg-secondary text-foreground px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
+                <div className="flex gap-1">
+                  <select value={followUpTime.split(":")[0] || ""} onChange={(e) => { const m = followUpTime.split(":")[1] || "00"; setFollowUpTime(`${e.target.value}:${m}`); }}
+                    className="flex-1 rounded-md border border-border bg-secondary text-foreground px-2 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50">
+                    <option value="">時</option>
+                    {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="self-center text-foreground font-mono">:</span>
+                  <select value={followUpTime.split(":")[1] || ""} onChange={(e) => { const h = followUpTime.split(":")[0] || "09"; setFollowUpTime(`${h}:${e.target.value}`); }}
+                    className="flex-1 rounded-md border border-border bg-secondary text-foreground px-2 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50">
+                    <option value="">分</option>
+                    {["00","10","20","30","40","50"].map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
               </div>
               <MentionTextarea
                 value={followUpNote}
