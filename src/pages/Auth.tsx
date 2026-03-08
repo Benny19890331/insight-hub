@@ -84,74 +84,56 @@ export default function Auth() {
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
           <div
-            className="flex h-36 w-36 items-center justify-center relative"
+            className="flex h-32 w-32 items-center justify-center"
             style={{
-              filter: `drop-shadow(0 0 30px ${t.titleGlow})`,
-              perspective: "300px",
+              filter: `drop-shadow(0 0 24px ${t.titleGlow}) drop-shadow(0 4px 8px rgba(0,0,0,0.3))`,
+              perspective: "200px",
             }}
           >
             <div
-              className="relative w-32 h-32"
+              className="relative"
               style={{
-                transform: "rotateX(15deg) rotateY(-6deg)",
+                transform: "rotateX(12deg) rotateY(-8deg)",
                 transformStyle: "preserve-3d",
               }}
             >
-              {/* Layer 1: Dark metallic base + shadow */}
               <Infinity
-                className="absolute inset-0 w-32 h-32"
+                className="h-28 w-28"
                 style={{
-                  stroke: '#4a4a4a',
-                  strokeWidth: 5.5,
-                  strokeLinecap: 'round',
-                  fill: 'none',
-                  filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.5))',
+                  stroke: 'url(#authMetalGrad)',
+                  strokeWidth: 2.2,
+                  filter: 'drop-shadow(2px 4px 3px rgba(0,0,0,0.4)) drop-shadow(-1px -1px 0px rgba(255,255,255,0.15))',
                 }}
               />
-              {/* Layer 2: Metallic gradient body */}
+              {/* Shadow layer for depth */}
               <Infinity
-                className="absolute inset-0 w-32 h-32"
+                className="h-28 w-28 absolute inset-0"
                 style={{
-                  stroke: 'url(#tubeBody)',
-                  strokeWidth: 4,
-                  strokeLinecap: 'round',
-                  fill: 'none',
-                }}
-              />
-              {/* Layer 3: Top specular highlight */}
-              <Infinity
-                className="absolute inset-0 w-32 h-32"
-                style={{
-                  stroke: 'url(#tubeShine)',
-                  strokeWidth: 1.5,
-                  strokeLinecap: 'round',
-                  fill: 'none',
-                  transform: 'translate(-0.5px, -1.2px)',
+                  stroke: 'rgba(0,0,0,0.2)',
+                  strokeWidth: 3,
+                  transform: 'translateZ(-4px) translateX(2px) translateY(3px)',
+                  filter: 'blur(3px)',
                 }}
               />
             </div>
             <svg width="0" height="0">
               <defs>
-                <linearGradient id="tubeBody" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#d0d0d0">
-                    <animate attributeName="stop-color" values="#d0d0d0;#e8d888;#d0d0d0" dur="4s" repeatCount="indefinite" />
+                <linearGradient id="authMetalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#e8e8e8">
+                    <animate attributeName="stop-color" values="#e8e8e8;#f5e6a0;#ffffff;#f5e6a0;#e8e8e8" dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="50%" stopColor="#888">
-                    <animate attributeName="stop-color" values="#888;#b09840;#888" dur="4s" repeatCount="indefinite" />
+                  <stop offset="25%" stopColor="#f5e6a0">
+                    <animate attributeName="stop-color" values="#f5e6a0;#ffffff;#f5e6a0;#c0c0c0;#f5e6a0" dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="100%" stopColor="#4a4a4a">
-                    <animate attributeName="stop-color" values="#4a4a4a;#6a5820;#4a4a4a" dur="4s" repeatCount="indefinite" />
+                  <stop offset="50%" stopColor="#ffffff">
+                    <animate attributeName="stop-color" values="#ffffff;#f5e6a0;#c0c0c0;#f5e6a0;#ffffff" dur="3s" repeatCount="indefinite" />
                   </stop>
-                </linearGradient>
-                <linearGradient id="tubeShine" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="transparent" />
-                  <stop offset="30%" stopColor="rgba(255,255,255,0.85)">
-                    <animate attributeName="offset" values="0.2;0.4;0.2" dur="5s" repeatCount="indefinite" />
+                  <stop offset="75%" stopColor="#f5e6a0">
+                    <animate attributeName="stop-color" values="#f5e6a0;#c0c0c0;#f5e6a0;#ffffff;#f5e6a0" dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="50%" stopColor="transparent">
-                    <animate attributeName="offset" values="0.4;0.6;0.4" dur="5s" repeatCount="indefinite" />
+                  <stop offset="100%" stopColor="#c0c0c0">
+                    <animate attributeName="stop-color" values="#c0c0c0;#f5e6a0;#ffffff;#f5e6a0;#c0c0c0" dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="100%" stopColor="transparent" />
                 </linearGradient>
               </defs>
             </svg>
