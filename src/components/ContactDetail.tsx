@@ -52,9 +52,10 @@ function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; l
   );
 }
 
-export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact }: ContactDetailProps) {
+export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact }: ContactDetailProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [editingFollowUp, setEditingFollowUp] = useState(false);
   const [followUpDate, setFollowUpDate] = useState(contact?.nextFollowUpDate ?? "");
