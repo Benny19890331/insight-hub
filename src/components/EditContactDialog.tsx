@@ -17,7 +17,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [nickname, setNickname] = useState(contact.nickname ?? "");
   const [region, setRegion] = useState(contact.region);
   const [background, setBackground] = useState(contact.background);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []State<string[]>(contact.statuses ?? []State<string[]>(contact.statuses ?? []);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []);
   const [heat, setHeat] = useState<HeatLevel>(contact.heat);
   const [notes, setNotes] = useState(contact.notes);
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.productTags ?? []);
