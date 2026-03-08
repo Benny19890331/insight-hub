@@ -270,7 +270,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
             >
               <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">拖拽 CSV 檔案至此，或點擊選擇</p>
-              <p className="text-xs text-muted-foreground mt-1">支援欄位：姓名、綽號、地區、背景、狀態、熱度、聯絡方式、生日、產品標籤等</p>
+              <p className="text-xs text-muted-foreground mt-1">支援一般 CSV 及組織圖ＭＡＰ格式（自動偵測）</p>
             </div>
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
