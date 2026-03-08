@@ -372,12 +372,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 onChange={(e) => setFollowUpDate(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
-              <textarea
+              <MentionTextarea
                 value={followUpNote}
-                onChange={(e) => setFollowUpNote(e.target.value)}
-                placeholder="追蹤內容備註⋯"
+                onChange={setFollowUpNote}
+                contacts={contacts}
+                placeholder="追蹤內容備註⋯ 輸入 @ 可提及名單人物"
                 rows={2}
-                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
               />
               <div className="flex gap-2">
                 <button
