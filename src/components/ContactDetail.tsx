@@ -144,55 +144,34 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
         <DetailRow icon={Phone} label="聯絡方式">{contact.contactMethod || "尚未填寫"}</DetailRow>
 
-        {/* Status as multi-select chips */}
+        {/* Status display (read-only, colored) */}
         <div className="flex gap-3 items-start">
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
             <Flame className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground mb-1.5">當前狀態（可複選）</p>
+            <p className="text-xs text-muted-foreground mb-1.5">當前狀態</p>
             <div className="flex flex-wrap gap-1.5">
-              {statusOptions.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => handleStatusToggle(s)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
-                    (contact.statuses ?? []).includes(s)
-                      ? "product-tag ring-1 ring-primary/40"
-                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+              {(contact.statuses ?? []).length > 0 ? (
+                (contact.statuses ?? []).map((s) => {
+                  const color = statusColorMap[s] ?? { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-border" };
+                  return (
+                    <span key={s} className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${color.bg} ${color.text} ${color.border}`}>
+                      {s}
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="text-sm text-muted-foreground">未設定</span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Heat as single-select chips */}
-        <div className="flex gap-3 items-start">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Thermometer className="h-4 w-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground mb-1.5">熱度（點擊切換）</p>
-            <div className="flex flex-wrap gap-1.5">
-              {heatOptionsRaw.map((h) => (
-                <button
-                  key={h.value}
-                  onClick={() => handleHeatChange(h.value)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
-                    contact.heat === h.value
-                      ? "product-tag ring-1 ring-primary/40"
-                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
-                  }`}
-                >
-                  {h.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Heat display (read-only) */}
+        <DetailRow icon={Thermometer} label="熱度">
+          <span className="text-sm">{heatLabel[contact.heat]}</span>
+        </DetailRow>
 
         {/* Referrer chain (up to 3 levels) */}
         <div className="flex gap-3 items-start">
