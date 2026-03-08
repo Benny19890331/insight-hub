@@ -31,6 +31,19 @@ const Index = () => {
   const [showDetail, setShowDetail] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleInfinityTap = useCallback(() => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= 10) {
+      tapCountRef.current = 0;
+      navigate("/admin");
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 3000);
+  }, [navigate]);
 
   const handleSelect = useCallback((c: Contact) => {
     const fresh = contacts.find((x) => x.id === c.id) ?? c;
