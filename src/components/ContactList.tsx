@@ -53,7 +53,7 @@ export function ContactList({
             placeholder="搜尋姓名、地區、狀態⋯"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
+            className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
