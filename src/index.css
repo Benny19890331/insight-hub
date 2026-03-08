@@ -150,14 +150,14 @@
   .neon-btn-amber {
     @apply inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold tracking-wide cursor-pointer whitespace-nowrap;
     border: 1px solid;
-    animation: rainbow-border 10s linear infinite, rainbow-bg 10s linear infinite;
+    animation: rainbow-border 7s linear infinite, rainbow-bg 7s linear infinite;
     transition: filter 0.2s, transform 0.15s;
   }
   .neon-btn-magenta {
-    animation-delay: -3.3s, -3.3s;
+    animation-delay: -2.3s, -2.3s;
   }
   .neon-btn-amber {
-    animation-delay: -6.6s, -6.6s;
+    animation-delay: -4.6s, -4.6s;
   }
   .neon-btn-cyan:hover,
   .neon-btn-magenta:hover,
