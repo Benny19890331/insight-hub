@@ -133,7 +133,7 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
       background: "",
       statuses: [],
       heat,
-      notes: `登錄日: ${parsedRegDate || regDate}${pay ? ` / PAY: ${pay}` : ""}${sp && sp !== "0" ? ` / SP: ${sp}` : ""}`,
+      notes: `登錄日: ${parsedRegDate || regDate}`,
       lastContactDate: parsedLastPurchase || today,
       nextFollowUpDate: today,
       interactions: [],
