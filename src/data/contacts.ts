@@ -5,6 +5,10 @@ export interface Interaction {
   summary: string;
 }
 
+export const productOptions = [
+  "識霸", "水素水", "明利多", "喚活", "普利活", "AND", "晨星", "柔緹",
+];
+
 export interface Contact {
   id: string;
   name: string;
@@ -17,6 +21,8 @@ export interface Contact {
   nextFollowUpDate: string;
   interactions: Interaction[];
   productTags: string[];
+  contactMethod?: string;
+  avatarUrl?: string;
 }
 
 export const heatOptions: { value: HeatLevel | "all"; label: string }[] = [
