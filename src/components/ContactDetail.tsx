@@ -28,10 +28,10 @@ const heatLabel: Record<string, string> = {
 
 const reminderLabel: Record<string, string> = {
   none: "不提醒",
-  "1month": "一個月前",
-  "1week": "一週前",
-  "3days": "三天前",
-  today: "當天",
+  "1month": "一個月前提醒",
+  "1week": "一週前提醒",
+  "3days": "三天前提醒",
+  today: "當天提醒",
 };
 
 function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
