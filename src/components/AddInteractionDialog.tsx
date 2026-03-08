@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, Interaction } from "@/data/contacts";
 import { MentionTextarea } from "@/components/MentionTextarea";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { toast } from "sonner";
 
 interface AddInteractionDialogProps {
