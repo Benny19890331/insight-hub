@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
 import { AiInviteDialog } from "@/components/AiInviteDialog";
+import { ScrollPicker } from "@/components/ScrollPicker";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
   CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
