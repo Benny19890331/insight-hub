@@ -269,6 +269,15 @@ export default function AdminDashboard() {
                         )}
                         {u.isBanned ? "恢復" : "停權"}
                       </button>
+                      <button
+                        onClick={() => setDeleteTarget(u.id)}
+                        disabled={toggling === u.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-600/40 text-red-500 hover:bg-red-600/20 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                        title="刪除帳號"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        刪除
+                      </button>
                     </div>
                   </div>
                 ))}
