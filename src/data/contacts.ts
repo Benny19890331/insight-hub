@@ -78,7 +78,8 @@ export const mockContacts: Contact[] = [
     notes: "對蛋白質補充品系列很感興趣，想了解經銷方案。下週二可約見面。",
     lastContactDate: "2026-03-06",
     nextFollowUpDate: "2026-03-11",
-    productTags: ["高蛋白飲", "識霸"],
+    contactMethod: "IG: @coach_zhiwei",
+    productTags: ["喚活", "識霸"],
     interactions: [
       { date: "2026-03-06", summary: "參觀工作室，現場試用產品，反應非常正面" },
       { date: "2026-02-25", summary: "IG 私訊初次接觸，對高蛋白系列感興趣" },
