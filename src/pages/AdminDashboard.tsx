@@ -213,7 +213,7 @@ export default function AdminDashboard() {
                         title="重設密碼"
                       >
                         <KeyRound className="h-3 w-3" />
-                        密碼
+                        重設密碼
                       </button>
                       <button
                         onClick={() => toggleAdmin(u.id, !u.isAdmin)}
