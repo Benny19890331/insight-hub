@@ -59,6 +59,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [editingInteractionIdx, setEditingInteractionIdx] = useState<number | null>(null);
   const [editInteractionDate, setEditInteractionDate] = useState("");
   const [editInteractionSummary, setEditInteractionSummary] = useState("");
+  const [followUpAction, setFollowUpAction] = useState<"complete" | "cancel" | null>(null);
+  const [followUpActionDate, setFollowUpActionDate] = useState("");
+  const [followUpActionContent, setFollowUpActionContent] = useState("");
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
