@@ -17,7 +17,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { contact } = await req.json();
+    const { contact, insights } = await req.json();
     if (!contact) {
       return new Response(JSON.stringify({ error: "Missing contact data" }), {
         status: 400,
