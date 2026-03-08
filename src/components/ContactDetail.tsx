@@ -240,7 +240,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Heat display (read-only) */}
-        <DetailRow icon={Thermometer} label="熱度" iconBoxClass={iconBoxClass} iconClass={iconClass}>
+        <DetailRow icon={Thermometer} label="熱度" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>
           <span className="text-sm">{heatLabel[contact.heat]}</span>
         </DetailRow>
 
