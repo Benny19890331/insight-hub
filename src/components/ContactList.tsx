@@ -62,7 +62,7 @@ export function ContactList({
             <select
               value={heatFilter}
               onChange={(e) => onHeatFilterChange(e.target.value as HeatLevel | "all")}
-              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
+              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
             >
               {heatOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
