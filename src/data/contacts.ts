@@ -24,10 +24,10 @@ export const birthdayReminderOptions: { value: BirthdayReminder; label: string }
 ];
 
 export const heatOptionsRaw: { value: HeatLevel; label: string }[] = [
+  { value: "loyal", label: "💎 忠實" },
   { value: "hot", label: "🔥 熱" },
   { value: "warm", label: "🌤 溫" },
   { value: "cold", label: "🧊 冷" },
-  { value: "loyal", label: "💎 忠實" },
 ];
 
 export interface Contact {
