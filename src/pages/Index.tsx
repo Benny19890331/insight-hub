@@ -110,11 +110,11 @@ const Index = () => {
             <span className="hidden sm:inline">新增</span>
           </button>
           <button onClick={() => setCsvOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-            <Upload className="h-4 w-4" />
+            <Download className="h-4 w-4" />
             <span className="hidden sm:inline">匯入</span>
           </button>
           <button onClick={handleCsvExport} className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors">
-            <Download className="h-4 w-4" />
+            <Upload className="h-4 w-4" />
             <span className="hidden sm:inline">匯出</span>
           </button>
         </div>
