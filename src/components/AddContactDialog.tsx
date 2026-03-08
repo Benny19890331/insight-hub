@@ -87,7 +87,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
           <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 pb-20">
           {/* AI Voice Input */}
           <div className="flex justify-center py-2 border-b border-border/50 mb-2">
             <VoiceInputButton
