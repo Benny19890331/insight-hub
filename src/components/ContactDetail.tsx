@@ -12,6 +12,7 @@ import {
   Users, Cake, Bell, UserCircle, Thermometer, CheckCircle2, XCircle, Edit3, Trash2, Check, X, Calendar,
 } from "lucide-react";
 import { statusColorMap } from "@/data/statusColors";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 
 interface ContactDetailProps {
