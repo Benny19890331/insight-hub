@@ -14,7 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          avatar_url: string | null
+          background: string
+          birthday: string | null
+          birthday_reminder: string
+          contact_method: string | null
+          created_at: string
+          heat: string
+          id: string
+          last_contact_date: string
+          name: string
+          next_follow_up_date: string
+          next_follow_up_note: string | null
+          next_follow_up_time: string | null
+          nickname: string | null
+          notes: string
+          product_tags: string[]
+          referrer_id: string | null
+          referrer_name: string | null
+          region: string
+          statuses: string[]
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          background?: string
+          birthday?: string | null
+          birthday_reminder?: string
+          contact_method?: string | null
+          created_at?: string
+          heat?: string
+          id?: string
+          last_contact_date?: string
+          name: string
+          next_follow_up_date?: string
+          next_follow_up_note?: string | null
+          next_follow_up_time?: string | null
+          nickname?: string | null
+          notes?: string
+          product_tags?: string[]
+          referrer_id?: string | null
+          referrer_name?: string | null
+          region?: string
+          statuses?: string[]
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          background?: string
+          birthday?: string | null
+          birthday_reminder?: string
+          contact_method?: string | null
+          created_at?: string
+          heat?: string
+          id?: string
+          last_contact_date?: string
+          name?: string
+          next_follow_up_date?: string
+          next_follow_up_note?: string | null
+          next_follow_up_time?: string | null
+          nickname?: string | null
+          notes?: string
+          product_tags?: string[]
+          referrer_id?: string | null
+          referrer_name?: string | null
+          region?: string
+          statuses?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interactions: {
+        Row: {
+          contact_id: string
+          created_at: string
+          date: string
+          id: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          date?: string
+          id?: string
+          summary?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
