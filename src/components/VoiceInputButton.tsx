@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Mic, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { AiConfirmModal } from "@/components/AiConfirmModal";
 
 interface VoiceInputButtonProps {
   mode: "contact" | "interaction";
@@ -10,10 +11,31 @@ interface VoiceInputButtonProps {
 
 const VOICE_PARSE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-parse`;
 
+// Soundwave animation component
+function SoundwaveAnimation() {
+  return (
+    <div className="flex items-center justify-center gap-[3px] h-5 w-5">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span
+          key={i}
+          className="inline-block w-[2.5px] rounded-full bg-primary"
+          style={{
+            animation: `ai-soundwave 1.2s ease-in-out infinite`,
+            animationDelay: `${i * 0.15}s`,
+            height: '4px',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputButtonProps) {
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [pendingResult, setPendingResult] = useState<any>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const recognitionRef = useRef<any>(null);
 
   const startListening = useCallback(() => {
@@ -90,8 +112,9 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
 
       const data = await resp.json();
       if (data.result) {
-        onResult(data.result);
-        toast.success("AI 智慧填表完成！");
+        // Show confirmation modal instead of directly applying
+        setPendingResult(data.result);
+        setShowConfirm(true);
       }
     } catch (e) {
       console.error("Voice parse error:", e);
@@ -100,6 +123,13 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
       setParsing(false);
       setTranscript("");
     }
+  };
+
+  const handleConfirm = (editedData: any) => {
+    onResult(editedData);
+    setShowConfirm(false);
+    setPendingResult(null);
+    toast.success("AI 智慧填表完成！");
   };
 
   const handleClick = () => {
@@ -120,13 +150,13 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
           listening
             ? "bg-red-500/20 border-2 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]"
             : parsing
-            ? "bg-primary/10 border-2 border-primary/30"
-            : "bg-primary/10 border-2 border-primary/30 hover:bg-primary/20 hover:border-primary/50 hover:shadow-[0_0_15px_rgba(var(--primary),0.3)]"
-        } disabled:opacity-50 disabled:cursor-not-allowed`}
+            ? "bg-primary/10 border-2 border-primary/50 shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
+            : "bg-primary/10 border-2 border-primary/30 hover:bg-primary/20 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+        } disabled:cursor-not-allowed`}
         title={listening ? "點擊停止錄音" : "AI 智慧語音建檔"}
       >
         {parsing ? (
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <SoundwaveAnimation />
         ) : (
           <Mic className={`h-5 w-5 transition-colors ${listening ? "text-red-400" : "text-primary"}`} />
         )}
@@ -137,11 +167,15 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
             <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-red-500 animate-pulse" />
           </>
         )}
+        {/* Parsing glow ring */}
+        {parsing && (
+          <span className="absolute inset-0 rounded-full border-2 border-primary/60 animate-pulse" />
+        )}
       </button>
 
       {/* Status text */}
       <span className="text-[10px] text-muted-foreground font-medium">
-        {listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 解析中..." : "🎙️ AI 語音建檔"}
+        {listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 語意解析中..." : "🎙️ AI 語音建檔"}
       </span>
 
       {/* Live transcript */}
@@ -151,6 +185,15 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
           {listening && <span className="inline-block w-1 h-3 bg-red-400 animate-pulse ml-0.5 align-middle" />}
         </div>
       )}
+
+      {/* AI Confirm Modal */}
+      <AiConfirmModal
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        data={pendingResult}
+        mode={mode}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }
