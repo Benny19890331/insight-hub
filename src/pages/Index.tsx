@@ -71,16 +71,23 @@ const Index = () => {
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="flex items-center justify-between border-b border-border px-4 md:px-6 h-14 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 border border-primary/20">
-            <Infinity className="h-5 w-5" style={{ stroke: 'url(#metalGrad)' }} />
+          <div className="flex h-8 w-8 items-center justify-center shrink-0">
+            <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5 }} />
             <svg width="0" height="0">
               <defs>
-                <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#c0c0c0" />
-                  <stop offset="30%" stopColor="#f0e68c" />
-                  <stop offset="50%" stopColor="#ffffff" />
-                  <stop offset="70%" stopColor="#f0e68c" />
-                  <stop offset="100%" stopColor="#c0c0c0" />
+                <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#b0b0b0">
+                    <animate attributeName="stop-color" values="#b0b0b0;#f0e68c;#ffffff;#f0e68c;#b0b0b0" dur="3s" repeatCount="indefinite" />
+                  </stop>
+                  <stop offset="33%" stopColor="#f0e68c">
+                    <animate attributeName="stop-color" values="#f0e68c;#ffffff;#f0e68c;#b0b0b0;#f0e68c" dur="3s" repeatCount="indefinite" />
+                  </stop>
+                  <stop offset="66%" stopColor="#ffffff">
+                    <animate attributeName="stop-color" values="#ffffff;#f0e68c;#b0b0b0;#f0e68c;#ffffff" dur="3s" repeatCount="indefinite" />
+                  </stop>
+                  <stop offset="100%" stopColor="#f0e68c">
+                    <animate attributeName="stop-color" values="#f0e68c;#b0b0b0;#f0e68c;#ffffff;#f0e68c" dur="3s" repeatCount="indefinite" />
+                  </stop>
                 </linearGradient>
               </defs>
             </svg>
