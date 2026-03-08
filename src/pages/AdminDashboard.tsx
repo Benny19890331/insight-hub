@@ -224,60 +224,64 @@ export default function AdminDashboard() {
                         {u.lastSignIn && ` · 最後登入: ${new Date(u.lastSignIn).toLocaleDateString("zh-TW")}`}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-3 items-center">
-                       <button
-                         onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
-                         disabled={toggling === u.id}
-                         className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
-                         title="重設密碼"
-                       >
-                         <KeyRound className="h-3 w-3" />
-                         重設密碼
-                       </button>
-                       <button
-                         onClick={() => toggleAdmin(u.id, !u.isAdmin)}
-                         disabled={toggling === u.id}
-                         className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
-                           u.isAdmin
-                             ? "border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-                             : "border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
-                         }`}
-                         title={u.isAdmin ? "移除管理員" : "設為管理員"}
-                       >
-                         {toggling === u.id ? (
-                           <Loader2 className="h-3 w-3 animate-spin" />
-                         ) : (
-                           <Crown className="h-3 w-3" />
-                         )}
-                         {u.isAdmin ? "取消" : "授權"}
-                       </button>
-                       <button
-                         onClick={() => toggleBan(u.id, !u.isBanned)}
-                         disabled={toggling === u.id}
-                         className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
-                           u.isBanned
-                             ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
-                             : "border-red-500/30 text-red-400 hover:bg-red-500/10"
-                         }`}
-                       >
-                         {toggling === u.id ? (
-                           <Loader2 className="h-3 w-3 animate-spin" />
-                         ) : u.isBanned ? (
-                           <Shield className="h-3 w-3" />
-                         ) : (
-                           <ShieldOff className="h-3 w-3" />
-                         )}
-                         {u.isBanned ? "恢復" : "停權"}
-                       </button>
-                       <button
-                         onClick={() => setDeleteTarget(u.id)}
-                         disabled={toggling === u.id}
-                         className="inline-flex items-center gap-1 rounded-lg border border-red-600/40 text-red-500 hover:bg-red-600/20 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ml-auto"
-                         title="刪除帳號"
-                       >
-                         <Trash2 className="h-3 w-3" />
-                         刪除
-                       </button>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <div className="flex flex-wrap gap-3">
+                         <button
+                           onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
+                           disabled={toggling === u.id}
+                           className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                           title="重設密碼"
+                         >
+                           <KeyRound className="h-3 w-3" />
+                           重設密碼
+                         </button>
+                         <button
+                           onClick={() => toggleAdmin(u.id, !u.isAdmin)}
+                           disabled={toggling === u.id}
+                           className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
+                             u.isAdmin
+                               ? "border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                               : "border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                           }`}
+                           title={u.isAdmin ? "移除管理員" : "設為管理員"}
+                         >
+                           {toggling === u.id ? (
+                             <Loader2 className="h-3 w-3 animate-spin" />
+                           ) : (
+                             <Crown className="h-3 w-3" />
+                           )}
+                           {u.isAdmin ? "取消" : "授權"}
+                         </button>
+                         <button
+                           onClick={() => toggleBan(u.id, !u.isBanned)}
+                           disabled={toggling === u.id}
+                           className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
+                             u.isBanned
+                               ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                               : "border-red-500/30 text-red-400 hover:bg-red-500/10"
+                           }`}
+                         >
+                           {toggling === u.id ? (
+                             <Loader2 className="h-3 w-3 animate-spin" />
+                           ) : u.isBanned ? (
+                             <Shield className="h-3 w-3" />
+                           ) : (
+                             <ShieldOff className="h-3 w-3" />
+                           )}
+                           {u.isBanned ? "恢復" : "停權"}
+                         </button>
+                       </div>
+                       <div className="flex sm:ml-auto">
+                         <button
+                           onClick={() => setDeleteTarget(u.id)}
+                           disabled={toggling === u.id}
+                           className="inline-flex items-center gap-1 rounded-lg border border-red-600/40 text-red-500 hover:bg-red-600/20 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                           title="刪除帳號"
+                         >
+                           <Trash2 className="h-3 w-3" />
+                           刪除
+                         </button>
+                       </div>
                      </div>
                   </div>
                 ))}
