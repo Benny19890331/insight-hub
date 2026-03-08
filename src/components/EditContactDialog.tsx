@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
+import { getStatusColor } from "@/data/statusColors";
 import { toast } from "sonner";
 import { Camera, Search, X } from "lucide-react";
 
@@ -153,20 +154,24 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           {/* Status as multi-select chips */}
           <Field label="當前狀態（可複選）">
             <div className="flex flex-wrap gap-2">
-              {statusOptions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => toggleStatus(s)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
-                    selectedStatuses.includes(s)
-                      ? "product-tag ring-1 ring-primary/40"
-                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+              {statusOptions.map((s) => {
+                const color = getStatusColor(s);
+                const isSelected = selectedStatuses.includes(s);
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => toggleStatus(s)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                      isSelected
+                        ? `${color.bg} ${color.text} ${color.border} ring-1 ring-current/20`
+                        : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </Field>
 

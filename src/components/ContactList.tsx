@@ -2,6 +2,7 @@ import { Search, Filter, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
+import { getStatusColor } from "@/data/statusColors";
 import { FunnelStats } from "@/components/FunnelStats";
 
 interface ContactListProps {
@@ -101,7 +102,19 @@ export function ContactList({
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">{contact.name}</span>
-              <StatusBadge heat={contact.heat} label={(contact.statuses ?? []).join("、") || "未設定"} />
+              <div className="flex gap-1 shrink-0">
+                {(contact.statuses ?? []).slice(0, 2).map((s) => {
+                  const color = getStatusColor(s);
+                  return (
+                    <span key={s} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
+                      {s}
+                    </span>
+                  );
+                })}
+                {(contact.statuses ?? []).length > 2 && (
+                  <span className="text-[10px] text-muted-foreground">+{(contact.statuses ?? []).length - 2}</span>
+                )}
+              </div>
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {contact.region}
