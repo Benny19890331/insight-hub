@@ -369,6 +369,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <div className="space-y-2">
               <p className="text-xs font-medium text-rose-400">❌ 取消追蹤</p>
               <p className="text-xs text-muted-foreground">原定：{contact.nextFollowUpDate}</p>
+              {contact.nextFollowUpNote && (
+                <div className="rounded-md bg-muted/30 border border-border px-3 py-2">
+                  <p className="text-xs text-muted-foreground mb-0.5">原追蹤內容：</p>
+                  <p className="text-sm">{contact.nextFollowUpNote}</p>
+                </div>
+              )}
               <MentionTextarea
                 value={followUpActionContent}
                 onChange={setFollowUpActionContent}
