@@ -188,7 +188,7 @@ const Index = () => {
           </div>
           <h1 className="text-sm font-semibold tracking-tight">
             <span style={{ color: t.titleColor, textShadow: `0 0 8px ${t.titleGlow}` }}>RICH系統</span>
-            <span className={`ml-1.5 font-normal hidden sm:inline ${t.mutedText}`}>名單管理系統</span>
+            <span className={`ml-1.5 font-normal inline ${t.mutedText}`}>名單管理系統</span>
           </h1>
         </div>
         <div className="flex items-center gap-2">
