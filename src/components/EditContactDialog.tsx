@@ -137,10 +137,17 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden p-0 border-0 bg-transparent">
+        <div className="relative overflow-hidden rounded-lg">
+          {/* Background image */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+          <div className="relative z-10 p-6 overflow-y-auto max-h-[85vh]">
         <DialogHeader>
-          <DialogTitle className="text-foreground">編輯客戶資料</DialogTitle>
-          <DialogDescription>修改 {contact.name} 的資訊</DialogDescription>
+          <DialogTitle className={t.authCardText}>編輯客戶資料</DialogTitle>
+          <DialogDescription className={t.mutedText}>修改 {contact.name} 的資訊</DialogDescription>
         </DialogHeader>
         <div className="space-y-3.5 pt-2">
           {/* Avatar */}
