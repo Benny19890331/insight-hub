@@ -266,10 +266,37 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Birthday + reminder */}
-        <DetailRow icon={Cake} label="生日 / 重要紀念日">
+        <DetailRow icon={Cake} label="生日">
           {contact.birthday ? (
-            <div className="flex items-center gap-2">
-              <span>{contact.birthday}</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span>{contact.birthday}</span>
+                {(() => {
+                  const parts = contact.birthday!.split("-").map(Number);
+                  if (parts.length >= 2) {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const [m, d] = parts.length === 3 ? [parts[1], parts[2]] : [parts[0], parts[1]];
+                    const birthYear = parts.length === 3 ? parts[0] : null;
+                    let nextBday = new Date(year, m - 1, d);
+                    if (nextBday < now) nextBday = new Date(year + 1, m - 1, d);
+                    const diffMs = nextBday.getTime() - now.getTime();
+                    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                    const age = birthYear ? (now.getFullYear() - birthYear + (new Date(now.getFullYear(), m - 1, d) <= now ? 0 : -1)) : null;
+                    return (
+                      <>
+                        {age !== null && (
+                          <span className="text-xs bg-muted border border-border rounded-md px-2 py-0.5">{age} 歲</span>
+                        )}
+                        <span className="text-xs bg-accent/50 border border-accent rounded-md px-2 py-0.5">
+                          {diffDays === 0 ? "🎂 今天生日！" : `⏳ 還有 ${diffDays} 天`}
+                        </span>
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
               {contact.birthdayReminder && contact.birthdayReminder !== "none" && (
                 <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5">
                   <Bell className="h-3 w-3" />

@@ -17,10 +17,10 @@ export const statusOptions = [
 
 export const birthdayReminderOptions: { value: BirthdayReminder; label: string }[] = [
   { value: "none", label: "不提醒" },
-  { value: "1month", label: "一個月前" },
-  { value: "1week", label: "一週前" },
-  { value: "3days", label: "三天前" },
-  { value: "today", label: "當天" },
+  { value: "1month", label: "一個月前提醒" },
+  { value: "1week", label: "一週前提醒" },
+  { value: "3days", label: "三天前提醒" },
+  { value: "today", label: "當天提醒" },
 ];
 
 export const heatOptionsRaw: { value: HeatLevel; label: string }[] = [
