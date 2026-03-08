@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Contact, Interaction, statusOptions, heatOptionsRaw, HeatLevel, getReferrerChain } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
