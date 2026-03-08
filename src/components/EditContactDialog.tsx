@@ -31,6 +31,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [referrerId, setReferrerId] = useState(contact.referrerId ?? "");
   const [birthday, setBirthday] = useState(contact.birthday ?? "");
   const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>(contact.birthdayReminder ?? "none");
+  const [gender, setGender] = useState<Gender>(contact.gender ?? "");
   const [referrerSearch, setReferrerSearch] = useState("");
   const [referrerOpen, setReferrerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
