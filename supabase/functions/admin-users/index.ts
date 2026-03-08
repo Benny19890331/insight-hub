@@ -165,17 +165,32 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Delete user's data first (contacts, interactions will cascade)
-      await adminClient.from("contacts").delete().eq("user_id", targetUserId);
-      await adminClient.from("interactions").delete().eq("user_id", targetUserId);
-      await adminClient.from("profiles").delete().eq("id", targetUserId);
-      await adminClient.from("user_roles").delete().eq("user_id", targetUserId);
-      await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
+      console.log(`Deleting user: ${targetUserId}`);
+
+      // Delete user's data first - ignore errors as some may not exist
+      const { error: contactsErr } = await adminClient.from("contacts").delete().eq("user_id", targetUserId);
+      if (contactsErr) console.log("contacts delete error:", contactsErr.message);
+
+      const { error: interactionsErr } = await adminClient.from("interactions").delete().eq("user_id", targetUserId);
+      if (interactionsErr) console.log("interactions delete error:", interactionsErr.message);
+
+      const { error: profilesErr } = await adminClient.from("profiles").delete().eq("id", targetUserId);
+      if (profilesErr) console.log("profiles delete error:", profilesErr.message);
+
+      const { error: rolesErr } = await adminClient.from("user_roles").delete().eq("user_id", targetUserId);
+      if (rolesErr) console.log("user_roles delete error:", rolesErr.message);
+
+      const { error: bannedErr } = await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
+      if (bannedErr) console.log("banned_users delete error:", bannedErr.message);
 
       // Delete auth user
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error("Auth user delete error:", deleteError.message);
+        throw deleteError;
+      }
 
+      console.log(`User ${targetUserId} deleted successfully`);
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
