@@ -156,6 +156,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "delete_user") {
+      const { targetUserId } = body;
+      if (!targetUserId) {
+        return new Response(JSON.stringify({ error: "Missing targetUserId" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Delete user's data first (contacts, interactions will cascade)
+      await adminClient.from("contacts").delete().eq("user_id", targetUserId);
+      await adminClient.from("interactions").delete().eq("user_id", targetUserId);
+      await adminClient.from("profiles").delete().eq("id", targetUserId);
+      await adminClient.from("user_roles").delete().eq("user_id", targetUserId);
+      await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
+
+      // Delete auth user
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
+      if (deleteError) throw deleteError;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
