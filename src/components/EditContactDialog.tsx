@@ -19,6 +19,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const [name, setName] = useState(contact.name);
   const [nickname, setNickname] = useState(contact.nickname ?? "");
+  const [memberId, setMemberId] = useState(contact.memberId ?? "");
   const [region, setRegion] = useState(contact.region);
   const [background, setBackground] = useState(contact.background);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []);
