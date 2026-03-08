@@ -100,10 +100,12 @@ function determineHeatFromPay(pay: string, sp: string): HeatLevel {
 
 function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[] } {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
-  const contacts: Contact[] = [];
   const errors: string[] = [];
   const today = new Date().toISOString().split("T")[0];
   const seenIds = new Set<string>();
+
+  // First pass: collect all rows
+  const rows: { name: string; idCol: string; region: string; regDate: string; pay: string; sp: string; lastPurchaseRaw: string; lineNum: number }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const cols = parseCsvLine(lines[i]);
@@ -115,25 +117,54 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
     if (seenIds.has(idCol)) { errors.push(`第 ${i + 1} 行：重複 ID ${idCol}，已跳過`); continue; }
     seenIds.add(idCol);
 
-    const region = cols[4]?.trim() ?? "";
-    const regDate = cols[5]?.trim() ?? "";
-    const pay = cols[6]?.trim() ?? "";
-    const sp = cols[11]?.trim() ?? "";
-    const lastPurchaseRaw = cols[15]?.trim() ?? cols[14]?.trim() ?? "";
+    rows.push({
+      name,
+      idCol,
+      region: cols[4]?.trim() ?? "",
+      regDate: cols[5]?.trim() ?? "",
+      pay: cols[6]?.trim() ?? "",
+      sp: cols[11]?.trim() ?? "",
+      lastPurchaseRaw: cols[15]?.trim() ?? cols[14]?.trim() ?? "",
+      lineNum: i + 1,
+    });
+  }
 
-    const parsedRegDate = parseOrgChartDate(regDate);
-    const parsedLastPurchase = parsePurchaseDate(lastPurchaseRaw);
-    const heat = determineHeatFromPay(pay, sp);
+  // Group by name to merge multiple 經營權
+  const nameMap = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const group = nameMap.get(row.name) ?? [];
+    group.push(row);
+    nameMap.set(row.name, group);
+  }
+
+  const contacts: Contact[] = [];
+
+  for (const [, group] of nameMap) {
+    // Sort by suffix number so -001 comes first
+    group.sort((a, b) => {
+      const suffA = parseInt(a.idCol.split("-").pop() ?? "0", 10);
+      const suffB = parseInt(b.idCol.split("-").pop() ?? "0", 10);
+      return suffA - suffB;
+    });
+
+    const primary = group[0];
+    const parsedRegDate = parseOrgChartDate(primary.regDate);
+    const parsedLastPurchase = parsePurchaseDate(primary.lastPurchaseRaw);
+    const heat = determineHeatFromPay(primary.pay, primary.sp);
+
+    // Collect extra 經營權 IDs (skip the first/primary one)
+    const extraIds = group.slice(1).map(r => r.idCol);
+    const extraNote = extraIds.length > 0 ? ` / 其他經營權: ${extraIds.join(", ")}` : "";
 
     const c: Contact = {
       id: crypto.randomUUID(),
-      name,
-      memberId: idCol,
-      region: region === "TWN" ? "台灣" : region,
+      name: primary.name,
+      memberId: primary.idCol,
+      region: primary.region === "TWN" ? "台灣" : primary.region,
       background: "",
       statuses: [],
       heat,
-      notes: `登錄日: ${parsedRegDate || regDate}${pay ? ` / PAY: ${pay}` : ""}${sp && sp !== "0" ? ` / SP: ${sp}` : ""}`,
+      notes: `登錄日: ${parsedRegDate || primary.regDate}${primary.pay ? ` / PAY: ${primary.pay}` : ""}${primary.sp && primary.sp !== "0" ? ` / SP: ${primary.sp}` : ""}${extraNote}`,
       lastContactDate: parsedLastPurchase || today,
       nextFollowUpDate: today,
       interactions: [],
@@ -141,6 +172,9 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
     };
 
     contacts.push(c);
+    if (extraIds.length > 0) {
+      errors.push(`${primary.name} 有 ${group.length} 個經營權，已合併（保留 ${primary.idCol}）`);
+    }
   }
 
   if (contacts.length === 0) {
