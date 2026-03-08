@@ -67,9 +67,99 @@ function parseCsvLine(line: string): string[] {
   return result;
 }
 
+function isOrgChartCsv(lines: string[]): boolean {
+  return lines.length > 0 && lines[0].includes("組織圖") && lines[0].includes("ＭＡＰ");
+}
+
+function parseOrgChartDate(raw: string): string {
+  // Format: YY/MM/DD → 20YY-MM-DD
+  const m = raw.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (!m) return "";
+  const yy = parseInt(m[1], 10);
+  const year = yy >= 50 ? 1900 + yy : 2000 + yy;
+  return `${year}-${m[2]}-${m[3]}`;
+}
+
+function parsePurchaseDate(raw: string): string {
+  // Format: (MM)YY/MM/DD XX → 20YY-MM-DD
+  const m = raw.match(/\(?\d{1,2}\)?(\d{2})\/(\d{2})\/(\d{2})/);
+  if (!m) return "";
+  const yy = parseInt(m[1], 10);
+  const year = yy >= 50 ? 1900 + yy : 2000 + yy;
+  return `${year}-${m[2]}-${m[3]}`;
+}
+
+function determineHeatFromPay(pay: string, sp: string): HeatLevel {
+  const payNum = parseInt(pay.replace(/[^0-9]/g, ""), 10) || 0;
+  const spNum = parseInt(sp, 10) || 0;
+  if (payNum >= 4 || spNum >= 2) return "hot";
+  if (payNum >= 3) return "warm";
+  if (payNum >= 1) return "warm";
+  return "cold";
+}
+
+function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[] } {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const contacts: Contact[] = [];
+  const errors: string[] = [];
+  const today = new Date().toISOString().split("T")[0];
+  const seenIds = new Set<string>();
+
+  for (let i = 0; i < lines.length; i++) {
+    const cols = parseCsvLine(lines[i]);
+    // Data rows have ID in col 2 matching pattern like 1596887-001
+    const idCol = cols[2]?.trim() ?? "";
+    if (!/^\d{5,}-\d{3}$/.test(idCol)) continue;
+
+    const name = cols[3]?.trim() ?? "";
+    // Skip masked names
+    if (!name || name.includes("********")) continue;
+    // Skip duplicates (same person with multiple IDs)
+    if (seenIds.has(idCol)) { errors.push(`第 ${i + 1} 行：重複 ID ${idCol}，已跳過`); continue; }
+    seenIds.add(idCol);
+
+    const region = cols[4]?.trim() ?? "";
+    const regDate = cols[5]?.trim() ?? "";
+    const pay = cols[6]?.trim() ?? "";
+    const sp = cols[11]?.trim() ?? "";
+    const lastPurchaseRaw = cols[15]?.trim() ?? cols[14]?.trim() ?? "";
+
+    const parsedRegDate = parseOrgChartDate(regDate);
+    const parsedLastPurchase = parsePurchaseDate(lastPurchaseRaw);
+    const heat = determineHeatFromPay(pay, sp);
+
+    const c: Contact = {
+      id: crypto.randomUUID(),
+      name,
+      region: region === "TWN" ? "台灣" : region,
+      background: `組織ID: ${idCol}`,
+      statuses: [],
+      heat,
+      notes: `登錄日: ${parsedRegDate || regDate}${pay ? ` / PAY: ${pay}` : ""}${sp && sp !== "0" ? ` / SP: ${sp}` : ""}`,
+      lastContactDate: parsedLastPurchase || today,
+      nextFollowUpDate: today,
+      interactions: [],
+      productTags: [],
+    };
+
+    contacts.push(c);
+  }
+
+  if (contacts.length === 0) {
+    errors.push("未找到有效的聯絡人資料（已遮蔽的姓名會自動跳過）");
+  }
+
+  return { contacts, errors };
+}
+
 function parseCsv(text: string, existingContacts: Contact[]): { contacts: Contact[]; errors: string[] } {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) return { contacts: [], errors: ["CSV 檔案至少需要標題列和一筆資料"] };
+
+  // Auto-detect org chart format
+  if (isOrgChartCsv(lines)) {
+    return parseOrgChartCsv(text);
+  }
 
   const headers = parseCsvLine(lines[0]);
   const fieldIndices: { field: string; index: number }[] = [];
@@ -180,7 +270,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
             >
               <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">拖拽 CSV 檔案至此，或點擊選擇</p>
-              <p className="text-xs text-muted-foreground mt-1">支援欄位：姓名、綽號、地區、背景、狀態、熱度、聯絡方式、生日、產品標籤等</p>
+              <p className="text-xs text-muted-foreground mt-1">支援一般 CSV 及組織圖ＭＡＰ格式（自動偵測）</p>
             </div>
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
