@@ -157,15 +157,15 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setAddOpen(true)} className="neon-btn-cyan">
-            <Plus className="h-3.5 w-3.5" />新增互動
+        <div className="flex gap-1.5">
+          <button onClick={() => setAddOpen(true)} className="neon-btn-cyan flex-1 justify-center">
+            <Plus className="h-3 w-3" />互動
           </button>
-          <button onClick={() => setAiOpen(true)} className="neon-btn-magenta">
-            <Sparkles className="h-3.5 w-3.5" />AI 邀約
+          <button onClick={() => setAiOpen(true)} className="neon-btn-magenta flex-1 justify-center">
+            <Sparkles className="h-3 w-3" />邀約
           </button>
-          <button onClick={() => setEditOpen(true)} className="neon-btn-amber">
-            <Pencil className="h-3.5 w-3.5" />編輯資料
+          <button onClick={() => setEditOpen(true)} className="neon-btn-amber flex-1 justify-center">
+            <Pencil className="h-3 w-3" />編輯
           </button>
         </div>
       </div>

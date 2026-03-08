@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, KeyRound, Trash2 } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, KeyRound, Trash2, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -19,7 +19,18 @@ interface AdminUser {
   lastSignIn: string | null;
   isBanned: boolean;
   isAdmin: boolean;
+  contactCount: number;
+  interactionCount: number;
 }
+
+const usageLevel = (u: AdminUser): { label: string; color: string; level: number } => {
+  const total = u.contactCount + u.interactionCount;
+  if (total >= 100) return { label: "重度", color: "text-red-400 border-red-500/40 bg-red-500/10", level: 5 };
+  if (total >= 50) return { label: "高頻", color: "text-orange-400 border-orange-500/40 bg-orange-500/10", level: 4 };
+  if (total >= 20) return { label: "中頻", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10", level: 3 };
+  if (total >= 5) return { label: "低頻", color: "text-blue-400 border-blue-500/40 bg-blue-500/10", level: 2 };
+  return { label: "極少", color: "text-gray-400 border-gray-500/40 bg-gray-500/10", level: 1 };
+};
 
 export default function AdminDashboard() {
   const { theme: t, themeIndex } = useTheme();
@@ -219,13 +230,23 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       <div className={`text-xs ${t.authSubtext}`}>{u.email}</div>
-                      <div className={`text-xs ${t.authSubtext}`}>
-                        註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}
-                        {u.lastSignIn && ` · 最後登入: ${new Date(u.lastSignIn).toLocaleDateString("zh-TW")}`}
+                      <div className={`text-xs ${t.authSubtext} flex flex-wrap items-center gap-x-2`}>
+                        <span>註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}</span>
+                        {u.lastSignIn && <span>最後登入: {new Date(u.lastSignIn).toLocaleDateString("zh-TW")}</span>}
+                        {(() => {
+                          const usage = usageLevel(u);
+                          return (
+                            <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium ${usage.color}`}>
+                              <Activity className="h-2.5 w-2.5" />
+                              {usage.label} ({u.contactCount}人/{u.interactionCount}互動)
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      {/* Left: safe actions */}
+                      <div className="flex flex-col gap-2">
                          <button
                            onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
                            disabled={toggling === u.id}
@@ -253,7 +274,8 @@ export default function AdminDashboard() {
                            {u.isAdmin ? "取消" : "授權"}
                          </button>
                        </div>
-                       <div className="flex gap-3">
+                       {/* Right: dangerous actions */}
+                       <div className="flex flex-col gap-2 items-end">
                          <button
                            onClick={() => toggleBan(u.id, !u.isBanned)}
                            disabled={toggling === u.id}

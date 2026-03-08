@@ -66,6 +66,19 @@ Deno.serve(async (req) => {
       const { data: adminRoles } = await adminClient.from("user_roles").select("user_id").eq("role", "admin");
       const adminSet = new Set((adminRoles ?? []).map((r: any) => r.user_id));
 
+      // Count contacts and interactions per user
+      const { data: contactCounts } = await adminClient.from("contacts").select("user_id");
+      const contactCountMap = new Map<string, number>();
+      (contactCounts ?? []).forEach((c: any) => {
+        contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
+      });
+
+      const { data: interactionCounts } = await adminClient.from("interactions").select("user_id");
+      const interactionCountMap = new Map<string, number>();
+      (interactionCounts ?? []).forEach((i: any) => {
+        interactionCountMap.set(i.user_id, (interactionCountMap.get(i.user_id) ?? 0) + 1);
+      });
+
       const result = users
         .filter((u: any) => u.id !== user.id)
         .map((u: any) => ({
@@ -76,6 +89,8 @@ Deno.serve(async (req) => {
           lastSignIn: u.last_sign_in_at,
           isBanned: bannedSet.has(u.id),
           isAdmin: adminSet.has(u.id),
+          contactCount: contactCountMap.get(u.id) ?? 0,
+          interactionCount: interactionCountMap.get(u.id) ?? 0,
         }));
 
       return new Response(JSON.stringify({ users: result }), {
