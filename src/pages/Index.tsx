@@ -103,6 +103,12 @@ const Index = () => {
         onImport={handleCsvImport}
         existingContacts={contacts}
       />
+      <AddContactDialog
+        open={addContactOpen}
+        onOpenChange={setAddContactOpen}
+        onSave={handleAddContact}
+        contacts={contacts}
+      />
     </div>
   );
 };
