@@ -224,8 +224,8 @@ export default function AdminDashboard() {
                         {u.lastSignIn && ` · 最後登入: ${new Date(u.lastSignIn).toLocaleDateString("zh-TW")}`}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                      <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-3">
                          <button
                            onClick={() => { setResetTarget(u.id); setNewPwd(""); }}
                            disabled={toggling === u.id}
@@ -252,6 +252,8 @@ export default function AdminDashboard() {
                            )}
                            {u.isAdmin ? "取消" : "授權"}
                          </button>
+                       </div>
+                       <div className="flex gap-3">
                          <button
                            onClick={() => toggleBan(u.id, !u.isBanned)}
                            disabled={toggling === u.id}
@@ -270,8 +272,6 @@ export default function AdminDashboard() {
                            )}
                            {u.isBanned ? "恢復" : "停權"}
                          </button>
-                       </div>
-                       <div className="flex sm:ml-auto">
                          <button
                            onClick={() => setDeleteTarget(u.id)}
                            disabled={toggling === u.id}
