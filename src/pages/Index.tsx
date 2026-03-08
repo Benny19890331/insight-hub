@@ -206,7 +206,7 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         <aside className={`w-full md:w-80 lg:w-96 border-r shrink-0 overflow-hidden flex-col transition-colors duration-500 ${t.sidebarBg} ${t.cardBorder} ${showDetail ? "hidden md:flex" : "flex"}`}>
           <ContactList
             contacts={contacts}
