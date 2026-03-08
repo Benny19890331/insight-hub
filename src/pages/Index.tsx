@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
-import { Upload, Users } from "lucide-react";
+import { Upload, Users, UserPlus } from "lucide-react";
 import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
 import { CsvImportDialog } from "@/components/CsvImportDialog";
+import { AddContactDialog } from "@/components/AddContactDialog";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -14,6 +15,7 @@ const Index = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
+  const [addContactOpen, setAddContactOpen] = useState(false);
 
   const handleSelect = useCallback((c: Contact) => {
     const fresh = contacts.find((x) => x.id === c.id) ?? c;
@@ -37,6 +39,10 @@ const Index = () => {
     setContacts((prev) => [...prev, ...imported]);
   }, []);
 
+  const handleAddContact = useCallback((contact: Contact) => {
+    setContacts((prev) => [...prev, contact]);
+  }, []);
+
   const handleUpdateContact = useCallback((updated: Contact) => {
     setContacts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     setSelectedContact(updated);
@@ -54,11 +60,17 @@ const Index = () => {
             <span className="text-muted-foreground ml-1.5 font-normal hidden sm:inline">系統名單管理</span>
           </h1>
         </div>
-        <button onClick={() => setCsvOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-          <Upload className="h-4 w-4" />
-          <span className="hidden sm:inline">匯入 CSV</span>
-          <span className="sm:hidden">匯入</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setAddContactOpen(true)} className="neon-btn-cyan">
+            <UserPlus className="h-4 w-4" />
+            <span className="hidden sm:inline">新增</span>
+          </button>
+          <button onClick={() => setCsvOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">匯入 CSV</span>
+            <span className="sm:hidden">匯入</span>
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -90,6 +102,12 @@ const Index = () => {
         onOpenChange={setCsvOpen}
         onImport={handleCsvImport}
         existingContacts={contacts}
+      />
+      <AddContactDialog
+        open={addContactOpen}
+        onOpenChange={setAddContactOpen}
+        onSave={handleAddContact}
+        contacts={contacts}
       />
     </div>
   );
