@@ -142,7 +142,41 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         <DetailRow icon={UserCircle} label="綽號 / 稱呼">{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
         <DetailRow icon={MapPin} label="地區">{contact.region}</DetailRow>
         <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
-        <DetailRow icon={Phone} label="聯絡方式">{contact.contactMethod || "尚未填寫"}</DetailRow>
+        <DetailRow icon={Phone} label="聯絡方式">
+          {contact.contactMethod ? (
+            (() => {
+              const val = contact.contactMethod!;
+              const urlPattern = /^https?:\/\//i;
+              const socialPatterns = [
+                { pattern: /(?:instagram\.com|ig:|@)/i, label: "Instagram" },
+                { pattern: /(?:facebook\.com|fb\.com|fb:|fb\.me)/i, label: "Facebook" },
+                { pattern: /(?:line\.me|line:|LINE ID)/i, label: "LINE" },
+                { pattern: /(?:twitter\.com|x\.com)/i, label: "X / Twitter" },
+                { pattern: /(?:t\.me|telegram)/i, label: "Telegram" },
+                { pattern: /(?:linkedin\.com)/i, label: "LinkedIn" },
+              ];
+              if (urlPattern.test(val)) {
+                const matched = socialPatterns.find(s => s.pattern.test(val));
+                return (
+                  <a href={val} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    {matched ? `🔗 ${matched.label}` : val}
+                  </a>
+                );
+              }
+              // Check if it contains a URL somewhere in the text
+              const urlInText = val.match(/(https?:\/\/[^\s]+)/);
+              if (urlInText) {
+                return (
+                  <span>
+                    {val.replace(urlInText[0], '').trim()}{' '}
+                    <a href={urlInText[0]} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">🔗 連結</a>
+                  </span>
+                );
+              }
+              return val;
+            })()
+          ) : "尚未填寫"}
+        </DetailRow>
 
         {/* Status display (read-only, colored) */}
         <div className="flex gap-3 items-start">
@@ -173,13 +207,42 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           <span className="text-sm">{heatLabel[contact.heat]}</span>
         </DetailRow>
 
-        {/* Referrer chain (up to 3 levels) */}
+        {/* Downline / referrals */}
+        {(() => {
+          const downlines = contacts.filter(c => c.referrerId === contact.id);
+          return (
+            <div className="flex gap-3 items-start">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">推薦人數</p>
+                <p className="text-sm font-medium mt-0.5">{downlines.length} 人</p>
+                {downlines.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {downlines.map(d => (
+                      <button
+                        key={d.id}
+                        onClick={() => onSelectContact?.(d.id)}
+                        className="text-xs text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5 hover:bg-primary/20 transition-colors"
+                      >
+                        {d.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Referrer chain */}
         <div className="flex gap-3 items-start">
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
             <Users className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈（上溯三階）</p>
+            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
             {referrerChain.length > 0 ? (
               <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                 <span className="text-sm text-muted-foreground">{contact.name}</span>
