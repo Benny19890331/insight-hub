@@ -110,16 +110,32 @@ const Index = () => {
     boxShadow: `0 0 10px -2px ${t.btnSecondary.shadow}, inset 0 0 8px -6px ${t.btnSecondary.shadow}`,
   };
 
+  const { themeIndex } = useTheme();
+
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${t.mainBg}`}>
-        <Loader2 className={`h-8 w-8 animate-spin ${t.accent}`} />
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        {bgImages.map((img, i) => (
+          <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === themeIndex ? 1 : 0 }}>
+            <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className={`absolute inset-0 ${themes[i].authOverlay.replace('bg-gradient-to-b', 'bg-gradient-to-b')}`} />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+        ))}
+        <Loader2 className={`h-8 w-8 animate-spin ${t.accent} relative z-10`} />
       </div>
     );
   }
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden ${t.mainBg}`}>
+    <div className="flex flex-col h-screen overflow-hidden relative">
+      {/* Background images */}
+      {bgImages.map((img, i) => (
+        <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === themeIndex ? 1 : 0, zIndex: 0 }}>
+          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+      ))}
       <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 ${t.headerBg} ${t.headerBorder}`}>
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center shrink-0">
