@@ -3,8 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Camera, Search, X, UserCircle } from "lucide-react";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 interface EditContactDialogProps {
   open: boolean;
