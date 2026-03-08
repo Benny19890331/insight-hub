@@ -44,7 +44,8 @@ export const mockContacts: Contact[] = [
     notes: "對健康數據敏感，太太有在用保健品。週末較有空，偏好 LINE 聯繫。",
     lastContactDate: "2026-03-01",
     nextFollowUpDate: "2026-03-15",
-    productTags: ["識霸", "舒壓ستان"],
+    contactMethod: "LINE: chenhk88",
+    productTags: ["識霸"],
     interactions: [
       { date: "2026-03-01", summary: "一起喝咖啡，聊到健康話題，對血壓管理有興趣" },
       { date: "2026-02-18", summary: "LINE 初次聯繫，寄送產品型錄 PDF" },
