@@ -75,7 +75,7 @@ export function ContactList({
             <select
               value={productFilter}
               onChange={(e) => onProductFilterChange(e.target.value)}
-              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
+              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
             >
               <option value="">全部產品</option>
               {productOptions.map((p) => (
