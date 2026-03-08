@@ -8,8 +8,14 @@ import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { AddContactDialog } from "@/components/AddContactDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts } from "@/hooks/useContacts";
-import { useTheme, ThemeSwitcher } from "@/hooks/useTheme";
+import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 const Index = () => {
   const { signOut } = useAuth();
