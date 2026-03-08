@@ -137,7 +137,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden p-0 border-0 bg-transparent" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="max-w-lg max-h-[90vh] sm:max-h-[85vh] overflow-hidden p-0 border-0 bg-transparent top-[50%] fixed left-[50%] translate-x-[-50%] translate-y-[-50%] sm:top-[50%]" style={{ top: 'env(safe-area-inset-top, 8px)', transform: 'translateX(-50%)' }} onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
