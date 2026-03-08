@@ -43,14 +43,14 @@ export interface AppTheme {
 export const themes: AppTheme[] = [
   {
     name: "🌸 少女活潑", emoji: "🌸",
-    headerBg: "bg-pink-50 backdrop-blur-md",
+    headerBg: "bg-pink-50/70 backdrop-blur-xl",
     headerBorder: "border-pink-200/50",
     titleColor: "#e879a0",
     titleGlow: "rgba(232,121,160,0.4)",
     textColor: "text-gray-900",
-    sidebarBg: "bg-pink-50 backdrop-blur-md",
-    mainBg: "bg-pink-50",
-    cardBg: "bg-white backdrop-blur-sm",
+    sidebarBg: "bg-pink-50/70 backdrop-blur-xl",
+    mainBg: "bg-pink-50/60 backdrop-blur-lg",
+    cardBg: "bg-white/50 backdrop-blur-md",
     cardBorder: "border-pink-200/40",
     cardHover: "hover:bg-pink-100/80",
     selectedCard: "bg-pink-100/70",
