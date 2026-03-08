@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Contact, Interaction } from "@/data/contacts";
+import { Contact, Interaction, statusOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
@@ -7,7 +7,7 @@ import { AiInviteDialog } from "@/components/AiInviteDialog";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
   CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
-  Users, Cake,
+  Users, Cake, Bell, UserCircle,
 } from "lucide-react";
 
 interface ContactDetailProps {
@@ -23,6 +23,14 @@ const heatLabel: Record<string, string> = {
   warm: "🌤 溫",
   hot: "🔥 熱",
   loyal: "💎 忠實",
+};
+
+const reminderLabel: Record<string, string> = {
+  none: "不提醒",
+  "1month": "一個月前",
+  "1week": "一週前",
+  "3days": "三天前",
+  today: "當天",
 };
 
 function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
@@ -71,6 +79,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     }
   };
 
+  const handleStatusChange = (newStatus: string) => {
+    if (onUpdateContact) {
+      onUpdateContact({ ...contact, status: newStatus });
+    }
+  };
+
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
       {onBack && (
@@ -91,7 +105,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             )}
           </div>
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">{contact.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold tracking-tight">{contact.name}</h2>
+              {contact.nickname && (
+                <span className="text-sm text-muted-foreground">（{contact.nickname}）</span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-1">
               <StatusBadge heat={contact.heat} label={contact.status} />
               <span className="text-xs text-muted-foreground">{heatLabel[contact.heat]}</span>
@@ -116,10 +135,35 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
       {/* Details */}
       <div className="space-y-5">
+        <DetailRow icon={UserCircle} label="綽號 / 稱呼">{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
         <DetailRow icon={MapPin} label="地區">{contact.region}</DetailRow>
         <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
         <DetailRow icon={Phone} label="聯絡方式">{contact.contactMethod || "尚未填寫"}</DetailRow>
-        <DetailRow icon={Flame} label="當前狀態 / 熱度">{contact.status} — {heatLabel[contact.heat]}</DetailRow>
+
+        {/* Status as clickable chips */}
+        <div className="flex gap-3 items-start">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+            <Flame className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground mb-1.5">當前狀態（點擊切換）</p>
+            <div className="flex flex-wrap gap-1.5">
+              {statusOptions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handleStatusChange(s)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                    contact.status === s
+                      ? "product-tag ring-1 ring-primary/40"
+                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* Referrer */}
         <DetailRow icon={Users} label="推薦人 / 關係鏈">
@@ -135,9 +179,21 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           )}
         </DetailRow>
 
-        {/* Birthday */}
+        {/* Birthday + reminder */}
         <DetailRow icon={Cake} label="生日 / 重要紀念日">
-          {contact.birthday || <span className="text-muted-foreground">尚未填寫</span>}
+          {contact.birthday ? (
+            <div className="flex items-center gap-2">
+              <span>{contact.birthday}</span>
+              {contact.birthdayReminder && contact.birthdayReminder !== "none" && (
+                <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5">
+                  <Bell className="h-3 w-3" />
+                  {reminderLabel[contact.birthdayReminder]}
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-muted-foreground">尚未填寫</span>
+          )}
         </DetailRow>
 
         {/* Product tags */}
