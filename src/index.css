@@ -144,20 +144,32 @@
   100% { background: hsl(0 90% 60% / 0.08); }
 }
 
+/* Cyan Pulse - Elegant breathing animation for AI button */
+@keyframes cyan-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px -2px hsl(var(--primary) / 0.3), inset 0 0 10px -4px hsl(var(--primary) / 0.08);
+    opacity: 0.9;
+  }
+  50% {
+    box-shadow: 0 0 20px -2px hsl(var(--primary) / 0.6), inset 0 0 15px -4px hsl(var(--primary) / 0.2);
+    opacity: 1;
+  }
+}
+
 @layer components {
-  .neon-btn-cyan,
+  .neon-btn-cyan {
+    @apply inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold tracking-wide cursor-pointer whitespace-nowrap;
+    border: 1px solid hsl(var(--primary));
+    color: hsl(var(--primary));
+    animation: cyan-pulse 3.5s ease-in-out infinite;
+    transition: filter 0.2s, transform 0.15s;
+  }
   .neon-btn-magenta,
   .neon-btn-amber {
     @apply inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold tracking-wide cursor-pointer whitespace-nowrap;
     border: 1px solid;
     animation: rainbow-border 7s linear infinite, rainbow-bg 7s linear infinite;
     transition: filter 0.2s, transform 0.15s;
-  }
-  .neon-btn-magenta {
-    animation-delay: -2.3s, -2.3s;
-  }
-  .neon-btn-amber {
-    animation-delay: -4.6s, -4.6s;
   }
   .neon-btn-cyan:hover,
   .neon-btn-magenta:hover,
