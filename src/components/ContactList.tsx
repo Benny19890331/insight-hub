@@ -1,6 +1,6 @@
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Contact, HeatLevel, heatOptions } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FunnelStats } from "@/components/FunnelStats";
 
@@ -10,6 +10,8 @@ interface ContactListProps {
   onSearchChange: (q: string) => void;
   heatFilter: HeatLevel | "all";
   onHeatFilterChange: (h: HeatLevel | "all") => void;
+  productFilter: string;
+  onProductFilterChange: (p: string) => void;
   selectedId: string | null;
   onSelect: (c: Contact) => void;
 }
@@ -20,6 +22,8 @@ export function ContactList({
   onSearchChange,
   heatFilter,
   onHeatFilterChange,
+  productFilter,
+  onProductFilterChange,
   selectedId,
   onSelect,
 }: ContactListProps) {
@@ -29,15 +33,15 @@ export function ContactList({
       c.region.includes(searchQuery) ||
       c.status.includes(searchQuery);
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
-    return matchesSearch && matchesHeat;
+    const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
+    return matchesSearch && matchesHeat && matchesProduct;
   });
 
   return (
     <div className="flex flex-col h-full">
-      {/* Funnel Stats */}
       <FunnelStats contacts={contacts} />
 
-      {/* Search & Filter */}
+      {/* Search & Filters */}
       <div className="px-4 pb-3 space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -49,20 +53,36 @@ export function ContactList({
             className="w-full rounded-lg border border-border bg-muted/50 py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
           />
         </div>
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <select
-            value={heatFilter}
-            onChange={(e) => onHeatFilterChange(e.target.value as HeatLevel | "all")}
-            className="w-full appearance-none rounded-lg border border-border bg-muted/50 py-2 pl-9 pr-8 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer"
-          >
-            {heatOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▼</div>
+        <div className="grid grid-cols-2 gap-2">
+          {/* Heat filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <select
+              value={heatFilter}
+              onChange={(e) => onHeatFilterChange(e.target.value as HeatLevel | "all")}
+              className="w-full appearance-none rounded-lg border border-border bg-muted/50 py-2 pl-9 pr-6 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer"
+            >
+              {heatOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▼</div>
+          </div>
+          {/* Product filter */}
+          <div className="relative">
+            <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <select
+              value={productFilter}
+              onChange={(e) => onProductFilterChange(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-border bg-muted/50 py-2 pl-9 pr-6 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all cursor-pointer"
+            >
+              <option value="">全部產品</option>
+              {productOptions.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▼</div>
+          </div>
         </div>
       </div>
 
