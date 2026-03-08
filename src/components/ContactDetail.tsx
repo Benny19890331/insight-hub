@@ -359,6 +359,17 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <span className="text-xs">最後聯絡日期</span>
           </div>
           <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
+          {contact.lastContactDate && (() => {
+            const diff = Math.floor((Date.now() - new Date(contact.lastContactDate).getTime()) / (1000 * 60 * 60 * 24));
+            const isOverdue = diff > 30;
+            const isWarning = diff > 14;
+            return (
+              <p className={`text-xs mt-1 ${isOverdue ? "text-rose-400" : isWarning ? "text-amber-400" : "text-muted-foreground"}`}>
+                {diff === 0 ? "📍 今天聯絡過" : diff === 1 ? "昨天聯絡" : `已 ${diff} 天未聯絡`}
+                {isOverdue && " ⚠️ 建議盡快追蹤"}
+              </p>
+            );
+          })()}
         </div>
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -407,9 +418,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                  className="w-full rounded-md border border-border bg-secondary text-foreground px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
                 <input type="time" value={followUpTime} onChange={(e) => setFollowUpTime(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                  className="w-full rounded-md border border-border bg-secondary text-foreground px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
               </div>
               <MentionTextarea
                 value={followUpNote}
@@ -529,7 +540,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 {editingInteractionIdx === i ? (
                   <div className="space-y-1.5">
                     <input type="date" value={editInteractionDate} onChange={e => setEditInteractionDate(e.target.value)}
-                      className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                      className="w-full rounded-md border border-border bg-secondary text-foreground px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
                     <MentionTextarea value={editInteractionSummary} onChange={setEditInteractionSummary} contacts={contacts}
                       placeholder="互動內容⋯" rows={2} />
                     <div className="flex gap-1.5">
