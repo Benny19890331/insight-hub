@@ -85,6 +85,18 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     setEditingFollowUp(false);
   }, [contact?.id]);
 
+  useEffect(() => {
+    if (!contact) return;
+    supabase
+      .from("contact_insights")
+      .select("summary, tags, next_action")
+      .eq("contact_id", contact.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCachedInsights(data ? { summary: (data as any).summary, tags: (data as any).tags, next_action: (data as any).next_action } : null);
+      });
+  }, [contact?.id]);
+
   if (!contact) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
