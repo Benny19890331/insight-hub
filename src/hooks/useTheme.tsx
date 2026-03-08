@@ -220,20 +220,15 @@ export const useTheme = () => useContext(ThemeContext);
 
 export function ThemeSwitcher({ className = "" }: { className?: string }) {
   const { themeIndex, setThemeIndex } = useTheme();
+  const current = themes[themeIndex];
+  const handleClick = () => setThemeIndex((themeIndex + 1) % themes.length);
   return (
-    <div className={`flex gap-1 rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-1.5 py-1 ${className}`}>
-      {themes.map((t, i) => (
-        <button
-          key={t.name}
-          onClick={() => setThemeIndex(i)}
-          title={t.name}
-          className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all duration-200 ${
-            i === themeIndex ? `${t.switcherActive} ring-1 scale-110` : "hover:bg-white/10"
-          }`}
-        >
-          {t.emoji}
-        </button>
-      ))}
-    </div>
+    <button
+      onClick={handleClick}
+      title={`切換風格（目前：${current.name}）`}
+      className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all duration-200 border border-white/10 bg-black/20 backdrop-blur-md hover:bg-white/10 ${current.switcherActive} ${className}`}
+    >
+      {current.emoji}
+    </button>
   );
 }
