@@ -359,7 +359,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           </div>
         </div>
 
-        <DetailRow icon={StickyNote} label="特殊註記">{contact.notes}</DetailRow>
+        <DetailRow icon={StickyNote} label="特殊註記" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.notes}</DetailRow>
       </div>
 
       <div className="h-px bg-border" />
