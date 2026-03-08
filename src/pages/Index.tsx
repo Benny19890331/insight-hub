@@ -33,10 +33,8 @@ const Index = () => {
     setShowDetail(false);
   }, []);
 
-  const handleCsvImport = useCallback(() => {
-    toast.info("CSV 匯入功能即將推出", {
-      description: "此功能正在開發中，敬請期待。",
-    });
+  const handleCsvImport = useCallback((imported: Contact[]) => {
+    setContacts((prev) => [...prev, ...imported]);
   }, []);
 
   const handleUpdateContact = useCallback((updated: Contact) => {
