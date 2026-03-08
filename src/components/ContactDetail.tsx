@@ -723,6 +723,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         open={aiOpen}
         onOpenChange={setAiOpen}
         contact={contact}
+        insights={cachedInsights}
       />
     </div>
   );
