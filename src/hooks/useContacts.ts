@@ -190,6 +190,7 @@ export function useContacts() {
         user_id: user.id,
         name: c.name,
         nickname: c.nickname || null,
+        member_id: c.memberId || null,
         region: c.region,
         background: c.background,
         statuses: c.statuses,

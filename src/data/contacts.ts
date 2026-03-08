@@ -34,6 +34,7 @@ export interface Contact {
   id: string;
   name: string;
   nickname?: string;
+  memberId?: string;
   region: string;
   background: string;
   statuses: string[];
