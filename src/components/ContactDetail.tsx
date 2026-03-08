@@ -108,10 +108,15 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 <span className="text-sm text-muted-foreground">（{contact.nickname}）</span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {(contact.statuses ?? []).map((s) => (
-                <StatusBadge key={s} heat={contact.heat} label={s} />
-              ))}
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              {(contact.statuses ?? []).map((s) => {
+                const color = statusColorMap[s] ?? { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-border" };
+                return (
+                  <span key={s} className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${color.bg} ${color.text} ${color.border}`}>
+                    {s}
+                  </span>
+                );
+              })}
               <span className="text-xs text-muted-foreground">{heatLabel[contact.heat]}</span>
             </div>
           </div>
