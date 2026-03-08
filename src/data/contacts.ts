@@ -42,6 +42,7 @@ export interface Contact {
   lastContactDate: string;
   nextFollowUpDate: string;
   nextFollowUpNote?: string;
+  nextFollowUpTime?: string;
   interactions: Interaction[];
   productTags: string[];
   contactMethod?: string;
