@@ -127,12 +127,33 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
     const region = cols[4]?.trim() ?? "";
     const regDate = cols[5]?.trim() ?? "";
     const pay = cols[6]?.trim() ?? "";
+    const im = cols[7]?.trim() ?? "";   // IM (Independent Manager) column
     const sp = cols[11]?.trim() ?? "";
     const lastPurchaseRaw = cols[15]?.trim() ?? cols[14]?.trim() ?? "";
 
     const parsedRegDate = parseOrgChartDate(regDate);
     const parsedLastPurchase = parsePurchaseDate(lastPurchaseRaw);
     const heat = determineHeatFromPay(pay, sp);
+    const { rank: payRank } = parsePayField(pay);
+
+    // Build comprehensive notes preserving ALL data for AI analysis
+    const noteParts: string[] = [];
+    noteParts.push(`登錄日: ${parsedRegDate || regDate}`);
+    if (pay) noteParts.push(`PAY: ${pay}`);
+    if (im && im !== "0") noteParts.push(`IM: ${im}`);
+    if (sp && sp !== "0") noteParts.push(`SP: ${sp}`);
+    // Capture any other non-empty significant columns (8-10, 12-14)
+    const extraLabels = ["GV", "TV", "OV"];
+    [8, 9, 10].forEach((colIdx, lblIdx) => {
+      const val = cols[colIdx]?.trim();
+      if (val && val !== "0" && val !== "") {
+        noteParts.push(`${extraLabels[lblIdx] ?? `C${colIdx}`}: ${val}`);
+      }
+    });
+
+    // Add rank designation to statuses for AI visibility
+    const statuses: string[] = [];
+    if (payRank) statuses.push(payRank);
 
     const c: Contact = {
       id: crypto.randomUUID(),
@@ -140,9 +161,9 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
       memberId: idCol,
       region: region === "TWN" ? "台灣" : region,
       background: "",
-      statuses: [],
+      statuses,
       heat,
-      notes: `登錄日: ${parsedRegDate || regDate}${pay ? ` / PAY: ${pay}` : ""}${sp && sp !== "0" ? ` / SP: ${sp}` : ""}`,
+      notes: noteParts.join(" / "),
       lastContactDate: parsedLastPurchase || today,
       nextFollowUpDate: today,
       interactions: [],
