@@ -83,6 +83,7 @@ export const themes: AppTheme[] = [
     headerBorder: "border-blue-500/20",
     titleColor: "#60a5fa",
     titleGlow: "rgba(96,165,250,0.4)",
+    textColor: "text-blue-50",
     sidebarBg: "bg-slate-900/80 backdrop-blur-md",
     mainBg: "bg-slate-900/40",
     cardBg: "bg-slate-800/60 backdrop-blur-sm",
