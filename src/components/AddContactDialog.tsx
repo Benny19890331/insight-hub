@@ -202,12 +202,12 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">生日</label>
-              <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+              <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 h-[38px]" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">生日提醒</label>
               <select value={birthdayReminder} onChange={e => setBirthdayReminder(e.target.value as BirthdayReminder)}
-                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer">
+                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer h-[38px]">
                 {birthdayReminderOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
