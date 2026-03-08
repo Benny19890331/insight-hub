@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, Users, UserPlus } from "lucide-react";
+import { Upload, Users, UserPlus, Download } from "lucide-react";
 import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
@@ -39,6 +39,25 @@ const Index = () => {
     setContacts((prev) => [...prev, ...imported]);
   }, []);
 
+  const handleCsvExport = useCallback(() => {
+    const headers = ["姓名","綽號","地區","背景","狀態","熱度","聯絡方式","生日","產品標籤","註記","最後聯絡","下次追蹤"];
+    const heatMap: Record<string, string> = { hot: "熱", warm: "溫", cold: "冷", loyal: "忠實" };
+    const rows = contacts.map(c => [
+      c.name, c.nickname ?? "", c.region, c.background,
+      (c.statuses ?? []).join("、"), heatMap[c.heat] ?? c.heat,
+      c.contactMethod ?? "", c.birthday ?? "",
+      (c.productTags ?? []).join("、"), c.notes,
+      c.lastContactDate, c.nextFollowUpDate,
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `RICH名單_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`已匯出 ${contacts.length} 筆聯絡人`);
+  }, [contacts]);
+
   const handleAddContact = useCallback((contact: Contact) => {
     setContacts((prev) => [...prev, contact]);
   }, []);
@@ -67,8 +86,11 @@ const Index = () => {
           </button>
           <button onClick={() => setCsvOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
             <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">匯入 CSV</span>
-            <span className="sm:hidden">匯入</span>
+            <span className="hidden sm:inline">匯入</span>
+          </button>
+          <button onClick={handleCsvExport} className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">匯出</span>
           </button>
         </div>
       </header>
