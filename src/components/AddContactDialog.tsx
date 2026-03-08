@@ -2,8 +2,9 @@ import { useState, useMemo, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Search, X } from "lucide-react";
+import { Search, X, UserCircle } from "lucide-react";
 
 interface AddContactDialogProps {
   open: boolean;
@@ -13,6 +14,8 @@ interface AddContactDialogProps {
 }
 
 export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddContactDialogProps) {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const today = new Date().toISOString().split("T")[0];
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
@@ -36,7 +39,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     return contacts.filter(c => c.name.toLowerCase().includes(q) || (c.nickname ?? "").toLowerCase().includes(q) || c.region.toLowerCase().includes(q)).slice(0, 10);
   }, [contacts, referrerSearch]);
 
-  const selectedReferrer = contacts.find(c => c.id === referrerId);
+  const selectedReferrer = referrerId === "self" ? { id: "self", name: userName } : contacts.find(c => c.id === referrerId);
 
   const reset = () => {
     setName(""); setNickname(""); setRegion(""); setBackground("");
@@ -61,8 +64,8 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       interactions: [],
       productTags: selectedTags,
       contactMethod: contactMethod.trim() || undefined,
-      referrerId: referrerId || undefined,
-      referrerName: selectedReferrer?.name,
+      referrerId: referrerId === "self" ? undefined : (referrerId || undefined),
+      referrerName: selectedReferrer?.name ?? (referrerId === "self" ? userName : undefined),
       birthday: birthday || undefined,
       birthdayReminder,
     };
@@ -178,8 +181,8 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
             <label className="text-xs text-muted-foreground mb-1.5 block">推薦人</label>
             {selectedReferrer ? (
               <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5">
-                <span className="text-sm">{selectedReferrer.name}</span>
-                {selectedReferrer.nickname && <span className="text-xs text-muted-foreground">({selectedReferrer.nickname})</span>}
+                <span className="text-sm">{referrerId === "self" ? `👤 ${userName}（本人推薦）` : selectedReferrer.name}</span>
+                {'nickname' in selectedReferrer && selectedReferrer.nickname && <span className="text-xs text-muted-foreground">({selectedReferrer.nickname})</span>}
                 <button type="button" onClick={() => setReferrerId("")} className="ml-auto"><X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></button>
               </div>
             ) : (
@@ -190,8 +193,14 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
                   className="w-full rounded-lg border border-border bg-muted/50 pl-9 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
               </div>
             )}
-            {showReferrerList && !selectedReferrer && filteredReferrers.length > 0 && (
+            {showReferrerList && !selectedReferrer && (
               <div className="absolute z-50 left-0 right-0 mt-1 rounded-lg border border-border bg-card shadow-lg max-h-36 overflow-y-auto">
+                <button type="button" onClick={() => { setReferrerId("self"); setShowReferrerList(false); setReferrerSearch(""); }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors flex items-center gap-2 border-b border-border">
+                  <UserCircle className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-medium">{userName}</span>
+                  <span className="text-xs text-muted-foreground">（本人推薦）</span>
+                </button>
                 {filteredReferrers.map(c => (
                   <button key={c.id} type="button" onClick={() => { setReferrerId(c.id); setShowReferrerList(false); setReferrerSearch(""); }}
                     className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors">

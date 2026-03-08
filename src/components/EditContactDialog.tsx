@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Camera, Search, X } from "lucide-react";
+import { Camera, Search, X, UserCircle } from "lucide-react";
 
 interface EditContactDialogProps {
   open: boolean;
@@ -14,6 +15,8 @@ interface EditContactDialogProps {
 }
 
 export function EditContactDialog({ open, onOpenChange, contact, onSave, contacts = [] }: EditContactDialogProps) {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const [name, setName] = useState(contact.name);
   const [nickname, setNickname] = useState(contact.nickname ?? "");
   const [region, setRegion] = useState(contact.region);
@@ -70,7 +73,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     );
   }, [otherContacts, referrerSearch]);
 
-  const selectedReferrer = contacts.find((c) => c.id === referrerId);
+  const selectedReferrer = referrerId === "self" ? { id: "self", name: userName } as any : contacts.find((c) => c.id === referrerId);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -106,8 +109,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
-      referrerId: referrerId || undefined,
-      referrerName: selectedReferrer?.name ?? undefined,
+      referrerId: referrerId === "self" ? undefined : (referrerId || undefined),
+      referrerName: referrerId === "self" ? userName : (selectedReferrer?.name ?? undefined),
       birthday: birthday || undefined,
       birthdayReminder,
     };
@@ -200,7 +203,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             <div className="relative" ref={referrerRef}>
               {referrerId ? (
                 <div className="flex items-center gap-2">
-                  <span className={`${fieldClass} flex-1`}>{selectedReferrer?.name ?? "未知"}</span>
+                  <span className={`${fieldClass} flex-1`}>{referrerId === "self" ? `👤 ${userName}（本人推薦）` : (selectedReferrer?.name ?? "未知")}</span>
                   <button
                     type="button"
                     onClick={() => { setReferrerId(""); setReferrerSearch(""); }}
@@ -223,6 +226,15 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                   </div>
                   {referrerOpen && (
                     <div className="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg">
+                      <button
+                        type="button"
+                        onClick={() => { setReferrerId("self"); setReferrerOpen(false); setReferrerSearch(""); }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-2 border-b border-border"
+                      >
+                        <UserCircle className="h-3.5 w-3.5 text-primary" />
+                        <span className="font-medium">{userName}</span>
+                        <span className="text-xs text-muted-foreground">（本人推薦）</span>
+                      </button>
                       {filteredReferrers.length === 0 ? (
                         <div className="px-3 py-2 text-xs text-muted-foreground">找不到符合的聯絡人</div>
                       ) : (
