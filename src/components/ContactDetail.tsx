@@ -479,7 +479,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                     <XCircle className="h-3 w-3" />取消
                   </button>
                 </div>
-              )
+              )}
             </>
           )}
         </div>
