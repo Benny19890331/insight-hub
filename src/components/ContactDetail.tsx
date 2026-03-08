@@ -359,26 +359,45 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
         </div>
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <CalendarClock className="h-4 w-4 text-primary" />
-              <span className="text-xs">下次追蹤日期</span>
-            </div>
-            <button
-              onClick={() => setEditingFollowUp(true)}
-              className="text-xs text-primary hover:underline"
-            >
-              {editingFollowUp ? "" : "編輯"}
-            </button>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <CalendarClock className="h-4 w-4 text-primary" />
+            <span className="text-xs">下次追蹤日期</span>
           </div>
-          {editingFollowUp ? (
+
+          {followUpAction === "cancel" ? (
+            /* Cancel flow: ask for reason */
             <div className="space-y-2">
-              <input
-                type="date"
-                value={followUpDate}
-                onChange={(e) => setFollowUpDate(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50"
+              <p className="text-xs font-medium text-rose-400">❌ 取消追蹤</p>
+              <p className="text-xs text-muted-foreground">原定：{contact.nextFollowUpDate}</p>
+              <MentionTextarea
+                value={followUpActionContent}
+                onChange={setFollowUpActionContent}
+                contacts={contacts}
+                placeholder="取消原因⋯"
+                rows={2}
               />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (!followUpActionContent.trim()) { toast.error("請輸入取消原因"); return; }
+                    const today = new Date().toISOString().split("T")[0];
+                    const record: Interaction = { date: today, summary: `❌ 追蹤取消（原定 ${contact.nextFollowUpDate}）：${followUpActionContent.trim()}` };
+                    if (onUpdateContact) {
+                      onUpdateContact({ ...contact, interactions: [record, ...(contact.interactions ?? [])], nextFollowUpDate: "", nextFollowUpNote: "" });
+                    }
+                    setFollowUpAction(null); setFollowUpActionContent("");
+                  }}
+                  className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-md"
+                >確認取消</button>
+                <button onClick={() => { setFollowUpAction(null); setFollowUpActionContent(""); }}
+                  className="text-xs text-muted-foreground hover:text-foreground px-3 py-1">返回</button>
+              </div>
+            </div>
+          ) : editingFollowUp ? (
+            /* Edit flow: date + content + complete/cancel-save */
+            <div className="space-y-2">
+              <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
               <MentionTextarea
                 value={followUpNote}
                 onChange={setFollowUpNote}
@@ -389,97 +408,61 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               <div className="flex gap-2">
                 <button
                   onClick={() => {
+                    if (!followUpNote.trim()) { toast.error("請輸入追蹤內容"); return; }
+                    const record: Interaction = { date: followUpDate, summary: `✅ 追蹤完成：${followUpNote.trim()}` };
+                    if (onUpdateContact) {
+                      onUpdateContact({
+                        ...contact,
+                        interactions: [record, ...(contact.interactions ?? [])],
+                        lastContactDate: followUpDate,
+                        nextFollowUpDate: "",
+                        nextFollowUpNote: "",
+                      });
+                    }
+                    setEditingFollowUp(false);
+                  }}
+                  className="inline-flex items-center gap-1 text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-md"
+                >
+                  <CheckCircle2 className="h-3 w-3" />完成
+                </button>
+                <button
+                  onClick={() => {
                     if (onUpdateContact) {
                       onUpdateContact({ ...contact, nextFollowUpDate: followUpDate, nextFollowUpNote: followUpNote });
                     }
                     setEditingFollowUp(false);
                   }}
                   className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90"
-                >
-                  儲存
-                </button>
+                >儲存</button>
                 <button
-                  onClick={() => {
-                    setFollowUpDate(contact.nextFollowUpDate);
-                    setFollowUpNote(contact.nextFollowUpNote ?? "");
-                    setEditingFollowUp(false);
-                  }}
+                  onClick={() => { setFollowUpDate(contact.nextFollowUpDate); setFollowUpNote(contact.nextFollowUpNote ?? ""); setEditingFollowUp(false); }}
                   className="text-xs text-muted-foreground hover:text-foreground px-3 py-1"
-                >
-                  取消
-                </button>
+                >取消</button>
               </div>
             </div>
           ) : (
+            /* Default view: show date + edit/cancel buttons */
             <>
-              <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate}</p>
+              <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate || "未設定"}</p>
               {contact.nextFollowUpNote && (
                 <MentionText text={contact.nextFollowUpNote} contacts={contacts} onSelectContact={onSelectContact} />
               )}
-              {followUpAction ? (
-                <div className="space-y-2 mt-2">
-                  <p className="text-xs font-medium">
-                    {followUpAction === "complete" ? "✅ 完成追蹤" : "❌ 取消追蹤"}
-                  </p>
-                  {followUpAction === "complete" && (
-                    <input type="date" value={followUpActionDate} onChange={e => setFollowUpActionDate(e.target.value)}
-                      className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
-                  )}
-                  <MentionTextarea
-                    value={followUpActionContent}
-                    onChange={setFollowUpActionContent}
-                    contacts={contacts}
-                    placeholder={followUpAction === "complete" ? "完成內容摘要⋯" : "取消原因⋯"}
-                    rows={2}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        if (!followUpActionContent.trim()) {
-                          toast.error(followUpAction === "complete" ? "請輸入完成內容" : "請輸入取消原因");
-                          return;
-                        }
-                        const date = followUpAction === "complete" ? followUpActionDate : new Date().toISOString().split("T")[0];
-                        const prefix = followUpAction === "complete" ? "✅ 追蹤完成" : "❌ 追蹤取消";
-                        const record: Interaction = { date, summary: `${prefix}（原定 ${contact.nextFollowUpDate}）：${followUpActionContent.trim()}` };
-                        if (onUpdateContact) {
-                          onUpdateContact({
-                            ...contact,
-                            interactions: [record, ...(contact.interactions ?? [])],
-                            ...(followUpAction === "complete" ? { lastContactDate: date } : {}),
-                            nextFollowUpDate: "",
-                            nextFollowUpNote: "",
-                          });
-                        }
-                        setFollowUpAction(null);
-                        setFollowUpActionContent("");
-                      }}
-                      className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-md ${followUpAction === "complete" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border border-rose-500/30"}`}
-                    >
-                      確認
-                    </button>
-                    <button onClick={() => { setFollowUpAction(null); setFollowUpActionContent(""); }}
-                      className="text-xs text-muted-foreground hover:text-foreground px-3 py-1">
-                      返回
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={() => { setFollowUpAction("complete"); setFollowUpActionDate(new Date().toISOString().split("T")[0]); }}
-                    className="inline-flex items-center gap-1 text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md hover:bg-emerald-500/25 transition-colors"
-                  >
-                    <CheckCircle2 className="h-3 w-3" />完成
-                  </button>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => { setEditingFollowUp(true); setFollowUpDate(contact.nextFollowUpDate || new Date().toISOString().split("T")[0]); setFollowUpNote(contact.nextFollowUpNote ?? ""); }}
+                  className="inline-flex items-center gap-1 text-xs bg-primary/15 text-primary border border-primary/30 px-2.5 py-1 rounded-md hover:bg-primary/25 transition-colors"
+                >
+                  <Pencil className="h-3 w-3" />編輯
+                </button>
+                {contact.nextFollowUpDate && (
                   <button
                     onClick={() => setFollowUpAction("cancel")}
                     className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-md hover:bg-rose-500/25 transition-colors"
                   >
                     <XCircle className="h-3 w-3" />取消
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </div>
