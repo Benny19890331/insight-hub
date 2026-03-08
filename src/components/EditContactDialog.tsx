@@ -19,6 +19,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const [name, setName] = useState(contact.name);
   const [nickname, setNickname] = useState(contact.nickname ?? "");
+  const [memberId, setMemberId] = useState(contact.memberId ?? "");
   const [region, setRegion] = useState(contact.region);
   const [background, setBackground] = useState(contact.background);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []);
@@ -38,6 +39,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   useEffect(() => {
     setName(contact.name);
     setNickname(contact.nickname ?? "");
+    setMemberId(contact.memberId ?? "");
     setRegion(contact.region);
     setBackground(contact.background);
     setSelectedStatuses(contact.statuses ?? []);
@@ -101,6 +103,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       ...contact,
       name,
       nickname: nickname || undefined,
+      memberId: memberId || undefined,
       region,
       background,
       statuses: selectedStatuses,
@@ -150,6 +153,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
           <Field label="姓名"><input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} /></Field>
           <Field label="綽號 / 稱呼"><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="例：宏哥、美玲姐" className={fieldClass} /></Field>
+          <Field label="會員編號"><input value={memberId} onChange={(e) => setMemberId(e.target.value)} placeholder="例：1596887-001" className={fieldClass} /></Field>
           <Field label="地區"><input value={region} onChange={(e) => setRegion(e.target.value)} className={fieldClass} /></Field>
           <Field label="背景 / 職業"><input value={background} onChange={(e) => setBackground(e.target.value)} className={fieldClass} /></Field>
           <Field label="聯絡方式"><input value={contactMethod} onChange={(e) => setContactMethod(e.target.value)} placeholder="LINE ID / 電話 / Email" className={fieldClass} /></Field>

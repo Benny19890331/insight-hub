@@ -1,0 +1,1 @@
+ALTER TABLE public.contacts ADD COLUMN member_id text DEFAULT NULL;

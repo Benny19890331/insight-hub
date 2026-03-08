@@ -46,6 +46,7 @@ export type Database = {
           heat: string
           id: string
           last_contact_date: string
+          member_id: string | null
           name: string
           next_follow_up_date: string
           next_follow_up_note: string | null
@@ -69,6 +70,7 @@ export type Database = {
           heat?: string
           id?: string
           last_contact_date?: string
+          member_id?: string | null
           name: string
           next_follow_up_date?: string
           next_follow_up_note?: string | null
@@ -92,6 +94,7 @@ export type Database = {
           heat?: string
           id?: string
           last_contact_date?: string
+          member_id?: string | null
           name?: string
           next_follow_up_date?: string
           next_follow_up_note?: string | null

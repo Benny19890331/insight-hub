@@ -9,6 +9,7 @@ interface DbContact {
   user_id: string;
   name: string;
   nickname: string | null;
+  member_id: string | null;
   region: string;
   background: string;
   statuses: string[];
@@ -41,6 +42,7 @@ function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
     id: db.id,
     name: db.name,
     nickname: db.nickname ?? undefined,
+    memberId: db.member_id ?? undefined,
     region: db.region,
     background: db.background,
     statuses: db.statuses ?? [],
@@ -99,6 +101,7 @@ export function useContacts() {
       user_id: user.id,
       name: contact.name,
       nickname: contact.nickname || null,
+      member_id: contact.memberId || null,
       region: contact.region,
       background: contact.background,
       statuses: contact.statuses,
@@ -138,6 +141,7 @@ export function useContacts() {
     const { error } = await supabase.from("contacts").update({
       name: contact.name,
       nickname: contact.nickname || null,
+      member_id: contact.memberId || null,
       region: contact.region,
       background: contact.background,
       statuses: contact.statuses,
@@ -186,6 +190,7 @@ export function useContacts() {
         user_id: user.id,
         name: c.name,
         nickname: c.nickname || null,
+        member_id: c.memberId || null,
         region: c.region,
         background: c.background,
         statuses: c.statuses,
