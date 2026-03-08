@@ -418,9 +418,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                  className="w-full rounded-md border border-border bg-secondary text-foreground px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
                 <input type="time" value={followUpTime} onChange={(e) => setFollowUpTime(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                  className="w-full rounded-md border border-border bg-secondary text-foreground px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50 [color-scheme:dark]" />
               </div>
               <MentionTextarea
                 value={followUpNote}
