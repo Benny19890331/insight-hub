@@ -346,6 +346,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             </button>
           </div>
         </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
