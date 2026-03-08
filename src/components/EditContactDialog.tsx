@@ -15,6 +15,8 @@ interface EditContactDialogProps {
 }
 
 export function EditContactDialog({ open, onOpenChange, contact, onSave, contacts = [] }: EditContactDialogProps) {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const [name, setName] = useState(contact.name);
   const [nickname, setNickname] = useState(contact.nickname ?? "");
   const [region, setRegion] = useState(contact.region);
