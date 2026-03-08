@@ -16,6 +16,8 @@ const FIELD_MAP: Record<string, keyof Contact | "statuses" | "productTags"> = {
   "name": "name",
   "綽號": "nickname",
   "nickname": "nickname",
+  "會員編號": "memberId",
+  "memberid": "memberId",
   "地區": "region",
   "region": "region",
   "背景": "background",
