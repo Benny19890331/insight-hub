@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, Users, UserPlus, Download } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity } from "lucide-react";
 import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
