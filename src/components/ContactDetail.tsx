@@ -279,7 +279,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Users className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
+            <p className={`text-xs ${labelClass}`}>推薦人 / 關係鏈</p>
             {referrerChain.length > 0 ? (
               <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                 {[...referrerChain].reverse().map((ref, i) => (
