@@ -99,7 +99,7 @@
     display: none;
   }
   .bg-animate-drift {
-    animation: bg-drift 25s ease-in-out infinite alternate;
+    animation: bg-drift 13s ease-in-out infinite alternate;
   }
 }
 
