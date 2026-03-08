@@ -6,7 +6,7 @@ import { EditContactDialog } from "@/components/EditContactDialog";
 import { AiInviteDialog } from "@/components/AiInviteDialog";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
-  CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package,
+  CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
 } from "lucide-react";
 
 interface ContactDetailProps {
@@ -80,8 +80,12 @@ export function ContactDetail({ contact, onBack, onUpdateContact }: ContactDetai
       {/* Header + Actions */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary text-xl font-bold glow-border shrink-0">
-            {contact.name.charAt(0)}
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary text-xl font-bold glow-border shrink-0 overflow-hidden">
+            {contact.avatarUrl ? (
+              <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
+            ) : (
+              contact.name.charAt(0)
+            )}
           </div>
           <div>
             <h2 className="text-xl font-semibold tracking-tight">{contact.name}</h2>
@@ -111,6 +115,7 @@ export function ContactDetail({ contact, onBack, onUpdateContact }: ContactDetai
       <div className="space-y-5">
         <DetailRow icon={MapPin} label="地區">{contact.region}</DetailRow>
         <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
+        <DetailRow icon={Phone} label="聯絡方式">{contact.contactMethod || "尚未填寫"}</DetailRow>
         <DetailRow icon={Flame} label="當前狀態 / 熱度">{contact.status} — {heatLabel[contact.heat]}</DetailRow>
 
         <div className="flex gap-3 items-start">
