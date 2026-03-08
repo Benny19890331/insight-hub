@@ -2,8 +2,9 @@ import { useState, useMemo, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Search, X } from "lucide-react";
+import { Search, X, UserCircle } from "lucide-react";
 
 interface AddContactDialogProps {
   open: boolean;
