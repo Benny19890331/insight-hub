@@ -199,7 +199,7 @@ interface ThemeContextType {
   setThemeIndex: (i: number) => void;
   fontSizeIndex: number;
   setFontSizeIndex: (i: number) => void;
-  fontScale: number;
+  fontSizeClass: string;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -208,7 +208,7 @@ const ThemeContext = createContext<ThemeContextType>({
   setThemeIndex: () => {},
   fontSizeIndex: 1,
   setFontSizeIndex: () => {},
-  fontScale: 1,
+  fontSizeClass: "font-scale-md",
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
