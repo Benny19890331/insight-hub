@@ -387,7 +387,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   onClick={() => {
                     if (!followUpActionContent.trim()) { toast.error("請輸入取消原因"); return; }
                     const today = new Date().toISOString().split("T")[0];
-                    const record: Interaction = { date: today, summary: `❌ 追蹤取消（原定 ${contact.nextFollowUpDate}）：${followUpActionContent.trim()}` };
+                    const noteText = contact.nextFollowUpNote ? `${contact.nextFollowUpNote}。` : "";
+                    const record: Interaction = { date: today, summary: `❌ 取消行程（原定 ${contact.nextFollowUpDate}）${noteText}原因：${followUpActionContent.trim()}` };
                     if (onUpdateContact) {
                       onUpdateContact({ ...contact, interactions: [record, ...(contact.interactions ?? [])], nextFollowUpDate: "", nextFollowUpNote: "" });
                     }
