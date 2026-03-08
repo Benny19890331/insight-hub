@@ -76,10 +76,10 @@ const Index = () => {
   }, [importContacts]);
 
   const handleCsvExport = useCallback(() => {
-    const headers = ["姓名","綽號","地區","背景","狀態","熱度","聯絡方式","生日","產品標籤","註記","最後聯絡","下次追蹤"];
+    const headers = ["姓名","綽號","會員編號","地區","背景","狀態","熱度","聯絡方式","生日","產品標籤","註記","最後聯絡","下次追蹤"];
     const heatMap: Record<string, string> = { hot: "熱", warm: "溫", cold: "冷", loyal: "忠實" };
     const rows = contacts.map(c => [
-      c.name, c.nickname ?? "", c.region, c.background,
+      c.name, c.nickname ?? "", c.memberId ?? "", c.region, c.background,
       (c.statuses ?? []).join("、"), heatMap[c.heat] ?? c.heat,
       c.contactMethod ?? "", c.birthday ?? "",
       (c.productTags ?? []).join("、"), c.notes,
