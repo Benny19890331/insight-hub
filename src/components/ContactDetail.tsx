@@ -11,6 +11,7 @@ import {
   Users, Cake, Bell, UserCircle, Thermometer, CheckCircle2, XCircle, Edit3, Trash2, Check, X,
 } from "lucide-react";
 import { statusColorMap } from "@/data/statusColors";
+import { toast } from "sonner";
 
 interface ContactDetailProps {
   contact: Contact | null;
@@ -59,6 +60,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [editingInteractionIdx, setEditingInteractionIdx] = useState<number | null>(null);
   const [editInteractionDate, setEditInteractionDate] = useState("");
   const [editInteractionSummary, setEditInteractionSummary] = useState("");
+  const [followUpAction, setFollowUpAction] = useState<"complete" | "cancel" | null>(null);
+  const [followUpActionDate, setFollowUpActionDate] = useState("");
+  const [followUpActionContent, setFollowUpActionContent] = useState("");
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
@@ -412,45 +416,70 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               {contact.nextFollowUpNote && (
                 <MentionText text={contact.nextFollowUpNote} contacts={contacts} onSelectContact={onSelectContact} />
               )}
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => {
-                    const today = new Date().toISOString().split("T")[0];
-                    const note = contact.nextFollowUpNote ? ` — ${contact.nextFollowUpNote}` : "";
-                    const record: Interaction = { date: today, summary: `✅ 追蹤完成（${contact.nextFollowUpDate}）${note}` };
-                    if (onUpdateContact) {
-                      onUpdateContact({
-                        ...contact,
-                        interactions: [record, ...(contact.interactions ?? [])],
-                        lastContactDate: today,
-                        nextFollowUpDate: "",
-                        nextFollowUpNote: "",
-                      });
-                    }
-                  }}
-                  className="inline-flex items-center gap-1 text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md hover:bg-emerald-500/25 transition-colors"
-                >
-                  <CheckCircle2 className="h-3 w-3" />完成
-                </button>
-                <button
-                  onClick={() => {
-                    const today = new Date().toISOString().split("T")[0];
-                    const note = contact.nextFollowUpNote ? ` — ${contact.nextFollowUpNote}` : "";
-                    const record: Interaction = { date: today, summary: `❌ 追蹤取消（${contact.nextFollowUpDate}）${note}` };
-                    if (onUpdateContact) {
-                      onUpdateContact({
-                        ...contact,
-                        interactions: [record, ...(contact.interactions ?? [])],
-                        nextFollowUpDate: "",
-                        nextFollowUpNote: "",
-                      });
-                    }
-                  }}
-                  className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-md hover:bg-rose-500/25 transition-colors"
-                >
-                  <XCircle className="h-3 w-3" />取消
-                </button>
-              </div>
+              {followUpAction ? (
+                <div className="space-y-2 mt-2">
+                  <p className="text-xs font-medium">
+                    {followUpAction === "complete" ? "✅ 完成追蹤" : "❌ 取消追蹤"}
+                  </p>
+                  {followUpAction === "complete" && (
+                    <input type="date" value={followUpActionDate} onChange={e => setFollowUpActionDate(e.target.value)}
+                      className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                  )}
+                  <MentionTextarea
+                    value={followUpActionContent}
+                    onChange={setFollowUpActionContent}
+                    contacts={contacts}
+                    placeholder={followUpAction === "complete" ? "完成內容摘要⋯" : "取消原因⋯"}
+                    rows={2}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (!followUpActionContent.trim()) {
+                          toast.error(followUpAction === "complete" ? "請輸入完成內容" : "請輸入取消原因");
+                          return;
+                        }
+                        const date = followUpAction === "complete" ? followUpActionDate : new Date().toISOString().split("T")[0];
+                        const prefix = followUpAction === "complete" ? "✅ 追蹤完成" : "❌ 追蹤取消";
+                        const record: Interaction = { date, summary: `${prefix}（原定 ${contact.nextFollowUpDate}）：${followUpActionContent.trim()}` };
+                        if (onUpdateContact) {
+                          onUpdateContact({
+                            ...contact,
+                            interactions: [record, ...(contact.interactions ?? [])],
+                            ...(followUpAction === "complete" ? { lastContactDate: date } : {}),
+                            nextFollowUpDate: "",
+                            nextFollowUpNote: "",
+                          });
+                        }
+                        setFollowUpAction(null);
+                        setFollowUpActionContent("");
+                      }}
+                      className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-md ${followUpAction === "complete" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border border-rose-500/30"}`}
+                    >
+                      確認
+                    </button>
+                    <button onClick={() => { setFollowUpAction(null); setFollowUpActionContent(""); }}
+                      className="text-xs text-muted-foreground hover:text-foreground px-3 py-1">
+                      返回
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => { setFollowUpAction("complete"); setFollowUpActionDate(new Date().toISOString().split("T")[0]); }}
+                    className="inline-flex items-center gap-1 text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md hover:bg-emerald-500/25 transition-colors"
+                  >
+                    <CheckCircle2 className="h-3 w-3" />完成
+                  </button>
+                  <button
+                    onClick={() => setFollowUpAction("cancel")}
+                    className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-md hover:bg-rose-500/25 transition-colors"
+                  >
+                    <XCircle className="h-3 w-3" />取消
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
