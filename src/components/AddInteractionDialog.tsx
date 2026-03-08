@@ -32,12 +32,12 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-md max-h-[85vh] overflow-y-auto max-h-[85vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">新增互動紀錄</DialogTitle>
           <DialogDescription>為 {contactName} 記錄一筆新的互動</DialogDescription>
         </DialogHeader>
-        < pb-16div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 pb-16">
           {/* AI Voice Input */}
           <div className="flex justify-center py-2 border-b border-border/50 mb-2">
             <VoiceInputButton
