@@ -3,8 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Camera, Search, X, UserCircle } from "lucide-react";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 interface EditContactDialogProps {
   open: boolean;
@@ -16,6 +23,7 @@ interface EditContactDialogProps {
 
 export function EditContactDialog({ open, onOpenChange, contact, onSave, contacts = [] }: EditContactDialogProps) {
   const { user } = useAuth();
+  const { theme: t, themeIndex } = useTheme();
   const userName = user?.user_metadata?.display_name || user?.email || "本人";
   const [name, setName] = useState(contact.name);
   const [nickname, setNickname] = useState(contact.nickname ?? "");
@@ -129,10 +137,17 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden p-0 border-0 bg-transparent">
+        <div className="relative overflow-hidden rounded-lg">
+          {/* Background image */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+          <div className="relative z-10 p-6 overflow-y-auto max-h-[85vh]">
         <DialogHeader>
-          <DialogTitle className="text-foreground">編輯客戶資料</DialogTitle>
-          <DialogDescription>修改 {contact.name} 的資訊</DialogDescription>
+          <DialogTitle className={t.authCardText}>編輯客戶資料</DialogTitle>
+          <DialogDescription className={t.mutedText}>修改 {contact.name} 的資訊</DialogDescription>
         </DialogHeader>
         <div className="space-y-3.5 pt-2">
           {/* Avatar */}
@@ -329,6 +344,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             <button onClick={handleSave} className="neon-btn-amber">
               儲存變更
             </button>
+          </div>
+        </div>
           </div>
         </div>
       </DialogContent>
