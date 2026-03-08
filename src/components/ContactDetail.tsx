@@ -171,10 +171,10 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
       {/* Details */}
       <div className="space-y-5">
-        <DetailRow icon={UserCircle} label="綽號 / 稱呼">{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
-        <DetailRow icon={MapPin} label="地區">{contact.region}</DetailRow>
-        <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
-        <DetailRow icon={Phone} label="聯絡方式">
+        <DetailRow icon={UserCircle} label="綽號 / 稱呼" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
+        <DetailRow icon={MapPin} label="地區" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.region}</DetailRow>
+        <DetailRow icon={Briefcase} label="背景 / 職業" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.background}</DetailRow>
+        <DetailRow icon={Phone} label="聯絡方式" iconBoxClass={iconBoxClass} iconClass={iconClass}>
           {contact.contactMethod ? (
             (() => {
               const val = contact.contactMethod!;
