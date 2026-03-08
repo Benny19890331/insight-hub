@@ -1,5 +1,7 @@
 export type HeatLevel = "cold" | "warm" | "hot" | "loyal";
 
+export type BirthdayReminder = "none" | "1month" | "1week" | "3days" | "today";
+
 export interface Interaction {
   date: string;
   summary: string;
@@ -13,9 +15,18 @@ export const statusOptions = [
   "愛用者", "經營者", "高度興趣", "初步接觸", "觀望中", "鐵粉",
 ];
 
+export const birthdayReminderOptions: { value: BirthdayReminder; label: string }[] = [
+  { value: "none", label: "不提醒" },
+  { value: "1month", label: "一個月前" },
+  { value: "1week", label: "一週前" },
+  { value: "3days", label: "三天前" },
+  { value: "today", label: "當天" },
+];
+
 export interface Contact {
   id: string;
   name: string;
+  nickname?: string;
   region: string;
   background: string;
   status: string;
@@ -30,6 +41,7 @@ export interface Contact {
   referrerId?: string;
   referrerName?: string;
   birthday?: string;
+  birthdayReminder?: BirthdayReminder;
 }
 
 export const heatOptions: { value: HeatLevel | "all"; label: string }[] = [
@@ -44,6 +56,7 @@ export const mockContacts: Contact[] = [
   {
     id: "1",
     name: "陳建宏",
+    nickname: "宏哥",
     region: "高雄市 左營區",
     background: "傳產業務主管，15年銷售經驗",
     status: "觀望中",
@@ -56,6 +69,7 @@ export const mockContacts: Contact[] = [
     referrerId: "5",
     referrerName: "黃俊傑",
     birthday: "1978-09-12",
+    birthdayReminder: "1week",
     interactions: [
       { date: "2026-03-01", summary: "一起喝咖啡，聊到健康話題，對血壓管理有興趣" },
       { date: "2026-02-18", summary: "LINE 初次聯繫，寄送產品型錄 PDF" },
@@ -64,6 +78,7 @@ export const mockContacts: Contact[] = [
   {
     id: "2",
     name: "林美玲",
+    nickname: "美玲姐",
     region: "台北市 大安區",
     background: "外商科技公司 HR 經理",
     status: "愛用者",
@@ -74,6 +89,7 @@ export const mockContacts: Contact[] = [
     contactMethod: "Email: mei.lin@techcorp.com",
     productTags: ["水素水", "識霸"],
     birthday: "1990-04-22",
+    birthdayReminder: "3days",
     interactions: [
       { date: "2026-03-05", summary: "第三次回購，主動詢問經銷方案細節" },
       { date: "2026-02-20", summary: "分享使用心得到公司群組，帶來兩位新客戶" },
@@ -82,6 +98,7 @@ export const mockContacts: Contact[] = [
   {
     id: "3",
     name: "張志偉",
+    nickname: "教練",
     region: "台中市 西屯區",
     background: "健身教練，自營工作室",
     status: "高度興趣",
@@ -94,6 +111,7 @@ export const mockContacts: Contact[] = [
     referrerId: "2",
     referrerName: "林美玲",
     birthday: "1992-11-05",
+    birthdayReminder: "1week",
     interactions: [
       { date: "2026-03-06", summary: "參觀工作室，現場試用產品，反應非常正面" },
       { date: "2026-02-25", summary: "IG 私訊初次接觸，對高蛋白系列感興趣" },
@@ -102,6 +120,7 @@ export const mockContacts: Contact[] = [
   {
     id: "4",
     name: "王淑芬",
+    nickname: "王老師",
     region: "新北市 板橋區",
     background: "退休國中教師",
     status: "初步接觸",
@@ -112,6 +131,7 @@ export const mockContacts: Contact[] = [
     contactMethod: "電話: 0912-345-678",
     productTags: ["水素水"],
     birthday: "1965-07-30",
+    birthdayReminder: "today",
     interactions: [
       { date: "2026-02-28", summary: "女兒陪同參加產品說明會，態度保留但有禮貌" },
       { date: "2026-02-15", summary: "透過女兒取得聯繫方式，電話簡短問候" },
@@ -120,6 +140,7 @@ export const mockContacts: Contact[] = [
   {
     id: "5",
     name: "黃俊傑",
+    nickname: "黃老闆",
     region: "台南市 東區",
     background: "連鎖早餐店老闆，3間分店",
     status: "觀望中",
@@ -132,6 +153,7 @@ export const mockContacts: Contact[] = [
     referrerId: "2",
     referrerName: "林美玲",
     birthday: "1985-01-18",
+    birthdayReminder: "1month",
     interactions: [
       { date: "2026-03-03", summary: "早餐店拜訪，聊到副業收入，表示願意再了解" },
       { date: "2026-02-22", summary: "朋友介紹認識，電話中初步介紹商業模式" },

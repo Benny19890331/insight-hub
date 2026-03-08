@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel, heatOptions, productOptions, statusOptions } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptions, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
 import { toast } from "sonner";
-import { Camera } from "lucide-react";
+import { Camera, Search, X } from "lucide-react";
 
 interface EditContactDialogProps {
   open: boolean;
@@ -14,6 +14,7 @@ interface EditContactDialogProps {
 
 export function EditContactDialog({ open, onOpenChange, contact, onSave, contacts = [] }: EditContactDialogProps) {
   const [name, setName] = useState(contact.name);
+  const [nickname, setNickname] = useState(contact.nickname ?? "");
   const [region, setRegion] = useState(contact.region);
   const [background, setBackground] = useState(contact.background);
   const [status, setStatus] = useState(contact.status);
@@ -24,10 +25,15 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [avatarUrl, setAvatarUrl] = useState(contact.avatarUrl ?? "");
   const [referrerId, setReferrerId] = useState(contact.referrerId ?? "");
   const [birthday, setBirthday] = useState(contact.birthday ?? "");
+  const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>(contact.birthdayReminder ?? "none");
+  const [referrerSearch, setReferrerSearch] = useState("");
+  const [referrerOpen, setReferrerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const referrerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setName(contact.name);
+    setNickname(contact.nickname ?? "");
     setRegion(contact.region);
     setBackground(contact.background);
     setStatus(contact.status);
@@ -38,7 +44,33 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setAvatarUrl(contact.avatarUrl ?? "");
     setReferrerId(contact.referrerId ?? "");
     setBirthday(contact.birthday ?? "");
+    setBirthdayReminder(contact.birthdayReminder ?? "none");
+    setReferrerSearch("");
   }, [contact]);
+
+  // Close referrer dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (referrerRef.current && !referrerRef.current.contains(e.target as Node)) {
+        setReferrerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const otherContacts = contacts.filter((c) => c.id !== contact.id);
+  const filteredReferrers = useMemo(() => {
+    if (!referrerSearch) return otherContacts;
+    const q = referrerSearch.toLowerCase();
+    return otherContacts.filter((c) =>
+      c.name.toLowerCase().includes(q) ||
+      (c.nickname ?? "").toLowerCase().includes(q) ||
+      c.region.toLowerCase().includes(q)
+    );
+  }, [otherContacts, referrerSearch]);
+
+  const selectedReferrer = contacts.find((c) => c.id === referrerId);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -55,18 +87,17 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     }
   };
 
-  const selectedReferrer = contacts.find((c) => c.id === referrerId);
-
   const handleSave = () => {
     const updated: Contact = {
       ...contact,
-      name, region, background, status, heat, notes,
+      name, nickname: nickname || undefined, region, background, status, heat, notes,
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
       referrerId: referrerId || undefined,
       referrerName: selectedReferrer?.name ?? undefined,
       birthday: birthday || undefined,
+      birthdayReminder,
     };
     onSave(updated);
     onOpenChange(false);
@@ -74,7 +105,6 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   };
 
   const fieldClass = "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
-  const otherContacts = contacts.filter((c) => c.id !== contact.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,17 +134,29 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           </div>
 
           <Field label="姓名"><input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} /></Field>
+          <Field label="綽號 / 稱呼"><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="例：宏哥、美玲姐" className={fieldClass} /></Field>
           <Field label="地區"><input value={region} onChange={(e) => setRegion(e.target.value)} className={fieldClass} /></Field>
           <Field label="背景 / 職業"><input value={background} onChange={(e) => setBackground(e.target.value)} className={fieldClass} /></Field>
           <Field label="聯絡方式"><input value={contactMethod} onChange={(e) => setContactMethod(e.target.value)} placeholder="LINE ID / 電話 / Email" className={fieldClass} /></Field>
 
-          {/* Status dropdown */}
-          <Field label="當前狀態">
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${fieldClass} cursor-pointer`}>
+          {/* Status as clickable chips */}
+          <Field label="當前狀態（點擊切換）">
+            <div className="flex flex-wrap gap-2">
               {statusOptions.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatus(s)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                    status === s
+                      ? "product-tag ring-1 ring-primary/40"
+                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                  }`}
+                >
+                  {s}
+                </button>
               ))}
-            </select>
+            </div>
           </Field>
 
           <Field label="熱度">
@@ -125,19 +167,70 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             </select>
           </Field>
 
-          {/* Referrer */}
+          {/* Searchable referrer */}
           <Field label="推薦人 / 關係鏈">
-            <select value={referrerId} onChange={(e) => setReferrerId(e.target.value)} className={`${fieldClass} cursor-pointer`}>
-              <option value="">無推薦人</option>
-              {otherContacts.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <div className="relative" ref={referrerRef}>
+              {referrerId ? (
+                <div className="flex items-center gap-2">
+                  <span className={`${fieldClass} flex-1`}>{selectedReferrer?.name ?? "未知"}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setReferrerId(""); setReferrerSearch(""); }}
+                    className="h-8 w-8 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <input
+                      value={referrerSearch}
+                      onChange={(e) => { setReferrerSearch(e.target.value); setReferrerOpen(true); }}
+                      onFocus={() => setReferrerOpen(true)}
+                      placeholder="搜尋姓名或綽號..."
+                      className={`${fieldClass} pl-9`}
+                    />
+                  </div>
+                  {referrerOpen && (
+                    <div className="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg">
+                      {filteredReferrers.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">找不到符合的聯絡人</div>
+                      ) : (
+                        filteredReferrers.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => { setReferrerId(c.id); setReferrerOpen(false); setReferrerSearch(""); }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-2"
+                          >
+                            <span className="font-medium">{c.name}</span>
+                            {c.nickname && <span className="text-xs text-muted-foreground">（{c.nickname}）</span>}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </Field>
 
-          {/* Birthday */}
+          {/* Birthday + reminder */}
           <Field label="生日 / 重要紀念日">
-            <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className={fieldClass} />
+            <div className="flex gap-2">
+              <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className={`${fieldClass} flex-1`} />
+              <select
+                value={birthdayReminder}
+                onChange={(e) => setBirthdayReminder(e.target.value as BirthdayReminder)}
+                className={`${fieldClass} w-auto min-w-[120px] cursor-pointer`}
+              >
+                {birthdayReminderOptions.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
           </Field>
 
           {/* Product tags */}
