@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap, ArrowDownUp } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { generateSeedContacts } from "@/data/seedContacts";
 import { Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
@@ -203,20 +204,25 @@ const Index = () => {
             <UserPlus className="h-4 w-4" />
             <span className="hidden sm:inline">新增</span>
           </button>
-          <button
-            onClick={() => setCsvOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
-            style={secondaryBtnStyle}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = t.btnSecondary.hoverBg; }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnSecondary.bg; }}
-          >
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">匯入</span>
-          </button>
-          <button onClick={handleCsvExport} className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors ${t.btnOutline}`}>
-            <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">匯出</span>
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
+                style={secondaryBtnStyle}
+              >
+                <ArrowDownUp className="h-4 w-4" />
+                <span className="hidden sm:inline">匯入/出</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card border-border">
+              <DropdownMenuItem onClick={() => setCsvOpen(true)} className="gap-2 cursor-pointer">
+                <Download className="h-4 w-4" /> 匯入 CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer">
+                <Upload className="h-4 w-4" /> 匯出 CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button onClick={signOut} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${t.btnOutline}`} title="登出">
             <LogOut className="h-4 w-4" />
           </button>

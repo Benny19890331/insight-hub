@@ -251,7 +251,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="bg-card border-border max-w-lg w-[calc(100vw-2rem)] overflow-hidden">
+      <DialogContent className="bg-card border-border max-w-lg w-[calc(100vw-2rem)] overflow-hidden max-h-[85vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-foreground">{"匯入 CSV"}</DialogTitle>
           <DialogDescription>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
