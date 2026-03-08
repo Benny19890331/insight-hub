@@ -80,23 +80,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     }
   };
 
-  const handleStatusToggle = (s: string) => {
-    if (!onUpdateContact) return;
-    const current = contact.statuses ?? [];
-    const updated = current.includes(s)
-      ? current.filter((x) => x !== s)
-      : [...current, s];
-    onUpdateContact({ ...contact, statuses: updated.length > 0 ? updated : current });
-  };
-
-  const handleHeatChange = (h: HeatLevel) => {
-    if (onUpdateContact) {
-      onUpdateContact({ ...contact, heat: h });
-    }
-  };
-
   const referrerChain = getReferrerChain(contact, contacts, 3);
-  const statusDisplay = (contact.statuses ?? []).join("、") || "未設定";
 
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
