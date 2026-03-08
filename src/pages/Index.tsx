@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, Users, UserPlus, Download } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity } from "lucide-react";
 import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
@@ -72,11 +72,22 @@ const Index = () => {
       <header className="flex items-center justify-between border-b border-border px-4 md:px-6 h-14 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 border border-primary/20">
-            <Users className="h-4 w-4 text-primary" />
+            <Infinity className="h-5 w-5" style={{ stroke: 'url(#metalGrad)' }} />
+            <svg width="0" height="0">
+              <defs>
+                <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#c0c0c0" />
+                  <stop offset="30%" stopColor="#f0e68c" />
+                  <stop offset="50%" stopColor="#ffffff" />
+                  <stop offset="70%" stopColor="#f0e68c" />
+                  <stop offset="100%" stopColor="#c0c0c0" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
           <h1 className="text-sm font-semibold tracking-tight">
-            <span className="text-amber-400 glow-text" style={{ textShadow: '0 0 8px rgba(251, 191, 36, 0.4)' }}>RICH</span>
-            <span className="text-muted-foreground ml-1.5 font-normal hidden sm:inline">系統名單管理</span>
+            <span className="text-amber-400 glow-text" style={{ textShadow: '0 0 8px rgba(251, 191, 36, 0.4)' }}>RICH系統</span>
+            <span className="text-foreground ml-1.5 font-normal hidden sm:inline">名單管理</span>
           </h1>
         </div>
         <div className="flex items-center gap-2">
