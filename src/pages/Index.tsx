@@ -3,6 +3,7 @@ import { Upload, Users } from "lucide-react";
 import { mockContacts, Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
+import { CsvImportDialog } from "@/components/CsvImportDialog";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -12,6 +13,7 @@ const Index = () => {
   const [productFilter, setProductFilter] = useState("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   const handleSelect = useCallback((c: Contact) => {
     const fresh = contacts.find((x) => x.id === c.id) ?? c;
@@ -31,10 +33,8 @@ const Index = () => {
     setShowDetail(false);
   }, []);
 
-  const handleCsvImport = useCallback(() => {
-    toast.info("CSV 匯入功能即將推出", {
-      description: "此功能正在開發中，敬請期待。",
-    });
+  const handleCsvImport = useCallback((imported: Contact[]) => {
+    setContacts((prev) => [...prev, ...imported]);
   }, []);
 
   const handleUpdateContact = useCallback((updated: Contact) => {
@@ -54,7 +54,7 @@ const Index = () => {
             <span className="text-muted-foreground ml-1.5 font-normal hidden sm:inline">系統名單管理</span>
           </h1>
         </div>
-        <button onClick={handleCsvImport} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+        <button onClick={() => setCsvOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
           <Upload className="h-4 w-4" />
           <span className="hidden sm:inline">匯入 CSV</span>
           <span className="sm:hidden">匯入</span>
@@ -85,6 +85,12 @@ const Index = () => {
           />
         </main>
       </div>
+      <CsvImportDialog
+        open={csvOpen}
+        onOpenChange={setCsvOpen}
+        onImport={handleCsvImport}
+        existingContacts={contacts}
+      />
     </div>
   );
 };
