@@ -1,4 +1,4 @@
-import { Search, Filter, Package } from "lucide-react";
+import { Search, Filter, Package, Merge, Loader2 } from "lucide-react";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
@@ -15,6 +15,7 @@ interface ContactListProps {
   onProductFilterChange: (p: string) => void;
   selectedId: string | null;
   onSelect: (c: Contact) => void;
+  onDeduplicate?: () => Promise<{ merged: number }>;
 }
 
 export function ContactList({
