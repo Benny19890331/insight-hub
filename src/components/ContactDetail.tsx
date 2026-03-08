@@ -118,7 +118,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
       {onBack && (
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors md:hidden">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-medium transition-colors md:hidden" style={{ color: t.titleColor, textShadow: `0 0 6px ${t.titleGlow}` }}>
           <ArrowLeft className="h-4 w-4" />
           返回列表
         </button>
