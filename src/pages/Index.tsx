@@ -166,21 +166,21 @@ const Index = () => {
       <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center shrink-0 cursor-pointer" onClick={handleInfinityTap}>
-            <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5 }} />
+            <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5, filter: `drop-shadow(0 0 4px ${t.titleGlow})` }} />
             <svg width="0" height="0">
               <defs>
                 <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#b0b0b0">
-                    <animate attributeName="stop-color" values="#b0b0b0;#f0e68c;#ffffff;#f0e68c;#b0b0b0" dur="3s" repeatCount="indefinite" />
+                  <stop offset="0%" stopColor={t.titleColor}>
+                    <animate attributeName="stop-color" values={`${t.titleColor};#ffffff;${t.titleColor};#f0e68c;${t.titleColor}`} dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="33%" stopColor="#f0e68c">
-                    <animate attributeName="stop-color" values="#f0e68c;#ffffff;#f0e68c;#b0b0b0;#f0e68c" dur="3s" repeatCount="indefinite" />
+                  <stop offset="33%" stopColor="#ffffff">
+                    <animate attributeName="stop-color" values={`#ffffff;${t.titleColor};#f0e68c;#ffffff;#ffffff`} dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="66%" stopColor="#ffffff">
-                    <animate attributeName="stop-color" values="#ffffff;#f0e68c;#b0b0b0;#f0e68c;#ffffff" dur="3s" repeatCount="indefinite" />
+                  <stop offset="66%" stopColor="#f0e68c">
+                    <animate attributeName="stop-color" values={`#f0e68c;#ffffff;${t.titleColor};#f0e68c;#f0e68c`} dur="3s" repeatCount="indefinite" />
                   </stop>
-                  <stop offset="100%" stopColor="#f0e68c">
-                    <animate attributeName="stop-color" values="#f0e68c;#b0b0b0;#f0e68c;#ffffff;#f0e68c" dur="3s" repeatCount="indefinite" />
+                  <stop offset="100%" stopColor={t.titleColor}>
+                    <animate attributeName="stop-color" values={`${t.titleColor};#f0e68c;#ffffff;${t.titleColor};${t.titleColor}`} dur="3s" repeatCount="indefinite" />
                   </stop>
                 </linearGradient>
               </defs>
