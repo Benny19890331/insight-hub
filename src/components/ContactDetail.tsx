@@ -62,6 +62,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     setEditingFollowUp(false);
   }, [contact?.id]);
 
+  if (!contact) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
         <div className="text-center space-y-2">
