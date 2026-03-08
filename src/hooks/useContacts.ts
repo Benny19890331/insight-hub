@@ -184,10 +184,30 @@ export function useContacts() {
 
   const importContacts = useCallback(async (imported: Contact[]) => {
     if (!user) return;
+
+    // Fetch existing contacts for dedup
+    const { data: existing } = await supabase
+      .from("contacts")
+      .select("id, member_id, name")
+      .eq("user_id", user.id);
+
+    const existingByMemberId = new Map<string, string>();
+    const existingByName = new Map<string, string>();
+    for (const e of (existing ?? [])) {
+      if (e.member_id) existingByMemberId.set(e.member_id, e.id);
+      existingByName.set(e.name, e.id);
+    }
+
+    let merged = 0;
+    let added = 0;
+
     for (const c of imported) {
-      await supabase.from("contacts").insert({
-        id: c.id,
-        user_id: user.id,
+      // Match by member_id first, then by name
+      const matchId = (c.memberId && existingByMemberId.get(c.memberId))
+        || existingByName.get(c.name)
+        || null;
+
+      const payload = {
         name: c.name,
         nickname: c.nickname || null,
         member_id: c.memberId || null,
@@ -202,8 +222,23 @@ export function useContacts() {
         birthday: c.birthday || null,
         birthday_reminder: c.birthdayReminder || "none",
         product_tags: c.productTags,
-      });
+      };
+
+      if (matchId) {
+        // Update existing (new overwrites old)
+        await supabase.from("contacts").update(payload).eq("id", matchId).eq("user_id", user.id);
+        merged++;
+      } else {
+        // Insert new
+        await supabase.from("contacts").insert({ ...payload, id: c.id, user_id: user.id });
+        added++;
+      }
     }
+
+    if (merged > 0) {
+      toast.success(`已合併 ${merged} 筆重複名單，新增 ${added} 筆`);
+    }
+
     await fetchContacts();
   }, [user, fetchContacts]);
 
