@@ -67,6 +67,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
+    setFollowUpTime(contact?.nextFollowUpTime ?? "");
     setFollowUpNote(contact?.nextFollowUpNote ?? "");
     setEditingFollowUp(false);
   }, [contact?.id]);
