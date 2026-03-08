@@ -82,7 +82,7 @@ function parseOrgChartDate(raw: string): string {
 }
 
 function parsePurchaseDate(raw: string): string {
-  const m = raw.match(/\(?(\d{1,2}\)?(\d{2})\/(\d{2})\/(\d{2})/);
+  const m = raw.match(/\(?\d{1,2}\)?(\d{2})\/(\d{2})\/(\d{2})/);
   if (!m) return "";
   const yy = parseInt(m[1], 10);
   const year = yy >= 50 ? 1900 + yy : 2000 + yy;
