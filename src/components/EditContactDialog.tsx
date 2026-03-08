@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel, heatOptions, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder } from "@/data/contacts";
 import { toast } from "sonner";
 import { Camera, Search, X } from "lucide-react";
 
@@ -17,7 +17,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [nickname, setNickname] = useState(contact.nickname ?? "");
   const [region, setRegion] = useState(contact.region);
   const [background, setBackground] = useState(contact.background);
-  const [status, setStatus] = useState(contact.status);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []);
   const [heat, setHeat] = useState<HeatLevel>(contact.heat);
   const [notes, setNotes] = useState(contact.notes);
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.productTags ?? []);
@@ -36,7 +36,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setNickname(contact.nickname ?? "");
     setRegion(contact.region);
     setBackground(contact.background);
-    setStatus(contact.status);
+    setSelectedStatuses(contact.statuses ?? []);
     setHeat(contact.heat);
     setNotes(contact.notes);
     setSelectedTags(contact.productTags ?? []);
@@ -48,7 +48,6 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setReferrerSearch("");
   }, [contact]);
 
-  // Close referrer dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (referrerRef.current && !referrerRef.current.contains(e.target as Node)) {
@@ -78,6 +77,12 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     );
   };
 
+  const toggleStatus = (s: string) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+    );
+  };
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -90,7 +95,13 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const handleSave = () => {
     const updated: Contact = {
       ...contact,
-      name, nickname: nickname || undefined, region, background, status, heat, notes,
+      name,
+      nickname: nickname || undefined,
+      region,
+      background,
+      statuses: selectedStatuses,
+      heat,
+      notes,
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
@@ -139,16 +150,16 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <Field label="背景 / 職業"><input value={background} onChange={(e) => setBackground(e.target.value)} className={fieldClass} /></Field>
           <Field label="聯絡方式"><input value={contactMethod} onChange={(e) => setContactMethod(e.target.value)} placeholder="LINE ID / 電話 / Email" className={fieldClass} /></Field>
 
-          {/* Status as clickable chips */}
-          <Field label="當前狀態（點擊切換）">
+          {/* Status as multi-select chips */}
+          <Field label="當前狀態（可複選）">
             <div className="flex flex-wrap gap-2">
               {statusOptions.map((s) => (
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setStatus(s)}
+                  onClick={() => toggleStatus(s)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
-                    status === s
+                    selectedStatuses.includes(s)
                       ? "product-tag ring-1 ring-primary/40"
                       : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
                   }`}
@@ -159,12 +170,24 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             </div>
           </Field>
 
-          <Field label="熱度">
-            <select value={heat} onChange={(e) => setHeat(e.target.value as HeatLevel)} className={`${fieldClass} cursor-pointer`}>
-              {heatOptions.filter((o) => o.value !== "all").map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+          {/* Heat as single-select chips */}
+          <Field label="熱度（點擊切換）">
+            <div className="flex flex-wrap gap-2">
+              {heatOptionsRaw.map((h) => (
+                <button
+                  key={h.value}
+                  type="button"
+                  onClick={() => setHeat(h.value)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                    heat === h.value
+                      ? "product-tag ring-1 ring-primary/40"
+                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                  }`}
+                >
+                  {h.label}
+                </button>
               ))}
-            </select>
+            </div>
           </Field>
 
           {/* Searchable referrer */}

@@ -31,7 +31,7 @@ export function ContactList({
     const matchesSearch =
       c.name.includes(searchQuery) ||
       c.region.includes(searchQuery) ||
-      c.status.includes(searchQuery);
+      (c.statuses ?? []).some((s) => s.includes(searchQuery));
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
     return matchesSearch && matchesHeat && matchesProduct;
@@ -101,7 +101,7 @@ export function ContactList({
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">{contact.name}</span>
-              <StatusBadge heat={contact.heat} label={contact.status} />
+              <StatusBadge heat={contact.heat} label={(contact.statuses ?? []).join("、") || "未設定"} />
             </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {contact.region}
