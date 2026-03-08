@@ -83,12 +83,17 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     );
   }
 
+  const getLatestDate = (interactions: Interaction[]) => {
+    return interactions.reduce((latest, item) => item.date > latest ? item.date : latest, "");
+  };
+
   const handleAddInteraction = (interaction: Interaction) => {
     if (onUpdateContact) {
+      const newInteractions = [interaction, ...(contact.interactions ?? [])];
       onUpdateContact({
         ...contact,
-        interactions: [interaction, ...(contact.interactions ?? [])],
-        lastContactDate: interaction.date > contact.lastContactDate ? interaction.date : contact.lastContactDate,
+        interactions: newInteractions,
+        lastContactDate: getLatestDate(newInteractions),
       });
     }
   };
