@@ -31,7 +31,7 @@ export function ContactList({
     const matchesSearch =
       c.name.includes(searchQuery) ||
       c.region.includes(searchQuery) ||
-      c.status.includes(searchQuery);
+      (c.statuses ?? []).some((s) => s.includes(searchQuery));
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
     return matchesSearch && matchesHeat && matchesProduct;
