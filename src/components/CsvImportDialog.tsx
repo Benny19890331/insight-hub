@@ -181,7 +181,7 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
     };
 
     contacts.push(c);
-    if (extraIds.length > 0) {
+    if (extraEntries.length > 0) {
       errors.push(`${primary.name} 有 ${group.length} 個經營權，已合併（保留 ${primary.idCol}）`);
     }
   }
