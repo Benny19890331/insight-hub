@@ -112,7 +112,8 @@ export const mockContacts: Contact[] = [
     notes: "對被動收入概念有興趣，但擔心時間不夠。可先從消費者開始。",
     lastContactDate: "2026-03-03",
     nextFollowUpDate: "2026-03-17",
-    productTags: ["三茶", "識霸"],
+    contactMethod: "LINE: boss_huang",
+    productTags: ["明利多", "識霸"],
     interactions: [
       { date: "2026-03-03", summary: "早餐店拜訪，聊到副業收入，表示願意再了解" },
       { date: "2026-02-22", summary: "朋友介紹認識，電話中初步介紹商業模式" },
