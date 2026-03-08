@@ -3,9 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Search, X, UserCircle } from "lucide-react";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 interface AddContactDialogProps {
   open: boolean;
