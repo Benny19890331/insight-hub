@@ -39,6 +39,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   useEffect(() => {
     setName(contact.name);
     setNickname(contact.nickname ?? "");
+    setMemberId(contact.memberId ?? "");
     setRegion(contact.region);
     setBackground(contact.background);
     setSelectedStatuses(contact.statuses ?? []);
