@@ -83,12 +83,17 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     );
   }
 
+  const getLatestDate = (interactions: Interaction[]) => {
+    return interactions.reduce((latest, item) => item.date > latest ? item.date : latest, "");
+  };
+
   const handleAddInteraction = (interaction: Interaction) => {
     if (onUpdateContact) {
+      const newInteractions = [interaction, ...(contact.interactions ?? [])];
       onUpdateContact({
         ...contact,
-        interactions: [interaction, ...(contact.interactions ?? [])],
-        lastContactDate: interaction.date > contact.lastContactDate ? interaction.date : contact.lastContactDate,
+        interactions: newInteractions,
+        lastContactDate: getLatestDate(newInteractions),
       });
     }
   };
@@ -402,8 +407,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                     const today = new Date().toISOString().split("T")[0];
                     const noteText = contact.nextFollowUpNote ? `${contact.nextFollowUpNote}。` : "";
                     const record: Interaction = { date: today, summary: `❌ 取消行程（原定 ${contact.nextFollowUpDate}）${noteText}原因：${followUpActionContent.trim()}` };
+                    const newInteractions = [record, ...(contact.interactions ?? [])];
                     if (onUpdateContact) {
-                      onUpdateContact({ ...contact, interactions: [record, ...(contact.interactions ?? [])], nextFollowUpDate: "", nextFollowUpNote: "" });
+                      onUpdateContact({ ...contact, interactions: newInteractions, lastContactDate: getLatestDate(newInteractions), nextFollowUpDate: "", nextFollowUpNote: "", nextFollowUpTime: "" });
                     }
                     setFollowUpAction(null); setFollowUpActionContent("");
                   }}
@@ -434,13 +440,15 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   onClick={() => {
                     if (!followUpNote.trim()) { toast.error("請輸入追蹤內容"); return; }
                     const record: Interaction = { date: followUpDate, summary: `✅ 追蹤完成：${followUpNote.trim()}` };
+                    const newInteractions = [record, ...(contact.interactions ?? [])];
                     if (onUpdateContact) {
                       onUpdateContact({
                         ...contact,
-                        interactions: [record, ...(contact.interactions ?? [])],
-                        lastContactDate: followUpDate,
+                        interactions: newInteractions,
+                        lastContactDate: getLatestDate(newInteractions),
                         nextFollowUpDate: "",
                         nextFollowUpNote: "",
+                        nextFollowUpTime: "",
                       });
                     }
                     setEditingFollowUp(false);
