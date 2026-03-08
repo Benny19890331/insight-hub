@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, KeyRound } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, KeyRound, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -30,6 +30,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [newPwd, setNewPwd] = useState("");
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -113,6 +114,24 @@ export default function AdminDashboard() {
       setNewPwd("");
     } catch (err: any) {
       toast.error(err.message || "重設失敗");
+    }
+    setToggling(null);
+  };
+
+  const deleteUser = async () => {
+    if (!deleteTarget) return;
+    setToggling(deleteTarget);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "delete_user", targetUserId: deleteTarget },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget));
+      toast.success("使用者已刪除");
+      setDeleteTarget(null);
+    } catch (err: any) {
+      toast.error(err.message || "刪除失敗");
     }
     setToggling(null);
   };
@@ -250,6 +269,15 @@ export default function AdminDashboard() {
                         )}
                         {u.isBanned ? "恢復" : "停權"}
                       </button>
+                      <button
+                        onClick={() => setDeleteTarget(u.id)}
+                        disabled={toggling === u.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-600/40 text-red-500 hover:bg-red-600/20 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                        title="刪除帳號"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        刪除
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -285,6 +313,35 @@ export default function AdminDashboard() {
               </button>
               <button
                 onClick={() => { setResetTarget(null); setNewPwd(""); }}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm ${t.authLink} hover:underline`}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete user confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl ${t.authCard} w-full max-w-sm mx-4`}>
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>
+              確認刪除帳號
+            </h3>
+            <p className={`text-xs ${t.authSubtext}`}>
+              您確定要刪除「{users.find(u => u.id === deleteTarget)?.displayName || users.find(u => u.id === deleteTarget)?.email}」嗎？此操作無法復原，該使用者的所有資料將被永久刪除。
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={deleteUser}
+                disabled={toggling === deleteTarget}
+                className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer disabled:opacity-50 bg-red-600 hover:bg-red-700 text-white border-0"
+              >
+                {toggling === deleteTarget ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "確認刪除"}
+              </button>
+              <button
+                onClick={() => setDeleteTarget(null)}
                 className={`flex-1 rounded-lg border px-3 py-2 text-sm ${t.authLink} hover:underline`}
               >
                 取消
