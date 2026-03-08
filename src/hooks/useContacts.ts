@@ -249,7 +249,6 @@ export function useContacts() {
   const deduplicateContacts = useCallback(async () => {
     if (!user) return { merged: 0 };
 
-    // Fetch all contacts
     const { data: allContacts } = await supabase
       .from("contacts")
       .select("*")
@@ -258,15 +257,23 @@ export function useContacts() {
 
     if (!allContacts || allContacts.length === 0) return { merged: 0 };
 
-    // Group by member_id first, then by name for those without member_id
-    const byMemberId = new Map<string, typeof allContacts>();
+    // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
+    const getBaseMemberId = (mid: string | null) => {
+      if (!mid) return null;
+      const match = mid.match(/^(\d+)-\d+$/);
+      return match ? match[1] : mid;
+    };
+
+    // Group by base member_id first, then by name for those without member_id
+    const byBaseMemberId = new Map<string, typeof allContacts>();
     const byName = new Map<string, typeof allContacts>();
 
     for (const c of allContacts) {
-      if (c.member_id) {
-        const existing = byMemberId.get(c.member_id) || [];
+      const base = getBaseMemberId(c.member_id);
+      if (base) {
+        const existing = byBaseMemberId.get(base) || [];
         existing.push(c);
-        byMemberId.set(c.member_id, existing);
+        byBaseMemberId.set(base, existing);
       } else {
         const existing = byName.get(c.name) || [];
         existing.push(c);
@@ -276,20 +283,29 @@ export function useContacts() {
 
     const idsToDelete: string[] = [];
 
-    // Merge duplicates with same member_id
-    for (const [_, group] of byMemberId) {
+    // Merge duplicates with same base member_id (e.g., 1410877-001, 1410877-002)
+    for (const [_, group] of byBaseMemberId) {
       if (group.length > 1) {
-        // Keep the newest (last in sorted order), delete the rest
-        const [oldest, ...rest] = group;
-        const newest = rest[rest.length - 1];
-        
-        // Merge data: newest values take priority
-        const merged = { ...oldest, ...newest, id: oldest.id };
-        await supabase.from("contacts").update(merged).eq("id", oldest.id);
-        
-        // Delete duplicates
-        for (const dup of rest) {
-          idsToDelete.push(dup.id);
+        // Keep the first one (lowest suffix like -001), merge data from newest
+        const primary = group[0];
+        const newest = group[group.length - 1];
+
+        // Collect all member_id suffixes for reference in notes
+        const allMemberIds = group.map(c => c.member_id).filter(Boolean).join(', ');
+
+        const merged = {
+          ...primary,
+          ...newest,
+          id: primary.id,
+          member_id: primary.member_id, // keep primary member_id (e.g., -001)
+          notes: primary.notes
+            ? `${primary.notes}\n[多經營權: ${allMemberIds}]`
+            : `[多經營權: ${allMemberIds}]`,
+        };
+        await supabase.from("contacts").update(merged).eq("id", primary.id);
+
+        for (let i = 1; i < group.length; i++) {
+          idsToDelete.push(group[i].id);
         }
       }
     }
@@ -297,19 +313,18 @@ export function useContacts() {
     // Merge duplicates with same name (no member_id)
     for (const [_, group] of byName) {
       if (group.length > 1) {
-        const [oldest, ...rest] = group;
-        const newest = rest[rest.length - 1];
-        
-        const merged = { ...oldest, ...newest, id: oldest.id };
-        await supabase.from("contacts").update(merged).eq("id", oldest.id);
-        
-        for (const dup of rest) {
-          idsToDelete.push(dup.id);
+        const primary = group[0];
+        const newest = group[group.length - 1];
+
+        const merged = { ...primary, ...newest, id: primary.id };
+        await supabase.from("contacts").update(merged).eq("id", primary.id);
+
+        for (let i = 1; i < group.length; i++) {
+          idsToDelete.push(group[i].id);
         }
       }
     }
 
-    // Delete duplicates
     if (idsToDelete.length > 0) {
       await supabase.from("contacts").delete().in("id", idsToDelete);
     }
