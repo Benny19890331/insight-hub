@@ -298,7 +298,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Birthday + reminder */}
-        <DetailRow icon={Cake} label="生日">
+        <DetailRow icon={Cake} label="生日" iconBoxClass={iconBoxClass} iconClass={iconClass}>
           {contact.birthday ? (
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
