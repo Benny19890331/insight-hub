@@ -153,7 +153,7 @@ const Index = () => {
       ))}
       <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center shrink-0 cursor-pointer" onClick={handleInfinityTap}>
             <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5 }} />
             <svg width="0" height="0">
               <defs>
