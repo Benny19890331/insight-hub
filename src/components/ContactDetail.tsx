@@ -366,9 +366,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
       {/* Date Tracking */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1">
+        <div className={`rounded-lg border p-4 space-y-1 ${t.cardBorder} ${t.cardBg}`}>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <CalendarDays className="h-4 w-4 text-primary" />
+            <CalendarDays className={`h-4 w-4 ${iconClass}`} />
             <span className="text-xs">最後聯絡日期</span>
           </div>
           <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
