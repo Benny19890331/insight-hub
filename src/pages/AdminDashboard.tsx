@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -19,10 +18,10 @@ interface AdminUser {
   createdAt: string;
   lastSignIn: string | null;
   isBanned: boolean;
+  isAdmin: boolean;
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
   const { theme: t, themeIndex } = useTheme();
   const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
@@ -71,6 +70,24 @@ export default function AdminDashboard() {
         prev.map((u) => (u.id === targetUserId ? { ...u, isBanned: ban } : u))
       );
       toast.success(ban ? "已停權" : "已恢復");
+    } catch (err: any) {
+      toast.error(err.message || "操作失敗");
+    }
+    setToggling(null);
+  };
+
+  const toggleAdmin = async (targetUserId: string, grant: boolean) => {
+    setToggling(targetUserId);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "toggle_admin", targetUserId, grant },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === targetUserId ? { ...u, isAdmin: grant } : u))
+      );
+      toast.success(grant ? "已授權管理員" : "已移除管理員");
     } catch (err: any) {
       toast.error(err.message || "操作失敗");
     }
@@ -151,6 +168,9 @@ export default function AdminDashboard() {
                     <div className="min-w-0 flex-1">
                       <div className={`text-sm font-medium truncate ${t.authCardText}`}>
                         {u.displayName || "(未命名)"}
+                        {u.isAdmin && (
+                          <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: `${t.titleColor}22`, color: t.titleColor }}>管理員</span>
+                        )}
                         {u.isBanned && (
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">已停權</span>
                         )}
@@ -161,24 +181,43 @@ export default function AdminDashboard() {
                         {u.lastSignIn && ` · 最後登入: ${new Date(u.lastSignIn).toLocaleDateString("zh-TW")}`}
                       </div>
                     </div>
-                    <button
-                      onClick={() => toggleBan(u.id, !u.isBanned)}
-                      disabled={toggling === u.id}
-                      className={`ml-3 shrink-0 inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
-                        u.isBanned
-                          ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
-                          : "border-red-500/30 text-red-400 hover:bg-red-500/10"
-                      }`}
-                    >
-                      {toggling === u.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : u.isBanned ? (
-                        <Shield className="h-3 w-3" />
-                      ) : (
-                        <ShieldOff className="h-3 w-3" />
-                      )}
-                      {u.isBanned ? "恢復" : "停權"}
-                    </button>
+                    <div className="flex items-center gap-2 ml-3 shrink-0">
+                      <button
+                        onClick={() => toggleAdmin(u.id, !u.isAdmin)}
+                        disabled={toggling === u.id}
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
+                          u.isAdmin
+                            ? "border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                            : "border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                        }`}
+                        title={u.isAdmin ? "移除管理員" : "設為管理員"}
+                      >
+                        {toggling === u.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Crown className="h-3 w-3" />
+                        )}
+                        {u.isAdmin ? "取消" : "授權"}
+                      </button>
+                      <button
+                        onClick={() => toggleBan(u.id, !u.isBanned)}
+                        disabled={toggling === u.id}
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 ${
+                          u.isBanned
+                            ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                            : "border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        }`}
+                      >
+                        {toggling === u.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : u.isBanned ? (
+                          <Shield className="h-3 w-3" />
+                        ) : (
+                          <ShieldOff className="h-3 w-3" />
+                        )}
+                        {u.isBanned ? "恢復" : "停權"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
