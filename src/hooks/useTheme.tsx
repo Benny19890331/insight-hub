@@ -9,6 +9,7 @@ export interface AppTheme {
   titleColor: string;
   titleGlow: string;
   sidebarBg: string;
+  textColor: string;
   mainBg: string;
   cardBg: string;
   cardBorder: string;
@@ -46,6 +47,7 @@ export const themes: AppTheme[] = [
     headerBorder: "border-pink-200/50",
     titleColor: "#e879a0",
     titleGlow: "rgba(232,121,160,0.4)",
+    textColor: "text-gray-900",
     sidebarBg: "bg-pink-50/60 backdrop-blur-md",
     mainBg: "bg-pink-50/20",
     cardBg: "bg-white/70 backdrop-blur-sm",
@@ -54,11 +56,11 @@ export const themes: AppTheme[] = [
     selectedCard: "bg-pink-100/70",
     selectedBorder: "border-pink-400/50",
     selectedGlow: "shadow-[0_0_12px_-3px_rgba(236,72,153,0.25)]",
-    accent: "text-pink-800",
+    accent: "text-pink-950",
     accentBg: "bg-pink-500/15",
     accentBorder: "border-pink-500/40",
     accentHover: "hover:bg-pink-500/25",
-    mutedText: "text-pink-900/70",
+    mutedText: "text-pink-950/70",
     btnPrimary: { color: "hsl(330 70% 55%)", border: "hsl(330 70% 55% / 0.5)", bg: "hsl(330 70% 55% / 0.1)", hoverBg: "hsl(330 70% 55% / 0.2)", shadow: "hsl(330 70% 55% / 0.25)" },
     btnSecondary: { color: "hsl(280 60% 60%)", border: "hsl(280 60% 60% / 0.4)", bg: "hsl(280 60% 60% / 0.08)", hoverBg: "hsl(280 60% 60% / 0.18)", shadow: "hsl(280 60% 60% / 0.2)" },
     btnOutline: "border-pink-300/50 text-pink-700 hover:bg-pink-100/60",
@@ -81,6 +83,7 @@ export const themes: AppTheme[] = [
     headerBorder: "border-blue-500/20",
     titleColor: "#60a5fa",
     titleGlow: "rgba(96,165,250,0.4)",
+    textColor: "text-blue-50",
     sidebarBg: "bg-slate-900/80 backdrop-blur-md",
     mainBg: "bg-slate-900/40",
     cardBg: "bg-slate-800/60 backdrop-blur-sm",
@@ -116,6 +119,7 @@ export const themes: AppTheme[] = [
     headerBorder: "border-amber-600/20",
     titleColor: "#fbbf24",
     titleGlow: "rgba(251,191,36,0.5)",
+    textColor: "text-amber-50",
     sidebarBg: "bg-stone-950/80 backdrop-blur-md",
     mainBg: "bg-stone-900/40",
     cardBg: "bg-stone-800/60 backdrop-blur-sm",
@@ -151,6 +155,7 @@ export const themes: AppTheme[] = [
     headerBorder: "border-indigo-400/15",
     titleColor: "#a5b4fc",
     titleGlow: "rgba(165,180,252,0.4)",
+    textColor: "text-indigo-50",
     sidebarBg: "bg-indigo-950/80 backdrop-blur-md",
     mainBg: "bg-indigo-950/40",
     cardBg: "bg-indigo-900/40 backdrop-blur-sm",

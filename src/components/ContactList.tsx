@@ -53,7 +53,7 @@ export function ContactList({
             placeholder="搜尋姓名、地區、狀態⋯"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
+            className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -62,7 +62,7 @@ export function ContactList({
             <select
               value={heatFilter}
               onChange={(e) => onHeatFilterChange(e.target.value as HeatLevel | "all")}
-              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
+              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
             >
               {heatOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -75,7 +75,7 @@ export function ContactList({
             <select
               value={productFilter}
               onChange={(e) => onProductFilterChange(e.target.value)}
-              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus}`}
+              className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
             >
               <option value="">全部產品</option>
               {productOptions.map((p) => (
@@ -112,7 +112,7 @@ export function ContactList({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-sm truncate">
+                  <span className={`font-medium text-sm truncate ${t.textColor}`}>
                     {contact.name}
                     <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
                   </span>
