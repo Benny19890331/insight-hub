@@ -99,6 +99,19 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
             </div>
           </div>
 
+          {/* Gender */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">性別</label>
+            <div className="flex flex-wrap gap-1.5">
+              {genderOptions.filter(g => g.value !== "").map(g => (
+                <button key={g.value} type="button" onClick={() => setGender(gender === g.value ? "" : g.value)}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${gender === g.value ? "bg-primary/15 text-primary border-primary/30" : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"}`}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Region + Background */}
           <div className="grid grid-cols-2 gap-3">
             <div>
