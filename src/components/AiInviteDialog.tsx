@@ -3,6 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Contact } from "@/data/contacts";
 import { Copy, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 interface ContactInsights {
   summary: string;
