@@ -59,6 +59,7 @@ function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
     referrerName: db.referrer_name ?? undefined,
     birthday: db.birthday ?? undefined,
     birthdayReminder: (db.birthday_reminder as BirthdayReminder) ?? "none",
+    gender: (db.gender as Gender) ?? "",
     interactions: interactions
       .filter((i) => i.contact_id === db.id)
       .map((i) => ({ date: i.date, summary: i.summary })),
