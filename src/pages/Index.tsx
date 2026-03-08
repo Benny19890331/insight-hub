@@ -85,6 +85,12 @@ const Index = () => {
           />
         </main>
       </div>
+      <CsvImportDialog
+        open={csvOpen}
+        onOpenChange={setCsvOpen}
+        onImport={handleCsvImport}
+        existingContacts={contacts}
+      />
     </div>
   );
 };
