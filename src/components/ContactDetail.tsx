@@ -341,12 +341,66 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           </div>
           <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
         </div>
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1 glow-border">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <CalendarClock className="h-4 w-4 text-primary" />
-            <span className="text-xs">下次追蹤日期</span>
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <CalendarClock className="h-4 w-4 text-primary" />
+              <span className="text-xs">下次追蹤日期</span>
+            </div>
+            <button
+              onClick={() => setEditingFollowUp(true)}
+              className="text-xs text-primary hover:underline"
+            >
+              {editingFollowUp ? "" : "編輯"}
+            </button>
           </div>
-          <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate}</p>
+          {editingFollowUp ? (
+            <div className="space-y-2">
+              <input
+                type="date"
+                value={followUpDate}
+                onChange={(e) => setFollowUpDate(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary/50"
+              />
+              <textarea
+                value={followUpNote}
+                onChange={(e) => setFollowUpNote(e.target.value)}
+                placeholder="追蹤內容備註⋯"
+                rows={2}
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (onUpdateContact) {
+                      onUpdateContact({ ...contact, nextFollowUpDate: followUpDate, nextFollowUpNote: followUpNote });
+                    }
+                    setEditingFollowUp(false);
+                  }}
+                  className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90"
+                >
+                  儲存
+                </button>
+                <button
+                  onClick={() => {
+                    setFollowUpDate(contact.nextFollowUpDate);
+                    setFollowUpNote(contact.nextFollowUpNote ?? "");
+                    setEditingFollowUp(false);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground px-3 py-1"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate}</p>
+              {contact.nextFollowUpNote && (
+                <p className="text-xs text-muted-foreground">{contact.nextFollowUpNote}</p>
+              )}
+            </>
+          )}
         </div>
       </div>
 
