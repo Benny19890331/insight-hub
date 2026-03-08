@@ -448,7 +448,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90"
                 >儲存</button>
                 <button
-                  onClick={() => { setFollowUpDate(contact.nextFollowUpDate); setFollowUpNote(contact.nextFollowUpNote ?? ""); setEditingFollowUp(false); }}
+                  onClick={() => { setFollowUpDate(contact.nextFollowUpDate); setFollowUpTime(contact.nextFollowUpTime ?? ""); setFollowUpNote(contact.nextFollowUpNote ?? ""); setEditingFollowUp(false); }}
                   className="text-xs text-muted-foreground hover:text-foreground px-3 py-1"
                 >取消</button>
               </div>
