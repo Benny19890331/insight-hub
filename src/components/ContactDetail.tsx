@@ -72,6 +72,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpAction, setFollowUpAction] = useState<"complete" | "cancel" | null>(null);
   const [followUpActionDate, setFollowUpActionDate] = useState("");
   const [followUpActionContent, setFollowUpActionContent] = useState("");
+  const [cachedInsights, setCachedInsights] = useState<{ summary: string; tags: string[]; next_action: string } | null>(null);
 
   const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
   const iconClass = t.accent;
