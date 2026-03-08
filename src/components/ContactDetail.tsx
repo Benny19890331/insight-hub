@@ -221,7 +221,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Flame className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground mb-1.5">當前狀態</p>
+            <p className={`text-xs ${labelClass} mb-1.5`}>當前狀態</p>
             <div className="flex flex-wrap gap-1.5">
               {(contact.statuses ?? []).length > 0 ? (
                 (contact.statuses ?? []).map((s) => {
