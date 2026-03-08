@@ -413,7 +413,6 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                     }
                     setFollowUpAction(null); setFollowUpActionContent("");
                   }}
-                  }}
                   className="inline-flex items-center gap-1 text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-md"
                 >確認取消</button>
                 <button onClick={() => { setFollowUpAction(null); setFollowUpActionContent(""); }}
