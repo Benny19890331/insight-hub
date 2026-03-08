@@ -411,7 +411,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Package className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">產品關注 / 消費標籤</p>
+            <p className={`text-xs ${labelClass}`}>產品關注 / 消費標籤</p>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {(contact.productTags ?? []).map((tag) => (
                 <span key={tag} className="product-tag">{tag}</span>
