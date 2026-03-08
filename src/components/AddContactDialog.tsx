@@ -90,12 +90,19 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="bg-card border-border max-w-lg">
+      <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: '96dvh' }} onOpenAutoFocus={(e) => e.preventDefault()}>
+        <div className="relative overflow-hidden rounded-lg h-full">
+          {/* Background image */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+          <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
           <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 pt-2 pb-20">
+        <div className="space-y-4 pt-2">
           {/* AI Voice Input */}
           <div className="flex justify-center py-2 border-b border-border/50 mb-2">
             <VoiceInputButton
