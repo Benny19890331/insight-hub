@@ -44,6 +44,7 @@ export interface Contact {
   name: string;
   nickname?: string;
   memberId?: string;
+  gender?: Gender;
   region: string;
   background: string;
   statuses: string[];
