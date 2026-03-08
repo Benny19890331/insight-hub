@@ -161,6 +161,26 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <Field label="背景 / 職業"><input value={background} onChange={(e) => setBackground(e.target.value)} className={fieldClass} /></Field>
           <Field label="聯絡方式"><input value={contactMethod} onChange={(e) => setContactMethod(e.target.value)} placeholder="LINE ID / 電話 / Email" className={fieldClass} /></Field>
 
+          {/* Gender */}
+          <Field label="性別">
+            <div className="flex flex-wrap gap-2">
+              {genderOptions.filter(g => g.value !== "").map((g) => (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() => setGender(gender === g.value ? "" : g.value)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                    gender === g.value
+                      ? "product-tag ring-1 ring-primary/40"
+                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+
           {/* Status as multi-select chips */}
           <Field label="當前狀態（可複選）">
             <div className="flex flex-wrap gap-2">
