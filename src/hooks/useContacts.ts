@@ -101,6 +101,7 @@ export function useContacts() {
       user_id: user.id,
       name: contact.name,
       nickname: contact.nickname || null,
+      member_id: contact.memberId || null,
       region: contact.region,
       background: contact.background,
       statuses: contact.statuses,
