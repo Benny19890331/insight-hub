@@ -90,3 +90,58 @@
     );
   }
 }
+
+/* Neon action buttons */
+@layer components {
+  .neon-btn-cyan {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer;
+    color: hsl(168 80% 60%);
+    border: 1px solid hsl(168 80% 46% / 0.5);
+    background: hsl(168 80% 46% / 0.08);
+    box-shadow: 0 0 12px -2px hsl(168 80% 46% / 0.3),
+                inset 0 0 12px -6px hsl(168 80% 46% / 0.15);
+  }
+  .neon-btn-cyan:hover {
+    background: hsl(168 80% 46% / 0.18);
+    box-shadow: 0 0 20px -2px hsl(168 80% 46% / 0.5),
+                inset 0 0 16px -4px hsl(168 80% 46% / 0.2);
+    border-color: hsl(168 80% 46% / 0.8);
+  }
+
+  .neon-btn-magenta {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer;
+    color: hsl(290 80% 72%);
+    border: 1px solid hsl(290 80% 60% / 0.5);
+    background: hsl(290 80% 60% / 0.08);
+    box-shadow: 0 0 12px -2px hsl(290 80% 60% / 0.3),
+                inset 0 0 12px -6px hsl(290 80% 60% / 0.15);
+  }
+  .neon-btn-magenta:hover {
+    background: hsl(290 80% 60% / 0.18);
+    box-shadow: 0 0 20px -2px hsl(290 80% 60% / 0.5),
+                inset 0 0 16px -4px hsl(290 80% 60% / 0.2);
+    border-color: hsl(290 80% 60% / 0.8);
+  }
+
+  .neon-btn-amber {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer;
+    color: hsl(40 95% 64%);
+    border: 1px solid hsl(40 95% 55% / 0.5);
+    background: hsl(40 95% 55% / 0.08);
+    box-shadow: 0 0 12px -2px hsl(40 95% 55% / 0.3),
+                inset 0 0 12px -6px hsl(40 95% 55% / 0.15);
+  }
+  .neon-btn-amber:hover {
+    background: hsl(40 95% 55% / 0.18);
+    box-shadow: 0 0 20px -2px hsl(40 95% 55% / 0.5),
+                inset 0 0 16px -4px hsl(40 95% 55% / 0.2);
+    border-color: hsl(40 95% 55% / 0.8);
+  }
+
+  .product-tag {
+    @apply inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium;
+    color: hsl(168 80% 70%);
+    background: hsl(168 80% 46% / 0.1);
+    border: 1px solid hsl(168 80% 46% / 0.25);
+  }
+}
