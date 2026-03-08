@@ -40,14 +40,14 @@ const reminderLabel: Record<string, string> = {
   today: "當天提醒",
 };
 
-function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass }: { icon: React.ElementType; label: string; children: React.ReactNode; iconBoxClass?: string; iconClass?: string }) {
+function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass, labelClass }: { icon: React.ElementType; label: string; children: React.ReactNode; iconBoxClass?: string; iconClass?: string; labelClass?: string }) {
   return (
     <div className="flex gap-3 items-start">
       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass ?? "bg-muted"}`}>
         <Icon className={`h-4 w-4 ${iconClass ?? "text-primary"}`} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className={`text-xs ${labelClass ?? "text-muted-foreground"}`}>{label}</p>
         <div className="text-sm mt-0.5">{children}</div>
       </div>
     </div>
@@ -73,6 +73,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
   const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
   const iconClass = t.accent;
+  const labelClass = t.mutedText;
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
@@ -173,12 +174,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       {/* Details */}
       <div className="space-y-5">
         {contact.memberId && (
-          <DetailRow icon={Hash} label="會員編號" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.memberId}</DetailRow>
+          <DetailRow icon={Hash} label="會員編號" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.memberId}</DetailRow>
         )}
-        <DetailRow icon={UserCircle} label="綽號 / 稱呼" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
-        <DetailRow icon={MapPin} label="地區" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.region}</DetailRow>
-        <DetailRow icon={Briefcase} label="背景 / 職業" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.background}</DetailRow>
-        <DetailRow icon={Phone} label="聯絡方式" iconBoxClass={iconBoxClass} iconClass={iconClass}>
+        <DetailRow icon={UserCircle} label="綽號 / 稱呼" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.nickname || <span className={t.mutedText}>尚未填寫</span>}</DetailRow>
+        <DetailRow icon={MapPin} label="地區" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.region}</DetailRow>
+        <DetailRow icon={Briefcase} label="背景 / 職業" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.background}</DetailRow>
+        <DetailRow icon={Phone} label="聯絡方式" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>
           {contact.contactMethod ? (
             (() => {
               const val = contact.contactMethod!;
@@ -220,7 +221,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Flame className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground mb-1.5">當前狀態</p>
+            <p className={`text-xs ${labelClass} mb-1.5`}>當前狀態</p>
             <div className="flex flex-wrap gap-1.5">
               {(contact.statuses ?? []).length > 0 ? (
                 (contact.statuses ?? []).map((s) => {
@@ -239,7 +240,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Heat display (read-only) */}
-        <DetailRow icon={Thermometer} label="熱度" iconBoxClass={iconBoxClass} iconClass={iconClass}>
+        <DetailRow icon={Thermometer} label="熱度" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>
           <span className="text-sm">{heatLabel[contact.heat]}</span>
         </DetailRow>
 
@@ -252,7 +253,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 <Users className={`h-4 w-4 ${iconClass}`} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">推薦人數</p>
+                <p className={`text-xs ${labelClass}`}>推薦人數</p>
                 <p className="text-sm font-medium mt-0.5">{downlines.length} 人</p>
                 {downlines.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -278,7 +279,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Users className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
+            <p className={`text-xs ${labelClass}`}>推薦人 / 關係鏈</p>
             {referrerChain.length > 0 ? (
               <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                 {[...referrerChain].reverse().map((ref, i) => (
@@ -308,7 +309,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Birthday + reminder */}
-        <DetailRow icon={Cake} label="生日" iconBoxClass={iconBoxClass} iconClass={iconClass}>
+        <DetailRow icon={Cake} label="生日" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>
           {contact.birthday ? (
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -410,7 +411,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             <Package className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">產品關注 / 消費標籤</p>
+            <p className={`text-xs ${labelClass}`}>產品關注 / 消費標籤</p>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {(contact.productTags ?? []).map((tag) => (
                 <span key={tag} className="product-tag">{tag}</span>
@@ -422,7 +423,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           </div>
         </div>
 
-        <DetailRow icon={StickyNote} label="特殊註記" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.notes}</DetailRow>
+        <DetailRow icon={StickyNote} label="特殊註記" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.notes}</DetailRow>
       </div>
 
       <div className="h-px bg-border" />
