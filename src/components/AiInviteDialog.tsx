@@ -27,6 +27,7 @@ interface AiInviteDialogProps {
 const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
 
 export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInviteDialogProps) {
+  const { themeIndex } = useTheme();
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const abortRef = useRef<AbortController | null>(null);
