@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { Upload, UserPlus, Download, Infinity, LogOut, Loader2 } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap } from "lucide-react";
+import { generateSeedContacts } from "@/data/seedContacts";
 import { Contact, HeatLevel } from "@/data/contacts";
 import { ContactList } from "@/components/ContactList";
 import { ContactDetail } from "@/components/ContactDetail";
