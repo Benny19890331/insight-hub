@@ -161,7 +161,7 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
         <div className="relative pl-5 space-y-4">
           {/* Timeline line */}
           <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border" />
-          {contact.interactions.map((item, i) => (
+          {(contact.interactions ?? []).map((item, i) => (
             <div key={i} className="relative flex gap-3">
               <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
               <div className="min-w-0">
