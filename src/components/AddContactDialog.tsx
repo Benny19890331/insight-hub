@@ -88,6 +88,27 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
+          {/* AI Voice Input */}
+          <div className="flex justify-center py-2 border-b border-border/50 mb-2">
+            <VoiceInputButton
+              mode="contact"
+              onResult={(data: any) => {
+                if (data.name) setName(data.name);
+                if (data.nickname) setNickname(data.nickname);
+                if (data.region) setRegion(data.region);
+                if (data.background) setBackground(data.background);
+                if (data.birthday) setBirthday(data.birthday);
+                if (data.gender && ["male", "female", "other"].includes(data.gender)) setGender(data.gender);
+                if (data.contactMethod) setContactMethod(data.contactMethod);
+                if (data.products && Array.isArray(data.products)) {
+                  const validProducts = data.products.filter((p: string) => productOptions.includes(p));
+                  if (validProducts.length > 0) setSelectedTags(validProducts);
+                }
+                if (data.heat && ["cold", "warm", "hot", "loyal"].includes(data.heat)) setHeat(data.heat);
+                if (data.notes) setNotes(data.notes);
+              }}
+            />
+          </div>
           {/* Name + Nickname */}
           <div className="grid grid-cols-2 gap-3">
             <div>
