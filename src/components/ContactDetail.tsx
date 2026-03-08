@@ -12,6 +12,7 @@ import {
   Users, Cake, Bell, UserCircle, Thermometer, CheckCircle2, XCircle, Edit3, Trash2, Check, X, Calendar,
 } from "lucide-react";
 import { statusColorMap } from "@/data/statusColors";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 
 interface ContactDetailProps {
@@ -38,11 +39,11 @@ const reminderLabel: Record<string, string> = {
   today: "當天提醒",
 };
 
-function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
+function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass }: { icon: React.ElementType; label: string; children: React.ReactNode; iconBoxClass?: string; iconClass?: string }) {
   return (
     <div className="flex gap-3 items-start">
-      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-        <Icon className="h-4 w-4 text-primary" />
+      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass ?? "bg-muted"}`}>
+        <Icon className={`h-4 w-4 ${iconClass ?? "text-primary"}`} />
       </div>
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
@@ -53,6 +54,7 @@ function DetailRow({ icon: Icon, label, children }: { icon: React.ElementType; l
 }
 
 export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact }: ContactDetailProps) {
+  const { theme: t } = useTheme();
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -67,6 +69,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpAction, setFollowUpAction] = useState<"complete" | "cancel" | null>(null);
   const [followUpActionDate, setFollowUpActionDate] = useState("");
   const [followUpActionContent, setFollowUpActionContent] = useState("");
+
+  const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
+  const iconClass = t.accent;
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
@@ -166,10 +171,10 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
       {/* Details */}
       <div className="space-y-5">
-        <DetailRow icon={UserCircle} label="綽號 / 稱呼">{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
-        <DetailRow icon={MapPin} label="地區">{contact.region}</DetailRow>
-        <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
-        <DetailRow icon={Phone} label="聯絡方式">
+        <DetailRow icon={UserCircle} label="綽號 / 稱呼" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
+        <DetailRow icon={MapPin} label="地區" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.region}</DetailRow>
+        <DetailRow icon={Briefcase} label="背景 / 職業" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.background}</DetailRow>
+        <DetailRow icon={Phone} label="聯絡方式" iconBoxClass={iconBoxClass} iconClass={iconClass}>
           {contact.contactMethod ? (
             (() => {
               const val = contact.contactMethod!;
@@ -207,8 +212,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Status display (read-only, colored) */}
         <div className="flex gap-3 items-start">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Flame className="h-4 w-4 text-primary" />
+          <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
+            <Flame className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground mb-1.5">當前狀態</p>
@@ -230,7 +235,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Heat display (read-only) */}
-        <DetailRow icon={Thermometer} label="熱度">
+        <DetailRow icon={Thermometer} label="熱度" iconBoxClass={iconBoxClass} iconClass={iconClass}>
           <span className="text-sm">{heatLabel[contact.heat]}</span>
         </DetailRow>
 
@@ -239,8 +244,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           const downlines = contacts.filter(c => c.referrerId === contact.id);
           return (
             <div className="flex gap-3 items-start">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-                <Users className="h-4 w-4 text-primary" />
+              <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
+                <Users className={`h-4 w-4 ${iconClass}`} />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">推薦人數</p>
@@ -265,8 +270,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Referrer chain */}
         <div className="flex gap-3 items-start">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Users className="h-4 w-4 text-primary" />
+          <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
+            <Users className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground">推薦人 / 關係鏈</p>
@@ -293,7 +298,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         {/* Birthday + reminder */}
-        <DetailRow icon={Cake} label="生日">
+        <DetailRow icon={Cake} label="生日" iconBoxClass={iconBoxClass} iconClass={iconClass}>
           {contact.birthday ? (
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -338,8 +343,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Product tags */}
         <div className="flex gap-3 items-start">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Package className="h-4 w-4 text-primary" />
+          <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
+            <Package className={`h-4 w-4 ${iconClass}`} />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground">產品關注 / 消費標籤</p>
@@ -354,16 +359,16 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           </div>
         </div>
 
-        <DetailRow icon={StickyNote} label="特殊註記">{contact.notes}</DetailRow>
+        <DetailRow icon={StickyNote} label="特殊註記" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.notes}</DetailRow>
       </div>
 
       <div className="h-px bg-border" />
 
       {/* Date Tracking */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1">
+        <div className={`rounded-lg border p-4 space-y-1 ${t.cardBorder} ${t.cardBg}`}>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <CalendarDays className="h-4 w-4 text-primary" />
+            <CalendarDays className={`h-4 w-4 ${iconClass}`} />
             <span className="text-xs">最後聯絡日期</span>
           </div>
           <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
@@ -391,9 +396,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
             return null;
           })()}
         </div>
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 glow-border">
+        <div className={`rounded-lg border p-4 space-y-2 ${t.accentBorder} ${t.accentBg}`}>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <CalendarClock className="h-4 w-4 text-primary" />
+            <CalendarClock className={`h-4 w-4 ${iconClass}`} />
             <span className="text-xs">下次追蹤日期</span>
           </div>
 
@@ -551,14 +556,14 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       {/* Interaction Timeline */}
       <div>
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${t.accentBg}`} style={{ background: t.titleColor }} />
           歷史互動紀錄
         </h3>
         <div className="relative pl-5 space-y-4">
-          <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border" />
+          <div className={`absolute left-[7px] top-1 bottom-1 w-px ${t.accentBorder}`} style={{ background: t.titleColor, opacity: 0.3 }} />
            {(contact.interactions ?? []).map((item, i) => (
             <div key={i} className="relative flex gap-3 group">
-              <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
+              <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-background" style={{ borderColor: t.titleColor }} />
               <div className="min-w-0 flex-1">
                 {editingInteractionIdx === i ? (
                   <div className="space-y-1.5">
