@@ -443,6 +443,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         open={addOpen}
         onOpenChange={setAddOpen}
         contactName={contact.name}
+        contacts={contacts}
         onSave={handleAddInteraction}
       />
       <EditContactDialog
