@@ -22,7 +22,7 @@ const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 const Index = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts } = useContacts();
+  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -241,6 +241,7 @@ const Index = () => {
             onProductFilterChange={setProductFilter}
             selectedId={currentSelected?.id ?? null}
             onSelect={handleSelect}
+            onDeduplicate={deduplicateContacts}
           />
         </aside>
         <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`}>

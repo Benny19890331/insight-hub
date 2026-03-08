@@ -1,4 +1,4 @@
-import { Search, Filter, Package } from "lucide-react";
+import { Search, Filter, Package, Merge, Loader2 } from "lucide-react";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
@@ -15,7 +15,11 @@ interface ContactListProps {
   onProductFilterChange: (p: string) => void;
   selectedId: string | null;
   onSelect: (c: Contact) => void;
+  onDeduplicate?: () => Promise<{ merged: number }>;
 }
+
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function ContactList({
   contacts,
@@ -27,8 +31,35 @@ export function ContactList({
   onProductFilterChange,
   selectedId,
   onSelect,
+  onDeduplicate,
 }: ContactListProps) {
   const { theme: t } = useTheme();
+  const [deduping, setDeduping] = useState(false);
+
+  // Count duplicates
+  const duplicateCount = contacts.filter((c, i, arr) => {
+    if (c.memberId) {
+      return arr.findIndex(x => x.memberId === c.memberId) !== i;
+    }
+    return arr.findIndex(x => x.name === c.name) !== i;
+  }).length;
+
+  const handleDedupe = async () => {
+    if (!onDeduplicate) return;
+    setDeduping(true);
+    try {
+      const result = await onDeduplicate();
+      if (result.merged > 0) {
+        toast.success(`已合併 ${result.merged} 筆重複名單`);
+      } else {
+        toast.info("沒有找到重複的名單");
+      }
+    } catch {
+      toast.error("合併失敗");
+    } finally {
+      setDeduping(false);
+    }
+  };
 
   const filtered = contacts.filter((c) => {
     const matchesSearch =
@@ -150,6 +181,20 @@ export function ContactList({
           <p className={`text-center text-sm py-8 ${t.mutedText}`}>
             找不到符合的聯絡人
           </p>
+        )}
+
+        {/* Deduplicate button at bottom */}
+        {onDeduplicate && duplicateCount > 0 && (
+          <div className="pt-4 pb-2 px-2">
+            <button
+              onClick={handleDedupe}
+              disabled={deduping}
+              className={`w-full flex items-center justify-center gap-2 rounded-lg border py-2.5 text-xs font-medium transition-all ${t.btnOutline} hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive disabled:opacity-50`}
+            >
+              {deduping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Merge className="h-4 w-4" />}
+              {deduping ? "合併中..." : `合併 ${duplicateCount} 筆重複名單`}
+            </button>
+          </div>
         )}
       </div>
     </div>
