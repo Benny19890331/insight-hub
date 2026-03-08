@@ -5,6 +5,7 @@ import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Search, X, UserCircle } from "lucide-react";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 interface AddContactDialogProps {
   open: boolean;
