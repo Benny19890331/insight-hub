@@ -176,9 +176,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         {contact.memberId && (
           <DetailRow icon={Hash} label="會員編號" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.memberId}</DetailRow>
         )}
-        <DetailRow icon={UserCircle} label="綽號 / 稱呼" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.nickname || <span className="text-muted-foreground">尚未填寫</span>}</DetailRow>
-        <DetailRow icon={MapPin} label="地區" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.region}</DetailRow>
-        <DetailRow icon={Briefcase} label="背景 / 職業" iconBoxClass={iconBoxClass} iconClass={iconClass}>{contact.background}</DetailRow>
+        <DetailRow icon={UserCircle} label="綽號 / 稱呼" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.nickname || <span className={t.mutedText}>尚未填寫</span>}</DetailRow>
+        <DetailRow icon={MapPin} label="地區" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.region}</DetailRow>
+        <DetailRow icon={Briefcase} label="背景 / 職業" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.background}</DetailRow>
         <DetailRow icon={Phone} label="聯絡方式" iconBoxClass={iconBoxClass} iconClass={iconClass}>
           {contact.contactMethod ? (
             (() => {
