@@ -3,6 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Contact } from "@/data/contacts";
 import { Copy, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 
 interface ContactInsights {
   summary: string;
@@ -20,6 +27,7 @@ interface AiInviteDialogProps {
 const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
 
 export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInviteDialogProps) {
+  const { themeIndex } = useTheme();
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -146,7 +154,14 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-lg">
+      <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: '96dvh' }} onOpenAutoFocus={(e) => e.preventDefault()}>
+        <div className="relative overflow-hidden rounded-lg h-full">
+          {/* Background image */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+          <div className="relative z-10 p-6 pt-10 pb-6 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[hsl(290_80%_72%)]" />
@@ -168,7 +183,7 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
           </div>
         ) : (
           <div className="space-y-4 pt-1">
-            <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+            <div className="rounded-lg border border-border bg-black/20 backdrop-blur-sm p-4 text-sm leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
               {draft}
               {loading && <span className="inline-block w-1.5 h-4 bg-primary/70 animate-pulse ml-0.5 align-middle" />}
             </div>
@@ -191,6 +206,8 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
             </div>
           </div>
         )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
