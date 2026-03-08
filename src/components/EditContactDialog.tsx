@@ -109,6 +109,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       region,
       background,
       statuses: selectedStatuses,
+      gender,
       heat,
       notes,
       productTags: selectedTags,
