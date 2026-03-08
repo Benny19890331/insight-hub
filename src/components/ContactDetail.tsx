@@ -73,6 +73,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
   const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
   const iconClass = t.accent;
+  const labelClass = t.mutedText;
 
   useEffect(() => {
     setFollowUpDate(contact?.nextFollowUpDate ?? "");
