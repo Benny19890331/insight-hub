@@ -73,7 +73,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     );
   }, [otherContacts, referrerSearch]);
 
-  const selectedReferrer = contacts.find((c) => c.id === referrerId);
+  const selectedReferrer = referrerId === "self" ? { id: "self", name: userName } as any : contacts.find((c) => c.id === referrerId);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
