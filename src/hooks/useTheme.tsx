@@ -155,6 +155,7 @@ export const themes: AppTheme[] = [
     headerBorder: "border-indigo-400/15",
     titleColor: "#a5b4fc",
     titleGlow: "rgba(165,180,252,0.4)",
+    textColor: "text-indigo-50",
     sidebarBg: "bg-indigo-950/80 backdrop-blur-md",
     mainBg: "bg-indigo-950/40",
     cardBg: "bg-indigo-900/40 backdrop-blur-sm",
