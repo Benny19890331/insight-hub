@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Contact, Interaction, statusOptions } from "@/data/contacts";
+import { Contact, Interaction, statusOptions, heatOptionsRaw, HeatLevel, getReferrerChain } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AddInteractionDialog } from "@/components/AddInteractionDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
@@ -7,7 +7,7 @@ import { AiInviteDialog } from "@/components/AiInviteDialog";
 import {
   MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
   CalendarDays, CalendarClock, Plus, Sparkles, Pencil, Package, Phone,
-  Users, Cake, Bell, UserCircle,
+  Users, Cake, Bell, UserCircle, Thermometer,
 } from "lucide-react";
 
 interface ContactDetailProps {
@@ -79,11 +79,23 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     }
   };
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusToggle = (s: string) => {
+    if (!onUpdateContact) return;
+    const current = contact.statuses ?? [];
+    const updated = current.includes(s)
+      ? current.filter((x) => x !== s)
+      : [...current, s];
+    onUpdateContact({ ...contact, statuses: updated.length > 0 ? updated : current });
+  };
+
+  const handleHeatChange = (h: HeatLevel) => {
     if (onUpdateContact) {
-      onUpdateContact({ ...contact, status: newStatus });
+      onUpdateContact({ ...contact, heat: h });
     }
   };
+
+  const referrerChain = getReferrerChain(contact, contacts, 3);
+  const statusDisplay = (contact.statuses ?? []).join("、") || "未設定";
 
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
@@ -111,8 +123,10 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                 <span className="text-sm text-muted-foreground">（{contact.nickname}）</span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <StatusBadge heat={contact.heat} label={contact.status} />
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {(contact.statuses ?? []).map((s) => (
+                <StatusBadge key={s} heat={contact.heat} label={s} />
+              ))}
               <span className="text-xs text-muted-foreground">{heatLabel[contact.heat]}</span>
             </div>
           </div>
@@ -140,20 +154,20 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
         <DetailRow icon={Phone} label="聯絡方式">{contact.contactMethod || "尚未填寫"}</DetailRow>
 
-        {/* Status as clickable chips */}
+        {/* Status as multi-select chips */}
         <div className="flex gap-3 items-start">
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
             <Flame className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground mb-1.5">當前狀態（點擊切換）</p>
+            <p className="text-xs text-muted-foreground mb-1.5">當前狀態（可複選）</p>
             <div className="flex flex-wrap gap-1.5">
               {statusOptions.map((s) => (
                 <button
                   key={s}
-                  onClick={() => handleStatusChange(s)}
+                  onClick={() => handleStatusToggle(s)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
-                    contact.status === s
+                    (contact.statuses ?? []).includes(s)
                       ? "product-tag ring-1 ring-primary/40"
                       : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
                   }`}
@@ -165,19 +179,59 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
           </div>
         </div>
 
-        {/* Referrer */}
-        <DetailRow icon={Users} label="推薦人 / 關係鏈">
-          {contact.referrerName ? (
-            <button
-              onClick={() => contact.referrerId && onSelectContact?.(contact.referrerId)}
-              className="text-primary hover:underline cursor-pointer font-medium"
-            >
-              {contact.referrerName} →
-            </button>
-          ) : (
-            <span className="text-muted-foreground">尚未填寫</span>
-          )}
-        </DetailRow>
+        {/* Heat as single-select chips */}
+        <div className="flex gap-3 items-start">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+            <Thermometer className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground mb-1.5">熱度（點擊切換）</p>
+            <div className="flex flex-wrap gap-1.5">
+              {heatOptionsRaw.map((h) => (
+                <button
+                  key={h.value}
+                  onClick={() => handleHeatChange(h.value)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
+                    contact.heat === h.value
+                      ? "product-tag ring-1 ring-primary/40"
+                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                  }`}
+                >
+                  {h.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Referrer chain (up to 3 levels) */}
+        <div className="flex gap-3 items-start">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+            <Users className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">推薦人 / 關係鏈（上溯三階）</p>
+            {referrerChain.length > 0 ? (
+              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                <span className="text-sm text-muted-foreground">{contact.name}</span>
+                {referrerChain.map((ref, i) => (
+                  <span key={ref.id} className="flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground">←</span>
+                    <button
+                      onClick={() => onSelectContact?.(ref.id)}
+                      className="text-sm text-primary hover:underline cursor-pointer font-medium"
+                    >
+                      {ref.name}
+                      {ref.nickname && <span className="text-xs text-muted-foreground ml-0.5">({ref.nickname})</span>}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm mt-0.5 text-muted-foreground">無上級推薦人</p>
+            )}
+          </div>
+        </div>
 
         {/* Birthday + reminder */}
         <DetailRow icon={Cake} label="生日 / 重要紀念日">
