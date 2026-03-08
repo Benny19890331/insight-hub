@@ -74,7 +74,13 @@ export function AiInsightsPanel({ contact }: Props) {
       {!insights && !loading && (
         <button
           onClick={generate}
-          className="neon-btn-cyan w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+          style={{
+            background: `linear-gradient(135deg, ${t.titleColor}22, ${t.titleColor}08)`,
+            borderColor: `${t.titleColor}44`,
+            color: t.titleColor,
+            boxShadow: `0 0 20px -6px ${t.titleColor}33`,
+          }}
         >
           <Brain className="h-4.5 w-4.5" />
           AI 提煉 C單（分析報告）
