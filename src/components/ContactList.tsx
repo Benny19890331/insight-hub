@@ -101,7 +101,10 @@ export function ContactList({
             )}
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate">{contact.name}</span>
+              <span className="font-medium text-sm truncate">
+                {contact.name}
+                <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
+              </span>
               <div className="flex gap-1 shrink-0">
                 {(contact.statuses ?? []).slice(0, 2).map((s) => {
                   const color = getStatusColor(s);
