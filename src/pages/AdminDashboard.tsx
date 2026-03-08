@@ -321,6 +321,35 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Delete user confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl ${t.authCard} w-full max-w-sm mx-4`}>
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>
+              確認刪除帳號
+            </h3>
+            <p className={`text-xs ${t.authSubtext}`}>
+              您確定要刪除「{users.find(u => u.id === deleteTarget)?.displayName || users.find(u => u.id === deleteTarget)?.email}」嗎？此操作無法復原，該使用者的所有資料將被永久刪除。
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={deleteUser}
+                disabled={toggling === deleteTarget}
+                className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer disabled:opacity-50 bg-red-600 hover:bg-red-700 text-white border-0"
+              >
+                {toggling === deleteTarget ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "確認刪除"}
+              </button>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm ${t.authLink} hover:underline`}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
