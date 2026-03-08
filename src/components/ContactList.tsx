@@ -112,7 +112,7 @@ export function ContactList({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-sm truncate">
+                  <span className={`font-medium text-sm truncate ${t.textColor}`}>
                     {contact.name}
                     <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
                   </span>
