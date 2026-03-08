@@ -1,6 +1,10 @@
 import { Contact } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
-import { MapPin, Briefcase, Flame, StickyNote, ArrowLeft } from "lucide-react";
+import {
+  MapPin, Briefcase, Flame, StickyNote, ArrowLeft,
+  CalendarDays, CalendarClock, Plus, Sparkles, Pencil,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface ContactDetailProps {
   contact: Contact | null;
@@ -36,6 +40,32 @@ function DetailRow({
   );
 }
 
+function ActionButton({
+  icon: Icon,
+  label,
+  onClick,
+  variant = "default",
+}: {
+  icon: React.ElementType;
+  label: string;
+  onClick: () => void;
+  variant?: "default" | "accent";
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
+        variant === "accent"
+          ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+          : "border-border bg-muted/50 text-secondary-foreground hover:bg-surface-hover"
+      }`}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </button>
+  );
+}
+
 export function ContactDetail({ contact, onBack }: ContactDetailProps) {
   if (!contact) {
     return (
@@ -47,6 +77,10 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
       </div>
     );
   }
+
+  const handleAction = (action: string) => {
+    toast.info(`${action}功能即將推出`, { description: "此功能正在開發中，敬請期待。" });
+  };
 
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
@@ -61,19 +95,26 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
         </button>
       )}
 
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary text-xl font-bold glow-border">
-          {contact.name.charAt(0)}
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">{contact.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
-            <StatusBadge heat={contact.heat} label={contact.status} />
-            <span className="text-xs text-muted-foreground">
-              {heatLabel[contact.heat]}
-            </span>
+      {/* Header + Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary text-xl font-bold glow-border shrink-0">
+            {contact.name.charAt(0)}
           </div>
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">{contact.name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <StatusBadge heat={contact.heat} label={contact.status} />
+              <span className="text-xs text-muted-foreground">{heatLabel[contact.heat]}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <ActionButton icon={Plus} label="新增互動" onClick={() => handleAction("新增互動紀錄")} />
+          <ActionButton icon={Sparkles} label="AI 邀約" variant="accent" onClick={() => handleAction("AI 擬定邀約")} />
+          <ActionButton icon={Pencil} label="編輯資料" onClick={() => handleAction("編輯資料")} />
         </div>
       </div>
 
@@ -81,18 +122,55 @@ export function ContactDetail({ contact, onBack }: ContactDetailProps) {
 
       {/* Details */}
       <div className="space-y-5">
-        <DetailRow icon={MapPin} label="地區">
-          {contact.region}
-        </DetailRow>
-        <DetailRow icon={Briefcase} label="背景 / 職業">
-          {contact.background}
-        </DetailRow>
+        <DetailRow icon={MapPin} label="地區">{contact.region}</DetailRow>
+        <DetailRow icon={Briefcase} label="背景 / 職業">{contact.background}</DetailRow>
         <DetailRow icon={Flame} label="當前狀態 / 熱度">
           {contact.status} — {heatLabel[contact.heat]}
         </DetailRow>
-        <DetailRow icon={StickyNote} label="特殊註記">
-          {contact.notes}
-        </DetailRow>
+        <DetailRow icon={StickyNote} label="特殊註記">{contact.notes}</DetailRow>
+      </div>
+
+      <div className="h-px bg-border" />
+
+      {/* Date Tracking */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <CalendarDays className="h-4 w-4 text-primary" />
+            <span className="text-xs">最後聯絡日期</span>
+          </div>
+          <p className="text-sm font-medium font-mono tracking-wide">{contact.lastContactDate}</p>
+        </div>
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1 glow-border">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <CalendarClock className="h-4 w-4 text-primary" />
+            <span className="text-xs">下次追蹤日期</span>
+          </div>
+          <p className="text-sm font-medium font-mono tracking-wide text-primary">{contact.nextFollowUpDate}</p>
+        </div>
+      </div>
+
+      <div className="h-px bg-border" />
+
+      {/* Interaction Timeline */}
+      <div>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+          歷史互動紀錄
+        </h3>
+        <div className="relative pl-5 space-y-4">
+          {/* Timeline line */}
+          <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border" />
+          {contact.interactions.map((item, i) => (
+            <div key={i} className="relative flex gap-3">
+              <div className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground font-mono">{item.date}</p>
+                <p className="text-sm mt-0.5">{item.summary}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
