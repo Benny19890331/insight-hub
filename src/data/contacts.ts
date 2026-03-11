@@ -51,7 +51,7 @@ export interface Contact {
   heat: HeatLevel;
   notes: string;
   lastContactDate: string;
-  nextFollowUpDate: string;
+  nextFollowUpDate?: string;
   nextFollowUpNote?: string;
   nextFollowUpTime?: string;
   interactions: Interaction[];
