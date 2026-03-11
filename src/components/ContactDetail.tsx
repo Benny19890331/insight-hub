@@ -114,13 +114,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   };
 
   const handleAddInteraction = (interaction: Interaction) => {
-    if (onUpdateContact) {
-      const newInteractions = [interaction, ...(contact.interactions ?? [])];
-      onUpdateContact({
-        ...contact,
-        interactions: newInteractions,
-        lastContactDate: getLatestDate(newInteractions),
-      });
+    if (onAddInteraction) {
+      onAddInteraction(contact.id, interaction);
     }
   };
 
