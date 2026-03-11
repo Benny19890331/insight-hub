@@ -183,6 +183,24 @@ export function useContacts() {
       summary: interaction.summary,
     });
     if (error) { toast.error("新增互動失敗"); return; }
+    // Also update last_contact_date on the contact
+    await supabase.from("contacts").update({ last_contact_date: interaction.date }).eq("id", contactId).eq("user_id", user.id);
+    await fetchContacts();
+  }, [user, fetchContacts]);
+
+  const deleteInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
+    if (!user) return;
+    // Find and delete the matching interaction row
+    const { data } = await supabase.from("interactions")
+      .select("id")
+      .eq("contact_id", contactId)
+      .eq("user_id", user.id)
+      .eq("date", interaction.date)
+      .eq("summary", interaction.summary)
+      .limit(1);
+    if (data && data.length > 0) {
+      await supabase.from("interactions").delete().eq("id", data[0].id);
+    }
     await fetchContacts();
   }, [user, fetchContacts]);
 
@@ -333,5 +351,5 @@ export function useContacts() {
     return { merged: idsToDelete.length };
   }, [user, fetchContacts]);
 
-  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts, deduplicateContacts, refetch: fetchContacts };
+  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, deleteInteraction, importContacts, deduplicateContacts, refetch: fetchContacts };
 }
