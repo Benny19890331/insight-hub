@@ -16,7 +16,7 @@ interface DbContact {
   heat: string;
   notes: string;
   last_contact_date: string;
-  next_follow_up_date: string;
+  next_follow_up_date: string | null;
   next_follow_up_note: string | null;
   next_follow_up_time: string | null;
   contact_method: string | null;
@@ -50,7 +50,7 @@ function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
     heat: (db.heat as HeatLevel) ?? "cold",
     notes: db.notes,
     lastContactDate: db.last_contact_date,
-    nextFollowUpDate: db.next_follow_up_date,
+    nextFollowUpDate: db.next_follow_up_date ?? undefined,
     nextFollowUpNote: db.next_follow_up_note ?? undefined,
     nextFollowUpTime: db.next_follow_up_time ?? undefined,
     contactMethod: db.contact_method ?? undefined,
@@ -110,7 +110,7 @@ export function useContacts() {
       heat: contact.heat,
       notes: contact.notes,
       last_contact_date: contact.lastContactDate,
-      next_follow_up_date: contact.nextFollowUpDate,
+      next_follow_up_date: contact.nextFollowUpDate || null,
       next_follow_up_note: contact.nextFollowUpNote || null,
       next_follow_up_time: contact.nextFollowUpTime || null,
       contact_method: contact.contactMethod || null,
@@ -151,7 +151,7 @@ export function useContacts() {
       heat: contact.heat,
       notes: contact.notes,
       last_contact_date: contact.lastContactDate,
-      next_follow_up_date: contact.nextFollowUpDate,
+      next_follow_up_date: contact.nextFollowUpDate || null,
       next_follow_up_note: contact.nextFollowUpNote || null,
       next_follow_up_time: contact.nextFollowUpTime || null,
       contact_method: contact.contactMethod || null,
@@ -221,7 +221,7 @@ export function useContacts() {
         heat: c.heat,
         notes: c.notes,
         last_contact_date: c.lastContactDate,
-        next_follow_up_date: c.nextFollowUpDate,
+        next_follow_up_date: c.nextFollowUpDate || null,
         contact_method: c.contactMethod || null,
         birthday: c.birthday || null,
         birthday_reminder: c.birthdayReminder || "none",
