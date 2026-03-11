@@ -25,6 +25,7 @@ interface ContactDetailProps {
   onUpdateContact?: (updated: Contact) => void;
   onSelectContact?: (id: string) => void;
   onDeleteContact?: (id: string) => void;
+  onAddInteraction?: (contactId: string, interaction: Interaction) => void;
 }
 
 const heatLabel: Record<string, string> = {
@@ -56,7 +57,7 @@ function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass, label
   );
 }
 
-export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact }: ContactDetailProps) {
+export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact, onAddInteraction }: ContactDetailProps) {
   const { theme: t } = useTheme();
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -113,13 +114,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   };
 
   const handleAddInteraction = (interaction: Interaction) => {
-    if (onUpdateContact) {
-      const newInteractions = [interaction, ...(contact.interactions ?? [])];
-      onUpdateContact({
-        ...contact,
-        interactions: newInteractions,
-        lastContactDate: getLatestDate(newInteractions),
-      });
+    if (onAddInteraction) {
+      onAddInteraction(contact.id, interaction);
     }
   };
 
@@ -511,9 +507,11 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                     const today = new Date().toISOString().split("T")[0];
                     const noteText = contact.nextFollowUpNote ? `${contact.nextFollowUpNote}。` : "";
                     const record: Interaction = { date: today, summary: `❌ 取消行程（原定 ${contact.nextFollowUpDate}）${noteText}原因：${followUpActionContent.trim()}` };
-                    const newInteractions = [record, ...(contact.interactions ?? [])];
+                    if (onAddInteraction) {
+                      onAddInteraction(contact.id, record);
+                    }
                     if (onUpdateContact) {
-                      onUpdateContact({ ...contact, interactions: newInteractions, lastContactDate: getLatestDate(newInteractions), nextFollowUpDate: "", nextFollowUpNote: "", nextFollowUpTime: "" });
+                      onUpdateContact({ ...contact, nextFollowUpDate: "", nextFollowUpNote: "", nextFollowUpTime: "" });
                     }
                     setFollowUpAction(null); setFollowUpActionContent("");
                   }}
@@ -544,12 +542,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   onClick={() => {
                     if (!followUpNote.trim()) { toast.error("請輸入追蹤內容"); return; }
                     const record: Interaction = { date: followUpDate, summary: `✅ 追蹤完成：${followUpNote.trim()}` };
-                    const newInteractions = [record, ...(contact.interactions ?? [])];
+                    if (onAddInteraction) {
+                      onAddInteraction(contact.id, record);
+                    }
                     if (onUpdateContact) {
                       onUpdateContact({
                         ...contact,
-                        interactions: newInteractions,
-                        lastContactDate: getLatestDate(newInteractions),
                         nextFollowUpDate: "",
                         nextFollowUpNote: "",
                         nextFollowUpTime: "",
