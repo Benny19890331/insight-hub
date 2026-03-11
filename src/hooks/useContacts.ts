@@ -351,5 +351,5 @@ export function useContacts() {
     return { merged: idsToDelete.length };
   }, [user, fetchContacts]);
 
-  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts, deduplicateContacts, refetch: fetchContacts };
+  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, deleteInteraction, importContacts, deduplicateContacts, refetch: fetchContacts };
 }
