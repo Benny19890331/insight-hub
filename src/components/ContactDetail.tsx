@@ -26,6 +26,7 @@ interface ContactDetailProps {
   onSelectContact?: (id: string) => void;
   onDeleteContact?: (id: string) => void;
   onAddInteraction?: (contactId: string, interaction: Interaction) => void;
+  onDeleteInteraction?: (contactId: string, interaction: Interaction) => void;
 }
 
 const heatLabel: Record<string, string> = {
