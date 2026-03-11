@@ -507,9 +507,11 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                     const today = new Date().toISOString().split("T")[0];
                     const noteText = contact.nextFollowUpNote ? `${contact.nextFollowUpNote}。` : "";
                     const record: Interaction = { date: today, summary: `❌ 取消行程（原定 ${contact.nextFollowUpDate}）${noteText}原因：${followUpActionContent.trim()}` };
-                    const newInteractions = [record, ...(contact.interactions ?? [])];
+                    if (onAddInteraction) {
+                      onAddInteraction(contact.id, record);
+                    }
                     if (onUpdateContact) {
-                      onUpdateContact({ ...contact, interactions: newInteractions, lastContactDate: getLatestDate(newInteractions), nextFollowUpDate: "", nextFollowUpNote: "", nextFollowUpTime: "" });
+                      onUpdateContact({ ...contact, nextFollowUpDate: "", nextFollowUpNote: "", nextFollowUpTime: "" });
                     }
                     setFollowUpAction(null); setFollowUpActionContent("");
                   }}
