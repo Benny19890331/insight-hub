@@ -39,7 +39,7 @@ CREATE TABLE public.contacts (
   heat TEXT NOT NULL DEFAULT 'cold',
   notes TEXT NOT NULL DEFAULT '',
   last_contact_date DATE NOT NULL DEFAULT CURRENT_DATE,
-  next_follow_up_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  next_follow_up_date DATE DEFAULT CURRENT_DATE,
   next_follow_up_note TEXT,
   next_follow_up_time TEXT,
   contact_method TEXT,
