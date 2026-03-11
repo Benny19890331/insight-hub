@@ -57,7 +57,7 @@ function DetailRow({ icon: Icon, label, children, iconBoxClass, iconClass, label
   );
 }
 
-export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact }: ContactDetailProps) {
+export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact, onSelectContact, onDeleteContact, onAddInteraction }: ContactDetailProps) {
   const { theme: t } = useTheme();
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
