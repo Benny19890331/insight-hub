@@ -252,6 +252,7 @@ const Index = () => {
             onUpdateContact={handleUpdateContact}
             onSelectContact={handleSelectById}
             onDeleteContact={handleDeleteContact}
+            onAddInteraction={handleAddInteraction}
           />
         </main>
       </div>
