@@ -22,7 +22,7 @@ const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
 const Index = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, importContacts, deduplicateContacts } = useContacts();
+  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
 
