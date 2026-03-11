@@ -682,8 +682,10 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                   <button onClick={() => { setEditingInteractionIdx(i); setEditInteractionDate(item.date); setEditInteractionSummary(item.summary); }}
                     className="text-muted-foreground hover:text-primary p-0.5"><Edit3 className="h-3 w-3" /></button>
                   <button onClick={() => {
-                    const updated = (contact.interactions ?? []).filter((_, idx) => idx !== i);
-                    if (onUpdateContact) onUpdateContact({ ...contact, interactions: updated });
+                    if (onDeleteInteraction && contact) {
+                      onDeleteInteraction(contact.id, item);
+                      toast.success("互動紀錄已刪除");
+                    }
                   }} className="text-muted-foreground hover:text-destructive p-0.5"><Trash2 className="h-3 w-3" /></button>
                 </div>
               )}
