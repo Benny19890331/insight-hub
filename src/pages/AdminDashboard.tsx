@@ -43,6 +43,7 @@ export default function AdminDashboard() {
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [newPwd, setNewPwd] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,6 +207,15 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            {/* Search bar */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜尋姓名、Email..."
+              className={fieldClass}
+            />
+
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: t.titleColor }} />
@@ -214,7 +224,11 @@ export default function AdminDashboard() {
               <p className={`text-center text-sm py-8 ${t.authSubtext}`}>目前沒有其他使用者</p>
             ) : (
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {users.map((u) => (
+                {users.filter((u) => {
+                  if (!searchQuery.trim()) return true;
+                  const q = searchQuery.toLowerCase();
+                  return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
+                }).map((u) => (
                   <div
                     key={u.id}
                     className={`rounded-lg border px-4 py-3 transition-colors space-y-2 ${t.authCard} ${u.isBanned ? "opacity-60" : ""}`}
