@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Infinity, Loader2 } from "lucide-react";
+import { Infinity, Loader2, Download } from "lucide-react";
 import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
@@ -16,7 +16,25 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIos, setIsIos] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
   const { themeIndex, theme: t } = useTheme();
+
+  useEffect(() => {
+    const isIosDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    setIsIos(isIosDevice);
+    setIsStandalone(!!standalone);
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +203,46 @@ export default function Auth() {
             </button>
           </p>
         </div>
+
+        {/* Add to Home Screen */}
+        {!isStandalone && (
+          <div className="text-center">
+            {deferredPrompt ? (
+              <button
+                onClick={async () => {
+                  deferredPrompt.prompt();
+                  const { outcome } = await deferredPrompt.userChoice;
+                  if (outcome === 'accepted') {
+                    toast.success("已加入桌面捷徑！");
+                  }
+                  setDeferredPrompt(null);
+                }}
+                className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg backdrop-blur-sm transition-colors ${t.authLink} border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10`}
+              >
+                <Download className="h-3.5 w-3.5" />
+                在桌面建立捷徑
+              </button>
+            ) : isIos ? (
+              <div>
+                <button
+                  onClick={() => setShowIosGuide(!showIosGuide)}
+                  className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg backdrop-blur-sm transition-colors ${t.authLink} border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10`}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  在桌面建立捷徑
+                </button>
+                {showIosGuide && (
+                  <div className={`mt-2 text-xs rounded-lg border backdrop-blur-md p-3 space-y-1 ${t.authCard}`}>
+                    <p className={t.authCardText}>iPhone / iPad 操作步驟：</p>
+                    <p className={t.authSubtext}>1. 點擊 Safari 底部的 <strong>分享按鈕</strong>（方框加箭頭 ↑）</p>
+                    <p className={t.authSubtext}>2. 向下滑動選擇 <strong>「加入主畫面」</strong></p>
+                    <p className={t.authSubtext}>3. 點擊右上角 <strong>「新增」</strong> 即可</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
