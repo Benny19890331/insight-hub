@@ -207,6 +207,15 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            {/* Search bar */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜尋姓名、Email..."
+              className={fieldClass}
+            />
+
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: t.titleColor }} />
