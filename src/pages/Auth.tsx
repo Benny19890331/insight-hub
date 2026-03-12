@@ -203,6 +203,46 @@ export default function Auth() {
             </button>
           </p>
         </div>
+
+        {/* Add to Home Screen */}
+        {!isStandalone && (
+          <div className="text-center">
+            {deferredPrompt ? (
+              <button
+                onClick={async () => {
+                  deferredPrompt.prompt();
+                  const { outcome } = await deferredPrompt.userChoice;
+                  if (outcome === 'accepted') {
+                    toast.success("已加入桌面捷徑！");
+                  }
+                  setDeferredPrompt(null);
+                }}
+                className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg backdrop-blur-sm transition-colors ${t.authLink} border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10`}
+              >
+                <Download className="h-3.5 w-3.5" />
+                在桌面建立捷徑
+              </button>
+            ) : isIos ? (
+              <div>
+                <button
+                  onClick={() => setShowIosGuide(!showIosGuide)}
+                  className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg backdrop-blur-sm transition-colors ${t.authLink} border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10`}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  在桌面建立捷徑
+                </button>
+                {showIosGuide && (
+                  <div className={`mt-2 text-xs rounded-lg border backdrop-blur-md p-3 space-y-1 ${t.authCard}`}>
+                    <p className={t.authCardText}>iPhone / iPad 操作步驟：</p>
+                    <p className={t.authSubtext}>1. 點擊 Safari 底部的 <strong>分享按鈕</strong>（方框加箭頭 ↑）</p>
+                    <p className={t.authSubtext}>2. 向下滑動選擇 <strong>「加入主畫面」</strong></p>
+                    <p className={t.authSubtext}>3. 點擊右上角 <strong>「新增」</strong> 即可</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
