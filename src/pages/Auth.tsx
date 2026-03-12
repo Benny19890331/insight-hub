@@ -16,7 +16,25 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIos, setIsIos] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
   const { themeIndex, theme: t } = useTheme();
+
+  useEffect(() => {
+    const isIosDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    setIsIos(isIosDevice);
+    setIsStandalone(!!standalone);
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
