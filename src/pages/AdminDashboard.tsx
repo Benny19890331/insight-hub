@@ -43,6 +43,7 @@ export default function AdminDashboard() {
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [newPwd, setNewPwd] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
