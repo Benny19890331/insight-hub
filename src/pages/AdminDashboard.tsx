@@ -224,7 +224,11 @@ export default function AdminDashboard() {
               <p className={`text-center text-sm py-8 ${t.authSubtext}`}>目前沒有其他使用者</p>
             ) : (
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {users.map((u) => (
+                {users.filter((u) => {
+                  if (!searchQuery.trim()) return true;
+                  const q = searchQuery.toLowerCase();
+                  return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
+                }).map((u) => (
                   <div
                     key={u.id}
                     className={`rounded-lg border px-4 py-3 transition-colors space-y-2 ${t.authCard} ${u.isBanned ? "opacity-60" : ""}`}

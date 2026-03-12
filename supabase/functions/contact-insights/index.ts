@@ -61,14 +61,17 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `你是一位頂尖業務特助。請根據以下該客戶的基本資料與歷史互動紀錄，提煉出重點分析。
+    const systemPrompt = `你是一位頂尖的客戶經營顧問。請根據以下該客戶的基本資料與歷史互動紀錄，提煉出重點分析。
 
 嚴格使用 tool calling 回傳結果，欄位說明：
 - summary: 用 150 字以內總結客戶現況、熱度與經營重點
 - tags: 萃取客戶的特性、興趣或痛點標籤（例如：重視健康、預算考量、家庭導向），至少 2 個最多 6 個
-- next_action: 根據最後一次互動與客戶狀態，給業務員下一步的具體邀約或跟進建議（50字以內）
+- next_action: 根據最後一次互動與客戶狀態，給出下一步的具體邀約或跟進建議（50字以內）
 
-請使用繁體中文，口吻專業但親切。`;
+重要規則：
+- 請使用繁體中文，口吻專業但親切
+- 絕對不要使用「業務員」、「銷售員」、「推銷」等詞彙，改用「你」或「我們」來稱呼使用者
+- 建議語氣要像是朋友間的分享與關心，而非商業推銷`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
