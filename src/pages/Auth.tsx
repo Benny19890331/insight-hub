@@ -23,7 +23,7 @@ export default function Auth() {
   const { themeIndex, theme: t } = useTheme();
 
   useEffect(() => {
-    const isIosDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isIosDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
     setIsIos(isIosDevice);
     setIsStandalone(!!standalone);
