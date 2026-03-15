@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, Interaction } from "@/data/contacts";
 import { MentionTextarea } from "@/components/MentionTextarea";
@@ -24,6 +24,14 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
   const { theme: t, themeIndex } = useTheme();
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
+
+  // Reset date to today whenever dialog opens
+  const prevOpen = useRef(false);
+  if (open && !prevOpen.current) {
+    const now = new Date().toISOString().split("T")[0];
+    if (date !== now) setDate(now);
+  }
+  prevOpen.current = open;
   const [summary, setSummary] = useState("");
 
   const handleSave = () => {
