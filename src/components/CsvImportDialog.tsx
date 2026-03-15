@@ -37,6 +37,7 @@ const FIELD_MAP: Record<string, keyof Contact | "statuses" | "productTags"> = {
   "最後聯絡": "lastContactDate",
   "lastcontactdate": "lastContactDate",
   "下次追蹤": "nextFollowUpDate",
+  "下次邀約\\課程時間": "nextFollowUpDate",
   "nextfollowupdate": "nextFollowUpDate",
   "產品標籤": "productTags",
   "producttags": "productTags",
