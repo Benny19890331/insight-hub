@@ -127,9 +127,22 @@ export function AiInsightsPanel({ contact }: Props) {
           <div className="p-4 space-y-4">
             {/* Summary */}
             <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Lightbulb className="h-3.5 w-3.5" style={{ color: t.titleColor }} />
-                狀態總結
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Lightbulb className="h-3.5 w-3.5" style={{ color: t.titleColor }} />
+                  狀態總結
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(insights.summary).then(
+                      () => toast.success("已複製狀態總結"),
+                      () => toast.error("複製失敗")
+                    );
+                  }}
+                  className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md transition-colors hover:bg-white/10 text-muted-foreground"
+                >
+                  <Copy className="h-3 w-3" />複製
+                </button>
               </div>
               <p className="text-sm leading-relaxed text-foreground/90">{insights.summary}</p>
             </div>
