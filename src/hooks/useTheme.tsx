@@ -225,6 +225,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("rich-theme", String(themeIndex));
     const root = document.documentElement;
     if (themeIndex === 0) {
+      root.setAttribute("data-theme", "pink");
       // Pink theme is light — override CSS variables to dark text
       root.style.setProperty("--foreground", "330 30% 15%");
       root.style.setProperty("--card-foreground", "330 30% 15%");
@@ -233,6 +234,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--accent-foreground", "330 50% 30%");
       root.style.setProperty("--secondary-foreground", "330 20% 35%");
     } else {
+      root.removeAttribute("data-theme");
       // Dark themes — restore defaults
       root.style.setProperty("--foreground", "210 20% 92%");
       root.style.setProperty("--card-foreground", "210 20% 92%");

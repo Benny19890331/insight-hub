@@ -166,6 +166,25 @@
     transform: scale(1.04);
   }
 
+  /* Pink theme: darker, readable neon buttons */
+  [data-theme="pink"] .neon-btn-cyan,
+  [data-theme="pink"] .neon-btn-magenta,
+  [data-theme="pink"] .neon-btn-amber {
+    animation: pink-neon-border 10s linear infinite, pink-neon-bg 10s linear infinite;
+  }
+  [data-theme="pink"] .neon-btn-magenta {
+    animation-delay: -3.3s, -3.3s;
+  }
+  [data-theme="pink"] .neon-btn-amber {
+    animation-delay: -6.6s, -6.6s;
+  }
+  [data-theme="pink"] .neon-btn-cyan:hover,
+  [data-theme="pink"] .neon-btn-magenta:hover,
+  [data-theme="pink"] .neon-btn-amber:hover {
+    filter: brightness(0.85);
+    transform: scale(1.04);
+  }
+
   .product-tag {
     @apply inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium;
     color: hsl(168 80% 70%);
