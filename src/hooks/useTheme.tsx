@@ -223,6 +223,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("rich-theme", String(themeIndex));
+    const root = document.documentElement;
+    if (themeIndex === 0) {
+      // Pink theme is light — override CSS variables to dark text
+      root.style.setProperty("--foreground", "330 30% 15%");
+      root.style.setProperty("--card-foreground", "330 30% 15%");
+      root.style.setProperty("--popover-foreground", "330 30% 15%");
+      root.style.setProperty("--muted-foreground", "330 20% 40%");
+      root.style.setProperty("--accent-foreground", "330 50% 30%");
+      root.style.setProperty("--secondary-foreground", "330 20% 35%");
+    } else {
+      // Dark themes — restore defaults
+      root.style.setProperty("--foreground", "210 20% 92%");
+      root.style.setProperty("--card-foreground", "210 20% 92%");
+      root.style.setProperty("--popover-foreground", "210 20% 92%");
+      root.style.setProperty("--muted-foreground", "215 15% 65%");
+      root.style.setProperty("--accent-foreground", "168 80% 80%");
+      root.style.setProperty("--secondary-foreground", "210 20% 80%");
+    }
   }, [themeIndex]);
 
   useEffect(() => {
