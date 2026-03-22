@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Contact } from "@/data/contacts";
 import { useTheme } from "@/hooks/useTheme";
-import { Brain, RefreshCw, Loader2, Lightbulb, Tags, ArrowRight } from "lucide-react";
+import { Brain, RefreshCw, Loader2, Lightbulb, Tags, ArrowRight, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 interface Insights {
