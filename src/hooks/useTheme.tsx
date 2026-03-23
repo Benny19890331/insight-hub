@@ -229,8 +229,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // Pink theme is light — override CSS variables to dark text
       root.style.setProperty("--foreground", "330 30% 15%");
       root.style.setProperty("--card-foreground", "330 30% 15%");
+      root.style.setProperty("--popover", "330 60% 92%");
       root.style.setProperty("--popover-foreground", "330 30% 15%");
       root.style.setProperty("--muted-foreground", "330 20% 40%");
+      root.style.setProperty("--accent", "330 50% 85%");
       root.style.setProperty("--accent-foreground", "330 50% 30%");
       root.style.setProperty("--secondary-foreground", "330 20% 35%");
     } else {
@@ -238,8 +240,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // Dark themes — restore defaults
       root.style.setProperty("--foreground", "210 20% 92%");
       root.style.setProperty("--card-foreground", "210 20% 92%");
+      root.style.setProperty("--popover", "220 18% 10%");
       root.style.setProperty("--popover-foreground", "210 20% 92%");
       root.style.setProperty("--muted-foreground", "215 15% 65%");
+      root.style.setProperty("--accent", "215 20% 17%");
       root.style.setProperty("--accent-foreground", "168 80% 80%");
       root.style.setProperty("--secondary-foreground", "210 20% 80%");
     }
