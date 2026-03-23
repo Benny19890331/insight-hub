@@ -218,7 +218,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
   const [fontSizeIndex, setFontSizeIndex] = useState(() => {
     const saved = localStorage.getItem("rich-font-size");
-    return saved ? parseInt(saved, 10) : 1;
+    return saved ? parseInt(saved, 10) : 0;
   });
 
   useEffect(() => {
