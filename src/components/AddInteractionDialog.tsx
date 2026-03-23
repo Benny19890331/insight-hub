@@ -88,7 +88,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                   contacts={contacts}
                   placeholder="例如：一起喝咖啡，聊到健康話題⋯ 輸入 @ 可提及名單人物"
                   rows={3}
-                  className="rounded-lg bg-muted/50"
+                  className={`rounded-lg ${themeIndex === 0 ? 'bg-white/60' : 'bg-muted/50'}`}
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">

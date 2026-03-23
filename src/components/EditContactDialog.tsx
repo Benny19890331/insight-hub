@@ -133,7 +133,9 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     toast.success("資料已更新");
   };
 
-  const fieldClass = "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
+  const fieldClass = themeIndex === 0
+    ? "w-full rounded-lg border border-pink-300/50 bg-white/60 px-3 py-2.5 text-sm text-pink-900 focus:outline-none focus:ring-1 focus:ring-pink-400/50"
+    : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
