@@ -77,7 +77,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${themeIndex === 0 ? 'border-pink-300/50 bg-white/60 text-pink-900 focus:ring-pink-400/50' : 'border-border bg-muted/50 text-foreground focus:ring-primary/50'}`}
                 />
               </div>
               <div>
