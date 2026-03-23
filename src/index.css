@@ -244,26 +244,32 @@
   75% { height: 18px; opacity: 1; }
 }
 
-/* Font size scaling - only affects text content, not layout structure */
-.font-scale-sm {
-  --font-scale: 0.85;
-}
-.font-scale-md {
-  --font-scale: 1;
+/* Font size scaling - "標準" is the new baseline (was previously "大") */
+.font-scale-base {
+  --font-scale: 1.18;
 }
 .font-scale-lg {
-  --font-scale: 1.18;
+  --font-scale: 1.35;
+}
+.font-scale-xl {
+  --font-scale: 1.55;
 }
 
 /* Apply scale to text-bearing elements without affecting layout boxes */
-.font-scale-sm .text-xs { font-size: calc(0.75rem * 0.85) !important; }
-.font-scale-sm .text-sm { font-size: calc(0.875rem * 0.85) !important; }
-.font-scale-sm .text-base { font-size: calc(1rem * 0.85) !important; }
-.font-scale-sm .text-lg { font-size: calc(1.125rem * 0.85) !important; }
-.font-scale-sm .text-xl { font-size: calc(1.25rem * 0.85) !important; }
+.font-scale-base .text-xs { font-size: calc(0.75rem * 1.18) !important; }
+.font-scale-base .text-sm { font-size: calc(0.875rem * 1.18) !important; }
+.font-scale-base .text-base { font-size: calc(1rem * 1.18) !important; }
+.font-scale-base .text-lg { font-size: calc(1.125rem * 1.18) !important; }
+.font-scale-base .text-xl { font-size: calc(1.25rem * 1.18) !important; }
 
-.font-scale-lg .text-xs { font-size: calc(0.75rem * 1.18) !important; }
-.font-scale-lg .text-sm { font-size: calc(0.875rem * 1.18) !important; }
-.font-scale-lg .text-base { font-size: calc(1rem * 1.18) !important; }
-.font-scale-lg .text-lg { font-size: calc(1.125rem * 1.18) !important; }
-.font-scale-lg .text-xl { font-size: calc(1.25rem * 1.18) !important; }
+.font-scale-lg .text-xs { font-size: calc(0.75rem * 1.35) !important; }
+.font-scale-lg .text-sm { font-size: calc(0.875rem * 1.35) !important; }
+.font-scale-lg .text-base { font-size: calc(1rem * 1.35) !important; }
+.font-scale-lg .text-lg { font-size: calc(1.125rem * 1.35) !important; }
+.font-scale-lg .text-xl { font-size: calc(1.25rem * 1.35) !important; }
+
+.font-scale-xl .text-xs { font-size: calc(0.75rem * 1.55) !important; }
+.font-scale-xl .text-sm { font-size: calc(0.875rem * 1.55) !important; }
+.font-scale-xl .text-base { font-size: calc(1rem * 1.55) !important; }
+.font-scale-xl .text-lg { font-size: calc(1.125rem * 1.55) !important; }
+.font-scale-xl .text-xl { font-size: calc(1.25rem * 1.55) !important; }

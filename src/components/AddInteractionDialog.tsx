@@ -77,7 +77,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${themeIndex === 0 ? 'border-pink-300/50 bg-white/60 text-pink-900 focus:ring-pink-400/50' : 'border-border bg-muted/50 text-foreground focus:ring-primary/50'}`}
                 />
               </div>
               <div>
@@ -88,7 +88,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                   contacts={contacts}
                   placeholder="例如：一起喝咖啡，聊到健康話題⋯ 輸入 @ 可提及名單人物"
                   rows={3}
-                  className="rounded-lg bg-muted/50"
+                  className={`rounded-lg ${themeIndex === 0 ? 'bg-white/60' : 'bg-muted/50'}`}
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">

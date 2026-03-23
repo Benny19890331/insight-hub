@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel } from "@/data/contacts";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Upload, FileText, AlertTriangle, CheckCircle2 } from "lucide-react";
 
@@ -216,6 +217,7 @@ function parseCsv(text: string, existingContacts: Contact[]): { contacts: Contac
 }
 
 export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts }: CsvImportDialogProps) {
+  const { themeIndex } = useTheme();
   const [preview, setPreview] = useState<Contact[] | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [fileName, setFileName] = useState("");
@@ -250,12 +252,14 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
     }
   };
 
+  const isPink = themeIndex === 0;
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="bg-card border-border max-w-lg w-[calc(100vw-2rem)] overflow-hidden max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className={`max-w-lg w-[calc(100vw-2rem)] overflow-hidden max-h-[85vh] overflow-y-auto p-4 sm:p-6 ${isPink ? 'bg-pink-50/95 border-pink-200/50 backdrop-blur-xl' : 'bg-card border-border'}`}>
         <DialogHeader>
-          <DialogTitle className="text-foreground">{"匯入 CSV"}</DialogTitle>
-          <DialogDescription>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
+          <DialogTitle className={isPink ? 'text-pink-900' : 'text-foreground'}>{"匯入 CSV"}</DialogTitle>
+          <DialogDescription className={isPink ? 'text-pink-700/70' : ''}>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
         </DialogHeader>
 
         {!preview ? (

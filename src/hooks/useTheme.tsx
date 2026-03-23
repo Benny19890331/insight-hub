@@ -188,9 +188,9 @@ export const themes: AppTheme[] = [
 ];
 
 const FONT_SIZES = [
-  { label: "小", cls: "font-scale-sm" },
-  { label: "中", cls: "font-scale-md" },
+  { label: "標準", cls: "font-scale-base" },
   { label: "大", cls: "font-scale-lg" },
+  { label: "特大", cls: "font-scale-xl" },
 ];
 
 interface ThemeContextType {
@@ -206,9 +206,9 @@ const ThemeContext = createContext<ThemeContextType>({
   themeIndex: 2,
   theme: themes[2],
   setThemeIndex: () => {},
-  fontSizeIndex: 1,
+  fontSizeIndex: 0,
   setFontSizeIndex: () => {},
-  fontSizeClass: "font-scale-md",
+  fontSizeClass: "font-scale-base",
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -218,7 +218,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
   const [fontSizeIndex, setFontSizeIndex] = useState(() => {
     const saved = localStorage.getItem("rich-font-size");
-    return saved ? parseInt(saved, 10) : 1;
+    return saved ? parseInt(saved, 10) : 0;
   });
 
   useEffect(() => {
