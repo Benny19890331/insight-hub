@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Contact, HeatLevel } from "@/data/contacts";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Upload, FileText, AlertTriangle, CheckCircle2 } from "lucide-react";
 
