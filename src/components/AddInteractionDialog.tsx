@@ -53,7 +53,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
-            <div className="absolute inset-0 bg-black/60" />
+            <div className={`absolute inset-0 ${themeIndex === 0 ? '' : 'bg-black/60'}`} />
           </div>
           <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
             <DialogHeader>
