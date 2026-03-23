@@ -206,9 +206,9 @@ const ThemeContext = createContext<ThemeContextType>({
   themeIndex: 2,
   theme: themes[2],
   setThemeIndex: () => {},
-  fontSizeIndex: 1,
+  fontSizeIndex: 0,
   setFontSizeIndex: () => {},
-  fontSizeClass: "font-scale-md",
+  fontSizeClass: "font-scale-base",
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
