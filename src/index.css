@@ -192,18 +192,26 @@
   /* Pink theme: darker, readable neon buttons */
   [data-theme="pink"] .neon-btn-cyan,
   [data-theme="pink"] .neon-btn-magenta,
-  [data-theme="pink"] .neon-btn-amber {
+  [data-theme="pink"] .neon-btn-amber,
+  [data-theme="violet"] .neon-btn-cyan,
+  [data-theme="violet"] .neon-btn-magenta,
+  [data-theme="violet"] .neon-btn-amber {
     animation: pink-neon-border 10s linear infinite, pink-neon-bg 10s linear infinite;
   }
-  [data-theme="pink"] .neon-btn-magenta {
+  [data-theme="pink"] .neon-btn-magenta,
+  [data-theme="violet"] .neon-btn-magenta {
     animation-delay: -3.3s, -3.3s;
   }
-  [data-theme="pink"] .neon-btn-amber {
+  [data-theme="pink"] .neon-btn-amber,
+  [data-theme="violet"] .neon-btn-amber {
     animation-delay: -6.6s, -6.6s;
   }
   [data-theme="pink"] .neon-btn-cyan:hover,
   [data-theme="pink"] .neon-btn-magenta:hover,
-  [data-theme="pink"] .neon-btn-amber:hover {
+  [data-theme="pink"] .neon-btn-amber:hover,
+  [data-theme="violet"] .neon-btn-cyan:hover,
+  [data-theme="violet"] .neon-btn-magenta:hover,
+  [data-theme="violet"] .neon-btn-amber:hover {
     filter: brightness(0.85);
     transform: scale(1.04);
   }
