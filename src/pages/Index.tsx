@@ -13,11 +13,12 @@ import { useContacts } from "@/hooks/useContacts";
 import { useTheme, ThemeSwitcher, FontSizeSwitcher, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import bgGirl from "@/assets/bg-girl.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
 const Index = () => {
   const { signOut, user } = useAuth();
@@ -90,8 +91,12 @@ const Index = () => {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `RICH名單_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click(); URL.revokeObjectURL(url);
+    a.href = url;
+    a.download = `RICH名單_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast.success(`已匯出 ${contacts.length} 筆聯絡人`);
   }, [contacts]);
 
@@ -160,7 +165,7 @@ const Index = () => {
       {bgImages.map((img, i) => (
         <div key={i} className="absolute inset-0 transition-opacity duration-700 overflow-hidden" style={{ opacity: i === themeIndex ? 1 : 0, zIndex: 0 }}>
           <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
-          <div className={`absolute inset-0 ${i === 0 ? 'bg-black/5' : 'bg-black/50'}`} />
+          <div className={`absolute inset-0 ${i <= 1 ? 'bg-black/5' : 'bg-black/50'}`} />
         </div>
       ))}
       <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>

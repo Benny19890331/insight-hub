@@ -5,11 +5,12 @@ import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, KeyRound, Trash2, 
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
 interface AdminUser {
   id: string;

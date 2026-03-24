@@ -137,48 +137,51 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </button>
       )}
 
-      {/* Header + Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border text-xl font-bold glow-border shrink-0 overflow-hidden" style={{ background: contact.avatarUrl ? undefined : `${t.titleColor}18`, borderColor: contact.avatarUrl ? undefined : `${t.titleColor}40`, color: t.titleColor }}>
+      {/* Header: Avatar 50% + Text 50% */}
+      <div className="flex items-start gap-5">
+        {/* Large Avatar */}
+        <div className="w-1/2 flex justify-center">
+          <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-2xl border-2 text-3xl font-bold glow-border shrink-0 overflow-hidden" style={{ background: contact.avatarUrl ? undefined : `${t.titleColor}18`, borderColor: contact.avatarUrl ? undefined : `${t.titleColor}40`, color: t.titleColor }}>
             {contact.avatarUrl ? (
               <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
             ) : (
               contact.name.charAt(0)
             )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-semibold tracking-tight">{contact.name}</h2>
-              {contact.nickname && (
-                <span className="text-sm text-muted-foreground">（{contact.nickname}）</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {(contact.statuses ?? []).map((s) => {
-                const color = statusColorMap[s] ?? { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-border" };
-                return (
-                  <span key={s} className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${color.bg} ${color.text} ${color.border}`}>
-                    {s}
-                  </span>
-                );
-              })}
-              <span className="text-xs text-muted-foreground">{heatLabel[contact.heat]}</span>
-            </div>
+        </div>
+        {/* Name + Status */}
+        <div className="w-1/2 min-w-0 flex flex-col justify-center">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">{contact.name}</h2>
+            {contact.nickname && (
+              <span className="text-sm text-muted-foreground">（{contact.nickname}）</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            {(contact.statuses ?? []).map((s) => {
+              const color = statusColorMap[s] ?? { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-border" };
+              return (
+                <span key={s} className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${color.bg} ${color.text} ${color.border}`}>
+                  {s}
+                </span>
+              );
+            })}
+            <span className="text-xs text-muted-foreground">{heatLabel[contact.heat]}</span>
           </div>
         </div>
+      </div>
 
-        <div className="flex gap-1.5">
-          <button onClick={() => setAddOpen(true)} className="neon-btn-cyan flex-1 justify-center">
-            <Plus className="h-3 w-3" />互動
-          </button>
-          <button onClick={() => setAiOpen(true)} className="neon-btn-magenta flex-1 justify-center">
-            <Sparkles className="h-3 w-3" />AI邀約
-          </button>
-          <button onClick={() => setEditOpen(true)} className="neon-btn-amber flex-1 justify-center">
-            <Pencil className="h-3 w-3" />編輯
-          </button>
-        </div>
+      {/* 3 Action Banner Buttons */}
+      <div className="flex flex-col gap-2">
+        <button onClick={() => setAddOpen(true)} className={`w-full flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-bold transition-all ${t.accentBorder} ${t.accentBg} ${t.accentHover}`} style={{ color: t.titleColor, borderColor: `${t.titleColor}40` }}>
+          <Plus className="h-4 w-4" />互動紀錄
+        </button>
+        <button onClick={() => setAiOpen(true)} className={`w-full flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-bold transition-all ${t.accentBorder} ${t.accentBg} ${t.accentHover}`} style={{ color: t.btnSecondary.color, borderColor: t.btnSecondary.border }}>
+          <Sparkles className="h-4 w-4" />AI 邀約
+        </button>
+        <button onClick={() => setEditOpen(true)} className={`w-full flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-bold transition-all ${t.accentBorder} ${t.accentBg} ${t.accentHover}`} style={{ color: t.btnPrimary.color, borderColor: t.btnPrimary.border }}>
+          <Pencil className="h-4 w-4" />編輯資料
+        </button>
       </div>
 
       <div className="h-px bg-border" />

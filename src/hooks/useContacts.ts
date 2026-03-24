@@ -38,7 +38,8 @@ interface DbInteraction {
   summary: string;
 }
 
-function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
+function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>): Contact {
+  const interactions = interactionMap.get(db.id) ?? [];
   return {
     id: db.id,
     name: db.name,
@@ -60,11 +61,29 @@ function dbToContact(db: DbContact, interactions: DbInteraction[]): Contact {
     birthday: db.birthday ?? undefined,
     birthdayReminder: (db.birthday_reminder as BirthdayReminder) ?? "none",
     gender: (db.gender as Gender) ?? "",
-    interactions: interactions
-      .filter((i) => i.contact_id === db.id)
-      .map((i) => ({ date: i.date, summary: i.summary })),
+    interactions: interactions.map((i) => ({ date: i.date, summary: i.summary })),
     productTags: db.product_tags ?? [],
   };
+}
+
+const PAGE_SIZE = 1000;
+const MAX_CONTACTS = 3000;
+const MAX_INTERACTIONS = 10000;
+
+async function fetchPaginated<T>(
+  queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>,
+  maxRows: number
+): Promise<T[]> {
+  let all: T[] = [];
+  let from = 0;
+  while (from < maxRows) {
+    const { data, error } = await queryFn(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    all = [...all, ...(data ?? [])];
+    if (!data || data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
 }
 
 export function useContacts() {
@@ -76,21 +95,31 @@ export function useContacts() {
     if (!user) { setContacts([]); setLoading(false); return; }
     setLoading(true);
 
-    const [{ data: dbContacts, error: cErr }, { data: dbInteractions, error: iErr }] = await Promise.all([
-      supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("interactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-    ]);
+    try {
+      const [allContacts, allInteractions] = await Promise.all([
+        fetchPaginated<DbContact>(
+          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).range(from, to) as any,
+          MAX_CONTACTS
+        ),
+        fetchPaginated<DbInteraction>(
+          (from, to) => supabase.from("interactions").select("*").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
+          MAX_INTERACTIONS
+        ),
+      ]);
 
-    if (cErr || iErr) {
+      // Build interaction map for O(n) lookup
+      const interactionMap = new Map<string, DbInteraction[]>();
+      for (const i of allInteractions) {
+        const arr = interactionMap.get(i.contact_id) ?? [];
+        arr.push(i);
+        interactionMap.set(i.contact_id, arr);
+      }
+
+      const mapped = allContacts.map((c) => dbToContact(c, interactionMap));
+      setContacts(mapped);
+    } catch {
       toast.error("載入資料失敗");
-      setLoading(false);
-      return;
     }
-
-    const mapped = (dbContacts as DbContact[]).map((c) =>
-      dbToContact(c, (dbInteractions as DbInteraction[]) ?? [])
-    );
-    setContacts(mapped);
     setLoading(false);
   }, [user]);
 
@@ -124,7 +153,6 @@ export function useContacts() {
     });
     if (error) { toast.error("新增失敗"); return; }
 
-    // Insert interactions if any
     if (contact.interactions?.length) {
       await supabase.from("interactions").insert(
         contact.interactions.map((i) => ({
@@ -183,14 +211,12 @@ export function useContacts() {
       summary: interaction.summary,
     });
     if (error) { toast.error("新增互動失敗"); return; }
-    // Also update last_contact_date on the contact
     await supabase.from("contacts").update({ last_contact_date: interaction.date }).eq("id", contactId).eq("user_id", user.id);
     await fetchContacts();
   }, [user, fetchContacts]);
 
   const deleteInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
-    // Find and delete the matching interaction row
     const { data } = await supabase.from("interactions")
       .select("id")
       .eq("contact_id", contactId)
@@ -207,7 +233,6 @@ export function useContacts() {
   const importContacts = useCallback(async (imported: Contact[]) => {
     if (!user) return;
 
-    // Fetch existing contacts for dedup
     const { data: existing } = await supabase
       .from("contacts")
       .select("id, member_id, name")
@@ -223,37 +248,39 @@ export function useContacts() {
     let merged = 0;
     let added = 0;
 
-    for (const c of imported) {
-      // Match by member_id first, then by name
-      const matchId = (c.memberId && existingByMemberId.get(c.memberId))
-        || existingByName.get(c.name)
-        || null;
+    // Batch imports in chunks to avoid timeouts
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < imported.length; i += BATCH_SIZE) {
+      const batch = imported.slice(i, i + BATCH_SIZE);
+      for (const c of batch) {
+        const matchId = (c.memberId && existingByMemberId.get(c.memberId))
+          || existingByName.get(c.name)
+          || null;
 
-      const payload = {
-        name: c.name,
-        nickname: c.nickname || null,
-        member_id: c.memberId || null,
-        region: c.region,
-        background: c.background,
-        statuses: c.statuses,
-        heat: c.heat,
-        notes: c.notes,
-        last_contact_date: c.lastContactDate,
-        next_follow_up_date: c.nextFollowUpDate || null,
-        contact_method: c.contactMethod || null,
-        birthday: c.birthday || null,
-        birthday_reminder: c.birthdayReminder || "none",
-        product_tags: c.productTags,
-      };
+        const payload = {
+          name: c.name,
+          nickname: c.nickname || null,
+          member_id: c.memberId || null,
+          region: c.region,
+          background: c.background,
+          statuses: c.statuses,
+          heat: c.heat,
+          notes: c.notes,
+          last_contact_date: c.lastContactDate,
+          next_follow_up_date: c.nextFollowUpDate || null,
+          contact_method: c.contactMethod || null,
+          birthday: c.birthday || null,
+          birthday_reminder: c.birthdayReminder || "none",
+          product_tags: c.productTags,
+        };
 
-      if (matchId) {
-        // Update existing (new overwrites old)
-        await supabase.from("contacts").update(payload).eq("id", matchId).eq("user_id", user.id);
-        merged++;
-      } else {
-        // Insert new
-        await supabase.from("contacts").insert({ ...payload, id: c.id, user_id: user.id });
-        added++;
+        if (matchId) {
+          await supabase.from("contacts").update(payload).eq("id", matchId).eq("user_id", user.id);
+          merged++;
+        } else {
+          await supabase.from("contacts").insert({ ...payload, id: c.id, user_id: user.id });
+          added++;
+        }
       }
     }
 
@@ -267,22 +294,19 @@ export function useContacts() {
   const deduplicateContacts = useCallback(async () => {
     if (!user) return { merged: 0 };
 
-    const { data: allContacts } = await supabase
-      .from("contacts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
+    const allContacts = await fetchPaginated<DbContact>(
+      (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).range(from, to) as any,
+      MAX_CONTACTS
+    );
 
     if (!allContacts || allContacts.length === 0) return { merged: 0 };
 
-    // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
     const getBaseMemberId = (mid: string | null) => {
       if (!mid) return null;
       const match = mid.match(/^(\d+)-\d+$/);
       return match ? match[1] : mid;
     };
 
-    // Group by base member_id first, then by name for those without member_id
     const byBaseMemberId = new Map<string, typeof allContacts>();
     const byName = new Map<string, typeof allContacts>();
 
@@ -301,42 +325,33 @@ export function useContacts() {
 
     const idsToDelete: string[] = [];
 
-    // Merge duplicates with same base member_id (e.g., 1410877-001, 1410877-002)
     for (const [_, group] of byBaseMemberId) {
       if (group.length > 1) {
-        // Keep the first one (lowest suffix like -001), merge data from newest
         const primary = group[0];
         const newest = group[group.length - 1];
-
-        // Collect all member_id suffixes for reference in notes
         const allMemberIds = group.map(c => c.member_id).filter(Boolean).join(', ');
-
         const merged = {
           ...primary,
           ...newest,
           id: primary.id,
-          member_id: primary.member_id, // keep primary member_id (e.g., -001)
+          member_id: primary.member_id,
           notes: primary.notes
             ? `${primary.notes}\n[多經營權: ${allMemberIds}]`
             : `[多經營權: ${allMemberIds}]`,
         };
         await supabase.from("contacts").update(merged).eq("id", primary.id);
-
         for (let i = 1; i < group.length; i++) {
           idsToDelete.push(group[i].id);
         }
       }
     }
 
-    // Merge duplicates with same name (no member_id)
     for (const [_, group] of byName) {
       if (group.length > 1) {
         const primary = group[0];
         const newest = group[group.length - 1];
-
         const merged = { ...primary, ...newest, id: primary.id };
         await supabase.from("contacts").update(merged).eq("id", primary.id);
-
         for (let i = 1; i < group.length; i++) {
           idsToDelete.push(group[i].id);
         }
@@ -344,7 +359,11 @@ export function useContacts() {
     }
 
     if (idsToDelete.length > 0) {
-      await supabase.from("contacts").delete().in("id", idsToDelete);
+      // Delete in batches to avoid URL length limits
+      for (let i = 0; i < idsToDelete.length; i += 100) {
+        const batch = idsToDelete.slice(i, i + 100);
+        await supabase.from("contacts").delete().in("id", batch);
+      }
     }
 
     await fetchContacts();

@@ -3,7 +3,6 @@ import { createContext, useContext, useState, ReactNode, useEffect } from "react
 export interface AppTheme {
   name: string;
   emoji: string;
-  // Main app colors
   headerBg: string;
   headerBorder: string;
   titleColor: string;
@@ -29,7 +28,6 @@ export interface AppTheme {
   inputBg: string;
   inputFocus: string;
   badgeBg: string;
-  // Auth page specific
   authCard: string;
   authCardText: string;
   authLabel: string;
@@ -76,6 +74,42 @@ export const themes: AppTheme[] = [
     authSubtext: "text-pink-800/60",
     authOverlay: "from-pink-500/20 via-transparent to-purple-400/10",
     switcherActive: "bg-pink-400/30 ring-pink-400/50",
+  },
+  {
+    name: "💜 紫羅蘭優雅", emoji: "💜",
+    headerBg: "bg-purple-50/70 backdrop-blur-xl",
+    headerBorder: "border-purple-200/50",
+    titleColor: "#a855f7",
+    titleGlow: "rgba(168,85,247,0.4)",
+    textColor: "text-gray-900",
+    sidebarBg: "bg-purple-50/70 backdrop-blur-xl",
+    mainBg: "bg-purple-50/60 backdrop-blur-lg",
+    cardBg: "bg-white/50 backdrop-blur-md",
+    cardBorder: "border-purple-200/40",
+    cardHover: "hover:bg-purple-100/80",
+    selectedCard: "bg-purple-100/70",
+    selectedBorder: "border-purple-400/50",
+    selectedGlow: "shadow-[0_0_12px_-3px_rgba(168,85,247,0.25)]",
+    accent: "text-purple-800",
+    accentBg: "bg-purple-500/15",
+    accentBorder: "border-purple-500/40",
+    accentHover: "hover:bg-purple-500/25",
+    mutedText: "text-purple-950/80",
+    btnPrimary: { color: "hsl(270 70% 55%)", border: "hsl(270 70% 55% / 0.5)", bg: "hsl(270 70% 55% / 0.1)", hoverBg: "hsl(270 70% 55% / 0.2)", shadow: "hsl(270 70% 55% / 0.25)" },
+    btnSecondary: { color: "hsl(330 60% 55%)", border: "hsl(330 60% 55% / 0.4)", bg: "hsl(330 60% 55% / 0.08)", hoverBg: "hsl(330 60% 55% / 0.18)", shadow: "hsl(330 60% 55% / 0.2)" },
+    btnOutline: "border-purple-300/50 text-purple-700 hover:bg-purple-100/60",
+    inputBorder: "border-purple-200/50",
+    inputBg: "bg-white/60",
+    inputFocus: "focus:ring-purple-400/40",
+    badgeBg: "bg-purple-100/60",
+    authCard: "border-purple-300/30 bg-white/60",
+    authCardText: "text-purple-900",
+    authLabel: "text-purple-700/70",
+    authInput: "border-purple-200/60 bg-white/50 text-purple-900 placeholder:text-purple-400 focus:ring-purple-400/50",
+    authLink: "text-purple-500 hover:text-purple-600",
+    authSubtext: "text-purple-800/60",
+    authOverlay: "from-purple-500/20 via-transparent to-indigo-400/10",
+    switcherActive: "bg-purple-400/30 ring-purple-400/50",
   },
   {
     name: "⚡ 青年勇猛", emoji: "⚡",
@@ -203,18 +237,21 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  themeIndex: 2,
-  theme: themes[2],
+  themeIndex: 3,
+  theme: themes[3],
   setThemeIndex: () => {},
   fontSizeIndex: 0,
   setFontSizeIndex: () => {},
   fontSizeClass: "font-scale-base",
 });
 
+// Light themes (pink, violet) need special CSS variable overrides
+const LIGHT_THEME_INDICES = [0, 1];
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeIndex, setThemeIndex] = useState(() => {
     const saved = localStorage.getItem("rich-theme");
-    return saved ? parseInt(saved, 10) : 2;
+    return saved ? parseInt(saved, 10) : 3;
   });
   const [fontSizeIndex, setFontSizeIndex] = useState(() => {
     const saved = localStorage.getItem("rich-font-size");
@@ -224,20 +261,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("rich-theme", String(themeIndex));
     const root = document.documentElement;
-    if (themeIndex === 0) {
-      root.setAttribute("data-theme", "pink");
-      // Pink theme is light — override CSS variables to dark text
-      root.style.setProperty("--foreground", "330 30% 15%");
-      root.style.setProperty("--card-foreground", "330 30% 15%");
-      root.style.setProperty("--popover", "330 60% 92%");
-      root.style.setProperty("--popover-foreground", "330 30% 15%");
-      root.style.setProperty("--muted-foreground", "330 20% 40%");
-      root.style.setProperty("--accent", "330 50% 85%");
-      root.style.setProperty("--accent-foreground", "330 50% 30%");
-      root.style.setProperty("--secondary-foreground", "330 20% 35%");
+    const isLight = LIGHT_THEME_INDICES.includes(themeIndex);
+
+    if (isLight) {
+      root.setAttribute("data-theme", themeIndex === 0 ? "pink" : "violet");
+      root.style.setProperty("--foreground", "270 30% 15%");
+      root.style.setProperty("--card-foreground", "270 30% 15%");
+      root.style.setProperty("--popover-foreground", "270 30% 15%");
+      root.style.setProperty("--muted-foreground", "270 20% 40%");
+      root.style.setProperty("--accent-foreground", "270 50% 30%");
+      root.style.setProperty("--secondary-foreground", "270 20% 35%");
+
+      if (themeIndex === 0) {
+        root.style.setProperty("--popover", "330 60% 92%");
+        root.style.setProperty("--accent", "330 50% 85%");
+      } else {
+        root.style.setProperty("--popover", "270 60% 92%");
+        root.style.setProperty("--accent", "270 50% 85%");
+      }
     } else {
       root.removeAttribute("data-theme");
-      // Dark themes — restore defaults
       root.style.setProperty("--foreground", "210 20% 92%");
       root.style.setProperty("--card-foreground", "210 20% 92%");
       root.style.setProperty("--popover", "220 18% 10%");
@@ -251,13 +294,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("rich-font-size", String(fontSizeIndex));
-    // Remove old classes, add new
     FONT_SIZES.forEach(f => document.documentElement.classList.remove(f.cls));
-    document.documentElement.classList.add(FONT_SIZES[fontSizeIndex]?.cls ?? "font-scale-md");
+    document.documentElement.classList.add(FONT_SIZES[fontSizeIndex]?.cls ?? "font-scale-base");
   }, [fontSizeIndex]);
 
   return (
-    <ThemeContext.Provider value={{ themeIndex, theme: themes[themeIndex], setThemeIndex, fontSizeIndex, setFontSizeIndex, fontSizeClass: FONT_SIZES[fontSizeIndex]?.cls ?? "font-scale-md" }}>
+    <ThemeContext.Provider value={{ themeIndex, theme: themes[themeIndex], setThemeIndex, fontSizeIndex, setFontSizeIndex, fontSizeClass: FONT_SIZES[fontSizeIndex]?.cls ?? "font-scale-base" }}>
       {children}
     </ThemeContext.Provider>
   );
