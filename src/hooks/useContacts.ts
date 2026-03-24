@@ -71,7 +71,7 @@ const MAX_CONTACTS = 3000;
 const MAX_INTERACTIONS = 10000;
 
 async function fetchPaginated<T>(
-  queryFn: (from: number, to: number) => Promise<{ data: T[] | null; error: any }>,
+  queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>,
   maxRows: number
 ): Promise<T[]> {
   let all: T[] = [];
@@ -98,11 +98,11 @@ export function useContacts() {
     try {
       const [allContacts, allInteractions] = await Promise.all([
         fetchPaginated<DbContact>(
-          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).range(from, to),
+          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).range(from, to) as any,
           MAX_CONTACTS
         ),
         fetchPaginated<DbInteraction>(
-          (from, to) => supabase.from("interactions").select("*").eq("user_id", user.id).order("date", { ascending: false }).range(from, to),
+          (from, to) => supabase.from("interactions").select("*").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
           MAX_INTERACTIONS
         ),
       ]);
@@ -294,8 +294,8 @@ export function useContacts() {
   const deduplicateContacts = useCallback(async () => {
     if (!user) return { merged: 0 };
 
-    const allContacts = await fetchPaginated(
-      (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).range(from, to),
+    const allContacts = await fetchPaginated<DbContact>(
+      (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).range(from, to) as any,
       MAX_CONTACTS
     );
 
