@@ -9,9 +9,10 @@ import { Camera, Search, X, UserCircle } from "lucide-react";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
 interface EditContactDialogProps {
   open: boolean;
@@ -144,7 +145,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
-            <div className={`absolute inset-0 ${themeIndex === 0 ? '' : 'bg-black/60'}`} />
+            <div className={`absolute inset-0 ${themeIndex <= 1 ? '' : 'bg-black/60'}`} />
           </div>
           <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
