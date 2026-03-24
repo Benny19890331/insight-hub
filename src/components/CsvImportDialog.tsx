@@ -252,14 +252,14 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
     }
   };
 
-  const isPink = themeIndex === 0;
+  const isLightTheme = themeIndex === 0 || themeIndex === 1;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className={`max-w-lg w-[calc(100vw-2rem)] overflow-hidden max-h-[85vh] overflow-y-auto p-4 sm:p-6 ${isPink ? 'bg-pink-50/95 border-pink-200/50 backdrop-blur-xl' : 'bg-card border-border'}`}>
+      <DialogContent className={`max-w-lg w-[calc(100vw-2rem)] overflow-hidden max-h-[85vh] overflow-y-auto p-4 sm:p-6 ${isLightTheme ? 'bg-pink-50/95 border-pink-200/50 backdrop-blur-xl' : 'bg-card border-border'}`}>
         <DialogHeader>
-          <DialogTitle className={isPink ? 'text-pink-900' : 'text-foreground'}>{"匯入 CSV"}</DialogTitle>
-          <DialogDescription className={isPink ? 'text-pink-700/70' : ''}>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
+          <DialogTitle className={isLightTheme ? 'text-pink-900' : 'text-foreground'}>{"匯入 CSV"}</DialogTitle>
+          <DialogDescription className={isLightTheme ? 'text-pink-700/70' : ''}>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
         </DialogHeader>
 
         {!preview ? (
@@ -274,7 +274,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
               <p className="text-sm text-muted-foreground">{"拖曳 CSV 檔案至此，或點擊選擇"}</p>
               <p className="text-xs text-muted-foreground mt-1">{"支援一般 CSV 及組織圖 MAP 格式（自動偵測）"}</p>
             </div>
-            <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            <input ref={fileRef} type="file" accept=".csv,.txt,text/csv,text/comma-separated-values,text/plain,application/csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
             <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-1">
               <p className="text-xs font-medium text-foreground">{"CSV 格式範例："}</p>
