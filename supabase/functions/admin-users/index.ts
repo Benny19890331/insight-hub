@@ -66,18 +66,30 @@ Deno.serve(async (req) => {
       const { data: adminRoles } = await adminClient.from("user_roles").select("user_id").eq("role", "admin");
       const adminSet = new Set((adminRoles ?? []).map((r: any) => r.user_id));
 
-      // Count contacts and interactions per user
-      const { data: contactCounts } = await adminClient.from("contacts").select("user_id");
+      // Count contacts and interactions per user - paginate to handle >1000 rows
       const contactCountMap = new Map<string, number>();
-      (contactCounts ?? []).forEach((c: any) => {
-        contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
-      });
+      let from = 0;
+      while (true) {
+        const { data: batch } = await adminClient.from("contacts").select("user_id").range(from, from + 999);
+        if (!batch || batch.length === 0) break;
+        batch.forEach((c: any) => {
+          contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
+        });
+        if (batch.length < 1000) break;
+        from += 1000;
+      }
 
-      const { data: interactionCounts } = await adminClient.from("interactions").select("user_id");
       const interactionCountMap = new Map<string, number>();
-      (interactionCounts ?? []).forEach((i: any) => {
-        interactionCountMap.set(i.user_id, (interactionCountMap.get(i.user_id) ?? 0) + 1);
-      });
+      from = 0;
+      while (true) {
+        const { data: batch } = await adminClient.from("interactions").select("user_id").range(from, from + 999);
+        if (!batch || batch.length === 0) break;
+        batch.forEach((i: any) => {
+          interactionCountMap.set(i.user_id, (interactionCountMap.get(i.user_id) ?? 0) + 1);
+        });
+        if (batch.length < 1000) break;
+        from += 1000;
+      }
 
       const result = users
         .filter((u: any) => u.id !== user.id)
@@ -182,7 +194,6 @@ Deno.serve(async (req) => {
 
       console.log(`Deleting user: ${targetUserId}`);
 
-      // Delete user's data first - ignore errors as some may not exist
       const { error: contactsErr } = await adminClient.from("contacts").delete().eq("user_id", targetUserId);
       if (contactsErr) console.log("contacts delete error:", contactsErr.message);
 
@@ -198,7 +209,6 @@ Deno.serve(async (req) => {
       const { error: bannedErr } = await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
       if (bannedErr) console.log("banned_users delete error:", bannedErr.message);
 
-      // Delete auth user
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
       if (deleteError) {
         console.error("Auth user delete error:", deleteError.message);
