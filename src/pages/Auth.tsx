@@ -6,9 +6,10 @@ import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgYouth, bgPrime, bgWisdom];
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
