@@ -225,21 +225,34 @@
 
 
   /* Pink theme: darken all colored text for readability on light bg */
-  [data-theme="pink"] .text-emerald-400 { color: hsl(150 60% 30%) !important; }
-  [data-theme="pink"] .text-violet-400  { color: hsl(270 55% 35%) !important; }
-  [data-theme="pink"] .text-violet-300  { color: hsl(270 55% 35%) !important; }
-  [data-theme="pink"] .text-orange-400  { color: hsl(25 80% 35%) !important; }
-  [data-theme="pink"] .text-sky-400     { color: hsl(200 70% 32%) !important; }
-  [data-theme="pink"] .text-sky-300     { color: hsl(200 70% 32%) !important; }
-  [data-theme="pink"] .text-amber-400   { color: hsl(40 75% 32%) !important; }
-  [data-theme="pink"] .text-rose-400    { color: hsl(345 65% 35%) !important; }
-  [data-theme="pink"] .text-rose-300    { color: hsl(345 65% 35%) !important; }
-  [data-theme="pink"] .text-fuchsia-300 { color: hsl(290 55% 35%) !important; }
-  [data-theme="pink"] .text-emerald-300 { color: hsl(150 60% 30%) !important; }
-  [data-theme="pink"] .text-primary     { color: hsl(330 70% 35%) !important; }
+  [data-theme="pink"] .text-emerald-400,
+  [data-theme="violet"] .text-emerald-400 { color: hsl(150 60% 30%) !important; }
+  [data-theme="pink"] .text-violet-400,
+  [data-theme="violet"] .text-violet-400  { color: hsl(270 55% 35%) !important; }
+  [data-theme="pink"] .text-violet-300,
+  [data-theme="violet"] .text-violet-300  { color: hsl(270 55% 35%) !important; }
+  [data-theme="pink"] .text-orange-400,
+  [data-theme="violet"] .text-orange-400  { color: hsl(25 80% 35%) !important; }
+  [data-theme="pink"] .text-sky-400,
+  [data-theme="violet"] .text-sky-400     { color: hsl(200 70% 32%) !important; }
+  [data-theme="pink"] .text-sky-300,
+  [data-theme="violet"] .text-sky-300     { color: hsl(200 70% 32%) !important; }
+  [data-theme="pink"] .text-amber-400,
+  [data-theme="violet"] .text-amber-400   { color: hsl(40 75% 32%) !important; }
+  [data-theme="pink"] .text-rose-400,
+  [data-theme="violet"] .text-rose-400    { color: hsl(345 65% 35%) !important; }
+  [data-theme="pink"] .text-rose-300,
+  [data-theme="violet"] .text-rose-300    { color: hsl(345 65% 35%) !important; }
+  [data-theme="pink"] .text-fuchsia-300,
+  [data-theme="violet"] .text-fuchsia-300 { color: hsl(290 55% 35%) !important; }
+  [data-theme="pink"] .text-emerald-300,
+  [data-theme="violet"] .text-emerald-300 { color: hsl(150 60% 30%) !important; }
+  [data-theme="pink"] .text-primary,
+  [data-theme="violet"] .text-primary     { color: hsl(270 70% 35%) !important; }
 
-  /* Pink theme: product tags */
-  [data-theme="pink"] .product-tag {
+  /* Light theme: product tags */
+  [data-theme="pink"] .product-tag,
+  [data-theme="violet"] .product-tag {
     color: hsl(168 60% 28%);
   }
 }
