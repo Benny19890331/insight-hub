@@ -268,20 +268,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--foreground", "270 30% 15%");
       root.style.setProperty("--card-foreground", "270 30% 15%");
       root.style.setProperty("--popover-foreground", "270 30% 15%");
-      root.style.setProperty("--muted-foreground", "270 20% 40%");
-      root.style.setProperty("--accent-foreground", "270 50% 30%");
-      root.style.setProperty("--secondary-foreground", "270 20% 35%");
+      root.style.setProperty("--muted-foreground", "270 20% 35%");
+      root.style.setProperty("--accent-foreground", "270 50% 25%");
+      root.style.setProperty("--secondary-foreground", "270 20% 30%");
 
       if (themeIndex === 0) {
+        root.style.setProperty("--background", "330 50% 96%");
         root.style.setProperty("--popover", "330 60% 92%");
         root.style.setProperty("--accent", "330 50% 85%");
         root.style.setProperty("--card", "330 50% 95%");
         root.style.setProperty("--muted", "330 40% 90%");
+        root.style.setProperty("--border", "330 30% 80%");
       } else {
-        root.style.setProperty("--popover", "270 60% 92%");
-        root.style.setProperty("--accent", "270 50% 85%");
-        root.style.setProperty("--card", "270 50% 95%");
-        root.style.setProperty("--muted", "270 40% 90%");
+        root.style.setProperty("--background", "270 40% 96%");
+        root.style.setProperty("--popover", "270 50% 92%");
+        root.style.setProperty("--accent", "270 40% 88%");
+        root.style.setProperty("--card", "270 40% 95%");
+        root.style.setProperty("--muted", "270 30% 90%");
+        root.style.setProperty("--border", "270 25% 80%");
       }
     } else {
       root.removeAttribute("data-theme");
@@ -295,6 +299,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--secondary-foreground", "210 20% 80%");
       root.style.setProperty("--card", "220 18% 12%");
       root.style.setProperty("--muted", "215 20% 18%");
+      root.style.setProperty("--background", "220 18% 8%");
+      root.style.setProperty("--border", "215 20% 20%");
     }
   }, [themeIndex]);
 
