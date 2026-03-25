@@ -275,9 +275,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (themeIndex === 0) {
         root.style.setProperty("--popover", "330 60% 92%");
         root.style.setProperty("--accent", "330 50% 85%");
+        root.style.setProperty("--card", "330 50% 95%");
+        root.style.setProperty("--muted", "330 40% 90%");
       } else {
         root.style.setProperty("--popover", "270 60% 92%");
         root.style.setProperty("--accent", "270 50% 85%");
+        root.style.setProperty("--card", "270 50% 95%");
+        root.style.setProperty("--muted", "270 40% 90%");
       }
     } else {
       root.removeAttribute("data-theme");
@@ -289,6 +293,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--accent", "215 20% 17%");
       root.style.setProperty("--accent-foreground", "168 80% 80%");
       root.style.setProperty("--secondary-foreground", "210 20% 80%");
+      root.style.setProperty("--card", "220 18% 12%");
+      root.style.setProperty("--muted", "215 20% 18%");
     }
   }, [themeIndex]);
 
