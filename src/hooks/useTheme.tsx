@@ -90,24 +90,24 @@ export const themes: AppTheme[] = [
     selectedCard: "bg-purple-100/70",
     selectedBorder: "border-purple-400/50",
     selectedGlow: "shadow-[0_0_12px_-3px_rgba(168,85,247,0.25)]",
-    accent: "text-purple-800",
+    accent: "text-gray-800",
     accentBg: "bg-purple-500/15",
     accentBorder: "border-purple-500/40",
     accentHover: "hover:bg-purple-500/25",
-    mutedText: "text-purple-950/80",
+    mutedText: "text-gray-600",
     btnPrimary: { color: "hsl(270 70% 55%)", border: "hsl(270 70% 55% / 0.5)", bg: "hsl(270 70% 55% / 0.1)", hoverBg: "hsl(270 70% 55% / 0.2)", shadow: "hsl(270 70% 55% / 0.25)" },
     btnSecondary: { color: "hsl(330 60% 55%)", border: "hsl(330 60% 55% / 0.4)", bg: "hsl(330 60% 55% / 0.08)", hoverBg: "hsl(330 60% 55% / 0.18)", shadow: "hsl(330 60% 55% / 0.2)" },
-    btnOutline: "border-purple-300/50 text-purple-700 hover:bg-purple-100/60",
+    btnOutline: "border-purple-300/50 text-gray-700 hover:bg-purple-100/60",
     inputBorder: "border-purple-200/50",
     inputBg: "bg-white/60",
     inputFocus: "focus:ring-purple-400/40",
     badgeBg: "bg-purple-100/60",
     authCard: "border-purple-300/30 bg-white/60",
-    authCardText: "text-purple-900",
-    authLabel: "text-purple-700/70",
-    authInput: "border-purple-200/60 bg-white/50 text-purple-900 placeholder:text-purple-400 focus:ring-purple-400/50",
-    authLink: "text-purple-500 hover:text-purple-600",
-    authSubtext: "text-purple-800/60",
+    authCardText: "text-gray-900",
+    authLabel: "text-gray-600",
+    authInput: "border-purple-200/60 bg-white/50 text-gray-900 placeholder:text-gray-400 focus:ring-purple-400/50",
+    authLink: "text-purple-600 hover:text-purple-700",
+    authSubtext: "text-gray-500",
     authOverlay: "from-purple-500/20 via-transparent to-indigo-400/10",
     switcherActive: "bg-purple-400/30 ring-purple-400/50",
   },
@@ -265,14 +265,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     if (isLight) {
       root.setAttribute("data-theme", themeIndex === 0 ? "pink" : "violet");
-      root.style.setProperty("--foreground", "270 30% 15%");
-      root.style.setProperty("--card-foreground", "270 30% 15%");
-      root.style.setProperty("--popover-foreground", "270 30% 15%");
-      root.style.setProperty("--muted-foreground", "270 20% 35%");
-      root.style.setProperty("--accent-foreground", "270 50% 25%");
-      root.style.setProperty("--secondary-foreground", "270 20% 30%");
 
       if (themeIndex === 0) {
+        root.style.setProperty("--foreground", "330 30% 15%");
+        root.style.setProperty("--card-foreground", "330 30% 15%");
+        root.style.setProperty("--popover-foreground", "330 30% 15%");
+        root.style.setProperty("--muted-foreground", "330 15% 40%");
+        root.style.setProperty("--accent-foreground", "330 40% 25%");
+        root.style.setProperty("--secondary-foreground", "330 15% 35%");
         root.style.setProperty("--background", "330 50% 96%");
         root.style.setProperty("--popover", "330 60% 92%");
         root.style.setProperty("--accent", "330 50% 85%");
@@ -280,6 +280,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.style.setProperty("--muted", "330 40% 90%");
         root.style.setProperty("--border", "330 30% 80%");
       } else {
+        root.style.setProperty("--foreground", "0 0% 15%");
+        root.style.setProperty("--card-foreground", "0 0% 15%");
+        root.style.setProperty("--popover-foreground", "0 0% 15%");
+        root.style.setProperty("--muted-foreground", "0 0% 40%");
+        root.style.setProperty("--accent-foreground", "0 0% 25%");
+        root.style.setProperty("--secondary-foreground", "0 0% 35%");
         root.style.setProperty("--background", "270 40% 96%");
         root.style.setProperty("--popover", "270 50% 92%");
         root.style.setProperty("--accent", "270 40% 88%");
