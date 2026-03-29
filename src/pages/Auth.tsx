@@ -203,8 +203,10 @@ export default function Auth() {
                   placeholder="再次輸入密碼"
                   className={fieldClass}
                   required
-                  minLength={6} className={fieldClass} required minLength={6} />
+                  minLength={6}
+          />
             </div>
+            )}
             <button
               type="submit"
               disabled={loading}
