@@ -10,7 +10,7 @@ import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
+const bgImages = [bgGirl, bgWisdom, bgYouth, bgPrime, bgViolet];
 
 interface AdminUser {
   id: string;
