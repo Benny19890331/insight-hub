@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Infinity, Loader2, Download } from "lucide-react";
+import { Infinity, Loader2, Download, Eye, EyeOff } from "lucide-react";
 import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
@@ -18,6 +18,8 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [memberCode, setMemberCode] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIos, setIsIos] = useState(false);
@@ -211,30 +213,50 @@ export default function Auth() {
             </div>
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>密碼</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="至少 6 個字元"
-                className={fieldClass}
-                required
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="至少 6 個字元"
+                  className={`${fieldClass} pr-10`}
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 ${t.authSubtext}`}
+                  aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             {!isLogin && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>確認密碼</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="再次輸入密碼"
-                  className={fieldClass}
-                  required
-                  minLength={6}
-          />
-            </div>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="再次輸入密碼"
+                    className={`${fieldClass} pr-10`}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 ${t.authSubtext}`}
+                    aria-label={showConfirmPassword ? "隱藏確認密碼" : "顯示確認密碼"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
             )}
             <button
               type="submit"
@@ -251,7 +273,7 @@ export default function Auth() {
 
           <p className={`text-center text-xs ${t.authSubtext}`}>
             {isLogin ? "還沒有帳號？" : "已有帳號？"}
-            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setMemberCode(""); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
+            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setMemberCode(""); setShowConfirmPassword(false); setShowPassword(false); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
               {isLogin ? "立即註冊" : "返回登入"}
             </button>
           </p>
