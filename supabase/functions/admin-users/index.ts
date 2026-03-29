@@ -71,19 +71,49 @@ Deno.serve(async (req) => {
       const contactCountMap = new Map<string, number>();
       const interactionCountMap = new Map<string, number>();
 
-      const { data: allContacts } = await adminClient.from("contacts").select("id, user_id");
+
+const monthKeys: string[] = [];
+const monthLabels: string[] = [];
+for (let i = 5; i >= 0; i--) {
+  const d = new Date();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() - i);
+  const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  monthKeys.push(key);
+  monthLabels.push(`${d.getUTCMonth() + 1}月`);
+}
+const trendMap = new Map<string, number[]>();
+users.forEach((u: any) => trendMap.set(u.id, new Array(monthKeys.length).fill(0)));
+
+const monthIndex = (iso: string | null | undefined) => {
+  if (!iso) return -1;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return -1;
+  const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  return monthKeys.indexOf(key);
+};
+
+      const { data: allContacts } = await adminClient.from("contacts").select("id, user_id, created_at");
       const contactOwnerMap = new Map<string, string>();
       (allContacts ?? []).forEach((c: any) => {
         contactOwnerMap.set(c.id, c.user_id);
         contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
+        const idx = monthIndex(c.created_at);
+        if (idx >= 0 && trendMap.has(c.user_id)) {
+          trendMap.get(c.user_id)![idx] += 1;
+        }
       });
 
-      const { data: allInteractions } = await adminClient.from("interactions").select("id, user_id, contact_id");
+      const { data: allInteractions } = await adminClient.from("interactions").select("id, user_id, contact_id, created_at");
       (allInteractions ?? []).forEach((i: any) => {
         const ownerByContact = i.contact_id ? contactOwnerMap.get(i.contact_id) : null;
         const owner = ownerByContact || i.user_id;
         if (!owner) return;
         interactionCountMap.set(owner, (interactionCountMap.get(owner) ?? 0) + 1);
+        const idx = monthIndex(i.created_at);
+        if (idx >= 0 && trendMap.has(owner)) {
+          trendMap.get(owner)![idx] += 1;
+        }
       });
 
       const result = users
@@ -98,6 +128,8 @@ Deno.serve(async (req) => {
           isAdmin: adminSet.has(u.id),
           contactCount: contactCountMap.get(u.id) ?? 0,
           interactionCount: interactionCountMap.get(u.id) ?? 0,
+          monthlyTrend: trendMap.get(u.id) ?? new Array(monthKeys.length).fill(0),
+          trendLabels: monthLabels,
         }));
 
       return new Response(JSON.stringify({ users: result }), {
