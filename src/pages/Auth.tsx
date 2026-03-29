@@ -11,6 +11,15 @@ import bgWisdom from "@/assets/bg-wisdom.jpg";
 
 const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
+const mapAuthError = (message: string) => {
+  if (message === "Invalid login credentials") return "帳號或密碼錯誤";
+  if (message.includes("email signups are disabled")) return "目前系統已關閉 Email 註冊，請聯絡管理員。";
+  if (message.includes("User already registered")) return "這個 Email 已經註冊過了，請直接登入。";
+  if (message.includes("Password should be at least")) return "密碼長度不足，請至少 6 碼。";
+  if (message.includes("Email rate limit exceeded") || message.includes("over_email_send_rate_limit")) return "寄信次數過多，請稍後再試。";
+  return message;
+};
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -48,7 +57,7 @@ export default function Auth() {
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast.error(error.message === "Invalid login credentials" ? "帳號或密碼錯誤" : error.message);
+        toast.error(mapAuthError(error.message));
       }
     } else {
       if (!displayName.trim()) {
@@ -75,7 +84,7 @@ export default function Auth() {
         },
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(mapAuthError(error.message));
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) {
@@ -180,6 +189,7 @@ export default function Auth() {
             <span style={{ color: t.titleColor, textShadow: `0 0 16px ${t.titleGlow}` }}>RICH系統</span>
             <span className={`ml-2 font-normal ${t.authCardText}`}>名單管理系統</span>
           </h1>
+          <p className={`text-[10px] ${t.authSubtext} -mt-1`}>Project: {import.meta.env.VITE_SUPABASE_PROJECT_ID || "未設定"}</p>
         </div>
 
         {/* Form card */}
@@ -189,6 +199,7 @@ export default function Auth() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-3">
+            {!isLogin && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
             {!isLogin && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>姓名</label>
