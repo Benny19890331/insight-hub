@@ -136,7 +136,9 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 
   const fieldClass = themeIndex === 0
     ? "w-full rounded-lg border border-pink-300/50 bg-white/60 px-3 py-2.5 text-sm text-pink-900 focus:outline-none focus:ring-1 focus:ring-pink-400/50"
-    : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
+    : themeIndex === 1
+      ? "w-full rounded-lg border border-purple-300/70 bg-white/75 px-3 py-2.5 text-sm text-blue-950 focus:outline-none focus:ring-1 focus:ring-yellow-300/60 placeholder:text-blue-700/60"
+      : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -169,7 +171,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
               </div>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-            <span className="text-xs text-muted-foreground">點擊頭像更換照片</span>
+            <span className="text-xs text-blue-900/80">點擊頭像更換照片</span>
           </div>
 
           <Field label="姓名"><input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} /></Field>
@@ -190,7 +192,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
                     gender === g.value
                       ? "product-tag ring-1 ring-primary/40"
-                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                      : "border-border text-blue-900/80 bg-muted/30 hover:bg-muted/60"
                   }`}
                 >
                   {g.label}
@@ -213,7 +215,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                     className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
                       isSelected
                         ? `${color.bg} ${color.text} ${color.border} ring-1 ring-current/20`
-                        : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                        : "border-border text-blue-900/80 bg-muted/30 hover:bg-muted/60"
                     }`}
                   >
                     {s}
@@ -234,7 +236,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
                     heat === h.value
                       ? "product-tag ring-1 ring-primary/40"
-                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                      : "border-border text-blue-900/80 bg-muted/30 hover:bg-muted/60"
                   }`}
                 >
                   {h.label}
@@ -252,7 +254,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                   <button
                     type="button"
                     onClick={() => { setReferrerId(""); setReferrerSearch(""); }}
-                    className="h-8 w-8 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+                    className="h-8 w-8 flex items-center justify-center rounded-md border border-border text-blue-900/80 hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -260,7 +262,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
               ) : (
                 <>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-blue-900/80" />
                     <input
                       value={referrerSearch}
                       onChange={(e) => { setReferrerSearch(e.target.value); setReferrerOpen(true); }}
@@ -278,10 +280,10 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                       >
                         <UserCircle className="h-3.5 w-3.5 text-primary" />
                         <span className="font-medium">{userName}</span>
-                        <span className="text-xs text-muted-foreground">（本人推薦）</span>
+                        <span className="text-xs text-blue-900/80">（本人推薦）</span>
                       </button>
                       {filteredReferrers.length === 0 ? (
-                        <div className="px-3 py-2 text-xs text-muted-foreground">找不到符合的聯絡人</div>
+                        <div className="px-3 py-2 text-xs text-blue-900/80">找不到符合的聯絡人</div>
                       ) : (
                         filteredReferrers.map((c) => (
                           <button
@@ -291,7 +293,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                             className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-2"
                           >
                             <span className="font-medium">{c.name}</span>
-                            {c.nickname && <span className="text-xs text-muted-foreground">（{c.nickname}）</span>}
+                            {c.nickname && <span className="text-xs text-blue-900/80">（{c.nickname}）</span>}
                           </button>
                         ))
                       )}
@@ -329,7 +331,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-150 cursor-pointer ${
                     selectedTags.includes(tag)
                       ? "product-tag ring-1 ring-primary/40"
-                      : "border-border text-muted-foreground bg-muted/30 hover:bg-muted/60"
+                      : "border-border text-blue-900/80 bg-muted/30 hover:bg-muted/60"
                   }`}
                 >
                   {tag}
@@ -341,7 +343,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <Field label="特殊註記"><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className={`${fieldClass} resize-none`} /></Field>
 
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer">
+            <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors cursor-pointer">
               取消
             </button>
             <button onClick={handleSave} className="neon-btn-amber">
@@ -359,7 +361,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs text-muted-foreground mb-1.5 block">{label}</label>
+      <label className="text-xs text-blue-900/80 mb-1.5 block">{label}</label>
       {children}
     </div>
   );

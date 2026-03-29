@@ -58,8 +58,8 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
           </div>
           <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
             <DialogHeader>
-              <DialogTitle className="text-foreground">新增互動紀錄</DialogTitle>
-              <DialogDescription>為 {contactName} 記錄一筆新的互動</DialogDescription>
+              <DialogTitle className={t.authCardText}>新增互動紀錄</DialogTitle>
+              <DialogDescription className={t.authSubtext}>為 {contactName} 記錄一筆新的互動</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               {/* AI Voice Input */}
@@ -73,27 +73,27 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                 />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">日期</label>
+                <label className={`text-xs mb-1.5 block ${t.authSubtext}`}>日期</label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${themeIndex === 0 ? 'border-pink-300/50 bg-white/60 text-pink-900 focus:ring-pink-400/50' : 'border-border bg-muted/50 text-foreground focus:ring-primary/50'}`}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${themeIndex === 0 ? 'border-pink-300/50 bg-white/60 text-pink-900 focus:ring-pink-400/50' : themeIndex === 1 ? 'border-purple-300/70 bg-white/75 text-blue-950 focus:ring-yellow-300/60' : 'border-border bg-muted/50 text-foreground focus:ring-primary/50'}`}
                 />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">互動內容</label>
+                <label className={`text-xs mb-1.5 block ${t.authSubtext}`}>互動內容</label>
                 <MentionTextarea
                   value={summary}
                   onChange={setSummary}
                   contacts={contacts}
                   placeholder="例如：一起喝咖啡，聊到健康話題⋯ 輸入 @ 可提及名單人物"
                   rows={3}
-                  className={`rounded-lg ${themeIndex === 0 ? 'bg-white/60' : 'bg-muted/50'}`}
+                  className={`rounded-lg ${themeIndex === 0 ? 'bg-white/60' : themeIndex === 1 ? 'bg-white/75 text-blue-950' : 'bg-muted/50'}`}
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">
+                <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors">
                   取消
                 </button>
                 <button onClick={handleSave} className="neon-btn-cyan">
