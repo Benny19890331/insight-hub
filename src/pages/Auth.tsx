@@ -15,6 +15,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -52,6 +53,12 @@ export default function Auth() {
         setLoading(false);
         return;
       }
+      if (password !== confirmPassword) {
+        toast.error("兩次輸入的密碼不一致，請確認後再試");
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -182,7 +189,21 @@ export default function Auth() {
             </div>
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>密碼</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="至少 6 個字元" className={fieldClass} required minLength={6} />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="至少 6 個字元"
+              />
+            </div>
+
+            {!isLogin && (
+              <div>
+                <label className={`text-xs mb-1.5 block ${t.authLabel}`}>確認密碼</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="再次輸入密碼"
+                  className={fieldClass}
+                  required
+                  minLength={6} className={fieldClass} required minLength={6} />
             </div>
             <button
               type="submit"
@@ -199,7 +220,7 @@ export default function Auth() {
 
           <p className={`text-center text-xs ${t.authSubtext}`}>
             {isLogin ? "還沒有帳號？" : "已有帳號？"}
-            <button onClick={() => setIsLogin(!isLogin)} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
+            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
               {isLogin ? "立即註冊" : "返回登入"}
             </button>
           </p>
