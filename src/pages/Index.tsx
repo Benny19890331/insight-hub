@@ -50,6 +50,8 @@ const Index = () => {
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const [swipeHint, setSwipeHint] = useState(false);
 
   const handleInfinityTap = useCallback(() => {
     if (!isAdmin) return;
@@ -81,16 +83,31 @@ const Index = () => {
 
   const handleDetailTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0]?.clientX ?? null;
+    touchStartYRef.current = e.touches[0]?.clientY ?? null;
+    setSwipeHint(false);
+  }, []);
+
+  const handleDetailTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartXRef.current == null || touchStartYRef.current == null) return;
+    const currentX = e.touches[0]?.clientX ?? touchStartXRef.current;
+    const currentY = e.touches[0]?.clientY ?? touchStartYRef.current;
+    const deltaX = currentX - touchStartXRef.current;
+    const deltaY = Math.abs(currentY - touchStartYRef.current);
+    setSwipeHint(deltaX > 80 && deltaY < 35);
   }, []);
 
   const handleDetailTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (touchStartXRef.current == null) return;
+    if (touchStartXRef.current == null || touchStartYRef.current == null) return;
     const endX = e.changedTouches[0]?.clientX ?? touchStartXRef.current;
-    const delta = endX - touchStartXRef.current;
-    if (delta > 70) {
+    const endY = e.changedTouches[0]?.clientY ?? touchStartYRef.current;
+    const deltaX = endX - touchStartXRef.current;
+    const deltaY = Math.abs(endY - touchStartYRef.current);
+    if (deltaX > 130 && deltaY < 35) {
       setShowDetail(false);
     }
+    setSwipeHint(false);
     touchStartXRef.current = null;
+    touchStartYRef.current = null;
   }, []);
 
   const handleCsvImport = useCallback(async (imported: Contact[]) => {
@@ -294,7 +311,12 @@ const Index = () => {
             onDeduplicate={deduplicateContacts}
           />
         </aside>
-        <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`} onTouchStart={handleDetailTouchStart} onTouchEnd={handleDetailTouchEnd}>
+        <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`} onTouchStart={handleDetailTouchStart} onTouchMove={handleDetailTouchMove} onTouchEnd={handleDetailTouchEnd}>
+          {swipeHint && showDetail && (
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 text-[11px] px-2 py-1 rounded-full bg-black/50 text-white/90 backdrop-blur-sm animate-pulse">
+              再往右滑即可返回
+            </div>
+          )}
           <ContactDetail
             contact={currentSelected}
             contacts={contacts}

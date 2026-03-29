@@ -280,18 +280,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.style.setProperty("--muted", "330 40% 90%");
         root.style.setProperty("--border", "330 30% 80%");
       } else {
-        root.style.setProperty("--foreground", "0 0% 15%");
-        root.style.setProperty("--card-foreground", "0 0% 15%");
-        root.style.setProperty("--popover-foreground", "0 0% 15%");
-        root.style.setProperty("--muted-foreground", "0 0% 40%");
-        root.style.setProperty("--accent-foreground", "0 0% 25%");
-        root.style.setProperty("--secondary-foreground", "0 0% 35%");
+        root.style.setProperty("--foreground", "260 18% 10%");
+        root.style.setProperty("--card-foreground", "260 18% 10%");
+        root.style.setProperty("--popover-foreground", "260 18% 10%");
+        root.style.setProperty("--muted-foreground", "260 10% 28%");
+        root.style.setProperty("--accent-foreground", "260 18% 16%");
+        root.style.setProperty("--secondary-foreground", "260 14% 20%");
         root.style.setProperty("--background", "270 40% 96%");
-        root.style.setProperty("--popover", "270 50% 92%");
-        root.style.setProperty("--accent", "270 40% 88%");
-        root.style.setProperty("--card", "270 40% 95%");
-        root.style.setProperty("--muted", "270 30% 90%");
-        root.style.setProperty("--border", "270 25% 80%");
+        root.style.setProperty("--popover", "0 0% 100%");
+        root.style.setProperty("--accent", "270 40% 84%");
+        root.style.setProperty("--card", "0 0% 100%");
+        root.style.setProperty("--muted", "270 28% 88%");
+        root.style.setProperty("--border", "270 25% 78%");
       }
     } else {
       root.removeAttribute("data-theme");
