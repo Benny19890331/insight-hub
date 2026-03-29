@@ -11,6 +11,26 @@ import bgWisdom from "@/assets/bg-wisdom.jpg";
 
 const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
+
+const getPasswordStrength = (pwd: string) => {
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  if (score <= 1) return { label: "弱", color: "text-red-400" };
+  if (score <= 3) return { label: "中", color: "text-yellow-400" };
+  return { label: "強", color: "text-green-400" };
+};
+
+const suggestEmailTypo = (value: string) => {
+  const lower = value.toLowerCase();
+  if (lower.endsWith("@gamil.com")) return value.replace(/@gamil\.com$/i, "@gmail.com");
+  if (lower.endsWith("@gmial.com")) return value.replace(/@gmial\.com$/i, "@gmail.com");
+  if (lower.endsWith("@hotnail.com")) return value.replace(/@hotnail\.com$/i, "@hotmail.com");
+  return null;
+};
+
 const mapAuthError = (message: string) => {
   if (message === "Invalid login credentials") return "帳號或密碼錯誤";
   if (message.includes("email signups are disabled")) return "目前系統已關閉 Email 註冊，請聯絡管理員。";
@@ -106,6 +126,11 @@ export default function Auth() {
     background: t.btnPrimary.bg,
     boxShadow: `0 0 14px -2px ${t.btnPrimary.shadow}, inset 0 0 12px -6px ${t.btnPrimary.shadow}`,
   };
+
+
+  const passwordStrength = getPasswordStrength(password);
+  const passwordMatched = confirmPassword.length > 0 && password === confirmPassword;
+  const emailSuggestion = suggestEmailTypo(email);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
@@ -203,7 +228,7 @@ export default function Auth() {
             {!isLogin && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>姓名</label>
-                <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="您的姓名" className={fieldClass} required />
+                <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="您的姓名" className={fieldClass} required autoComplete="name" />
               </div>
             )}
             {!isLogin && (
@@ -215,12 +240,15 @@ export default function Auth() {
                   placeholder="例如 A001"
                   className={fieldClass}
                   required
+                  autoCapitalize="off"
+                  autoCorrect="off"
                 />
               </div>
             )}
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required autoComplete="email" inputMode="email" autoCapitalize="none" />
+              {emailSuggestion && <p className={`text-[11px] mt-1 ${t.authSubtext}`}>你是不是想輸入：<button type="button" className={`${t.authLink} underline`} onClick={() => setEmail(emailSuggestion)}>{emailSuggestion}</button></p>}
             </div>
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>密碼</label>
@@ -233,6 +261,7 @@ export default function Auth() {
                   className={`${fieldClass} pr-10`}
                   required
                   minLength={6}
+                  autoComplete={isLogin ? "current-password" : "new-password"}
                 />
                 <button
                   type="button"
@@ -243,6 +272,7 @@ export default function Auth() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>
             </div>
 
             {!isLogin && (
@@ -267,6 +297,11 @@ export default function Auth() {
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {confirmPassword.length > 0 && (
+                  <p className={`text-[11px] mt-1 ${passwordMatched ? "text-green-400" : "text-red-400"}`}>
+                    {passwordMatched ? "密碼一致" : "密碼不一致"}
+                  </p>
+                )}
               </div>
             )}
             <button
@@ -284,7 +319,7 @@ export default function Auth() {
 
           <p className={`text-center text-xs ${t.authSubtext}`}>
             {isLogin ? "還沒有帳號？" : "已有帳號？"}
-            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setMemberCode(""); setShowConfirmPassword(false); setShowPassword(false); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
+            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setShowConfirmPassword(false); setShowPassword(false); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
               {isLogin ? "立即註冊" : "返回登入"}
             </button>
           </p>
