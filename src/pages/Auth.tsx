@@ -54,6 +54,11 @@ export default function Auth() {
         setLoading(false);
         return;
       }
+      if (!memberCode.trim()) {
+        toast.error("請輸入會員編號");
+        setLoading(false);
+        return;
+      }
       if (password !== confirmPassword) {
         toast.error("兩次輸入的密碼不一致，請確認後再試");
         setLoading(false);
@@ -64,15 +69,19 @@ export default function Auth() {
         email,
         password,
         options: {
-          data: { display_name: displayName.trim(), member_code: memberCode.trim() || null },
-          emailRedirectTo: window.location.origin,
+          data: { display_name: displayName.trim(), member_code: memberCode.trim() },
         },
       });
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("註冊成功！請查收驗證信件後再登入。");
-        setIsLogin(true);
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          toast.error("註冊成功，但目前仍需驗證信。請到 Supabase 關閉 Email confirmation 後即可略過。");
+          setIsLogin(true);
+        } else {
+          toast.success("註冊成功，已自動登入。");
+        }
       }
     }
     setLoading(false);
@@ -192,6 +201,7 @@ export default function Auth() {
                   onChange={(e) => setMemberCode(e.target.value)}
                   placeholder="例如 A001（選填）"
                   className={fieldClass}
+                  required
                 />
               </div>
             )}
