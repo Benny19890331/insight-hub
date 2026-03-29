@@ -26,9 +26,14 @@ const Index = () => {
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [requireMemberCode, setRequireMemberCode] = useState(false);
+  const [memberCodeInput, setMemberCodeInput] = useState("");
+  const [savingMemberCode, setSavingMemberCode] = useState(false);
 
   useEffect(() => {
     if (!user) return;
+    const currentMemberCode = (user.user_metadata as any)?.member_code;
+    setRequireMemberCode(!currentMemberCode || !String(currentMemberCode).trim());
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
         .then(({ data }) => setIsAdmin(!!data));
@@ -125,6 +130,30 @@ const Index = () => {
     await importContacts(seedData);
     toast.success(`已生成 ${seedData.length} 筆虛擬名單`);
   }, [importContacts, isAdmin]);
+
+
+  const handleSaveMemberCode = useCallback(async () => {
+    if (!memberCodeInput.trim()) {
+      toast.error("請輸入會員編號");
+      return;
+    }
+    setSavingMemberCode(true);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...(user?.user_metadata || {}),
+          member_code: memberCodeInput.trim(),
+        },
+      });
+      if (error) throw error;
+      toast.success("會員編號已更新");
+      setRequireMemberCode(false);
+    } catch (err: any) {
+      toast.error(err?.message || "更新失敗");
+    }
+    setSavingMemberCode(false);
+  }, [memberCodeInput, user]);
 
   const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
 
@@ -262,6 +291,32 @@ const Index = () => {
           />
         </main>
       </div>
+
+      {requireMemberCode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm">
+          <div className={`w-full max-w-sm mx-4 rounded-xl border p-5 space-y-3 ${t.authCard}`}>
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先補上會員編號</h3>
+            <p className={`text-xs ${t.authSubtext}`}>你的個人資料尚未填寫會員編號，填完才能繼續使用系統。</p>
+            <input
+              value={memberCodeInput}
+              onChange={(e) => setMemberCodeInput(e.target.value)}
+              placeholder="例如 A001"
+              className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+              autoFocus
+            />
+            <button
+              onClick={handleSaveMemberCode}
+              disabled={savingMemberCode}
+              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50"
+              style={primaryBtnStyle}
+            >
+              {savingMemberCode && <Loader2 className="h-4 w-4 animate-spin" />}
+              儲存並繼續
+            </button>
+          </div>
+        </div>
+      )}
+
       <CsvImportDialog open={csvOpen} onOpenChange={setCsvOpen} onImport={handleCsvImport} existingContacts={contacts} />
       <AddContactDialog open={addContactOpen} onOpenChange={setAddContactOpen} onSave={handleAddContact} contacts={contacts} />
     </div>
