@@ -17,6 +17,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [memberCode, setMemberCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIos, setIsIos] = useState(false);
@@ -63,7 +64,7 @@ export default function Auth() {
         email,
         password,
         options: {
-          data: { display_name: displayName.trim() },
+          data: { display_name: displayName.trim(), member_code: memberCode.trim() || null },
           emailRedirectTo: window.location.origin,
         },
       });
@@ -183,13 +184,31 @@ export default function Auth() {
                 <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="您的姓名" className={fieldClass} required />
               </div>
             )}
+            {!isLogin && (
+              <div>
+                <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號</label>
+                <input
+                  value={memberCode}
+                  onChange={(e) => setMemberCode(e.target.value)}
+                  placeholder="例如 A001（選填）"
+                  className={fieldClass}
+                />
+              </div>
+            )}
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required />
             </div>
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>密碼</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="至少 6 個字元"
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="至少 6 個字元"
+                className={fieldClass}
+                required
+                minLength={6}
               />
             </div>
 
@@ -222,7 +241,7 @@ export default function Auth() {
 
           <p className={`text-center text-xs ${t.authSubtext}`}>
             {isLogin ? "還沒有帳號？" : "已有帳號？"}
-            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
+            <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setMemberCode(""); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
               {isLogin ? "立即註冊" : "返回登入"}
             </button>
           </p>

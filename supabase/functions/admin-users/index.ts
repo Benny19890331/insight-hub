@@ -60,43 +60,30 @@ Deno.serve(async (req) => {
       const { data: bannedData } = await adminClient.from("banned_users").select("user_id");
       const bannedSet = new Set((bannedData ?? []).map((b: any) => b.user_id));
 
-      const { data: profiles } = await adminClient.from("profiles").select("id, display_name");
-      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p.display_name]));
+      const { data: profiles } = await adminClient.from("profiles").select("id, display_name, member_code");
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
 
       const { data: adminRoles } = await adminClient.from("user_roles").select("user_id").eq("role", "admin");
       const adminSet = new Set((adminRoles ?? []).map((r: any) => r.user_id));
 
-      // Count contacts and interactions per user - paginate to handle >1000 rows
+      // Count contacts and interactions per user using exact count per user for accuracy
       const contactCountMap = new Map<string, number>();
-      let from = 0;
-      while (true) {
-        const { data: batch } = await adminClient.from("contacts").select("user_id").range(from, from + 999);
-        if (!batch || batch.length === 0) break;
-        batch.forEach((c: any) => {
-          contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
-        });
-        if (batch.length < 1000) break;
-        from += 1000;
-      }
-
       const interactionCountMap = new Map<string, number>();
-      from = 0;
-      while (true) {
-        const { data: batch } = await adminClient.from("interactions").select("user_id").range(from, from + 999);
-        if (!batch || batch.length === 0) break;
-        batch.forEach((i: any) => {
-          interactionCountMap.set(i.user_id, (interactionCountMap.get(i.user_id) ?? 0) + 1);
-        });
-        if (batch.length < 1000) break;
-        from += 1000;
+      for (const u of users) {
+        const [{ count: contactCount }, { count: interactionCount }] = await Promise.all([
+          adminClient.from("contacts").select("id", { count: "exact", head: true }).eq("user_id", u.id),
+          adminClient.from("interactions").select("id", { count: "exact", head: true }).eq("user_id", u.id),
+        ]);
+        contactCountMap.set(u.id, contactCount ?? 0);
+        interactionCountMap.set(u.id, interactionCount ?? 0);
       }
 
       const result = users
-        .filter((u: any) => u.id !== user.id)
         .map((u: any) => ({
           id: u.id,
           email: u.email,
-          displayName: profileMap.get(u.id) || "",
+          displayName: profileMap.get(u.id)?.display_name || "",
+          memberCode: profileMap.get(u.id)?.member_code || null,
           createdAt: u.created_at,
           lastSignIn: u.last_sign_in_at,
           isBanned: bannedSet.has(u.id),
@@ -158,6 +145,43 @@ Deno.serve(async (req) => {
           .eq("user_id", targetUserId)
           .eq("role", "admin");
       }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
+    if (action === "send_password_reset_email") {
+      const { targetUserId, targetEmail, redirectTo } = body;
+      if (!targetUserId || !targetEmail) {
+        return new Response(JSON.stringify({ error: "Missing targetUserId/targetEmail" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: targetRole } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", targetUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (targetRole && targetUserId !== user.id) {
+        return new Response(JSON.stringify({ error: "不可替其他管理員寄送重設密碼信" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error: linkError } = await adminClient.auth.admin.generateLink({
+        type: "recovery",
+        email: targetEmail,
+        options: { redirectTo: redirectTo || `${new URL(req.url).origin}/` },
+      });
+
+      if (linkError) throw linkError;
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
