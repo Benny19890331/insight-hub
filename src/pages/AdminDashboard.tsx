@@ -25,16 +25,19 @@ interface AdminUser {
   memberCode: string | null;
 }
 
-const activeLevel = (u: AdminUser): { label: string; color: string } => {
-  const lastSignInDays = u.lastSignIn ? Math.floor((Date.now() - new Date(u.lastSignIn).getTime()) / (1000 * 60 * 60 * 24)) : 999;
-  const totalOps = (Number(u.contactCount) || 0) + (Number(u.interactionCount) || 0);
+const usageLevel = (u: AdminUser): { label: string; color: string; level: number } => {
+  const contactCount = Number.isFinite(Number(u.contactCount)) ? Number(u.contactCount) : 0;
+  const interactionCount = Number.isFinite(Number(u.interactionCount)) ? Number(u.interactionCount) : 0;
 
-  if (lastSignInDays <= 2 || totalOps >= 150) return { label: "高活躍", color: "text-green-400 border-green-500/40 bg-green-500/10" };
-  if (lastSignInDays <= 7 || totalOps >= 50) return { label: "中活躍", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10" };
-  if (lastSignInDays <= 30 || totalOps >= 10) return { label: "低活躍", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" };
-  return { label: "沉睡", color: "text-gray-400 border-gray-500/40 bg-gray-500/10" };
+  // 使用頻率以「互動」為主，名單數為輔（互動權重較高）
+  const score = interactionCount * 2 + contactCount;
+
+  if (score >= 200) return { label: "重度", color: "text-red-400 border-red-500/40 bg-red-500/10", level: 5 };
+  if (score >= 100) return { label: "高頻", color: "text-orange-400 border-orange-500/40 bg-orange-500/10", level: 4 };
+  if (score >= 30) return { label: "中頻", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10", level: 3 };
+  if (score >= 5) return { label: "低頻", color: "text-blue-400 border-blue-500/40 bg-blue-500/10", level: 2 };
+  return { label: "極少", color: "text-gray-400 border-gray-500/40 bg-gray-500/10", level: 1 };
 };
-
 
 export default function AdminDashboard() {
   const { theme: t, themeIndex } = useTheme();
