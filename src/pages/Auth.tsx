@@ -70,6 +70,22 @@ export default function Auth() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error("請先輸入 Email");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin,
+    });
+    if (error) {
+      toast.error(mapAuthError(error.message));
+    } else {
+      toast.success("重設密碼信已寄出，請到信箱查看");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -143,7 +159,7 @@ export default function Auth() {
         >
           <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className={`absolute inset-0 bg-gradient-to-b ${themes[i].authOverlay}`} />
-          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-black/55" />
         </div>
       ))}
 
@@ -214,7 +230,6 @@ export default function Auth() {
             <span style={{ color: t.titleColor, textShadow: `0 0 16px ${t.titleGlow}` }}>RICH系統</span>
             <span className={`ml-2 font-normal ${t.authCardText}`}>名單管理系統</span>
           </h1>
-          <p className={`text-[10px] ${t.authSubtext} -mt-1`}>Project: {import.meta.env.VITE_SUPABASE_PROJECT_ID || "未設定"}</p>
         </div>
 
         {/* Form card */}
@@ -272,7 +287,7 @@ export default function Auth() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>
+              {!isLogin && <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>}
             </div>
 
             {!isLogin && (
@@ -316,6 +331,13 @@ export default function Auth() {
               {isLogin ? "登入" : "註冊"}
             </button>
           </form>
+
+          {isLogin && (
+            <p className={`text-center text-xs ${t.authSubtext}`}>
+              忘記密碼？
+              <button type="button" onClick={handleForgotPassword} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>寄送重設信</button>
+            </p>
+          )}
 
           <p className={`text-center text-xs ${t.authSubtext}`}>
             {isLogin ? "還沒有帳號？" : "已有帳號？"}

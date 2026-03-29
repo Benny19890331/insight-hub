@@ -49,6 +49,7 @@ const Index = () => {
   const [addContactOpen, setAddContactOpen] = useState(false);
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
 
   const handleInfinityTap = useCallback(() => {
     if (!isAdmin) return;
@@ -78,6 +79,20 @@ const Index = () => {
 
   const handleBack = useCallback(() => setShowDetail(false), []);
 
+  const handleDetailTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+  }, []);
+
+  const handleDetailTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartXRef.current == null) return;
+    const endX = e.changedTouches[0]?.clientX ?? touchStartXRef.current;
+    const delta = endX - touchStartXRef.current;
+    if (delta > 70) {
+      setShowDetail(false);
+    }
+    touchStartXRef.current = null;
+  }, []);
+
   const handleCsvImport = useCallback(async (imported: Contact[]) => {
     await importContacts(imported);
   }, [importContacts]);
@@ -97,7 +112,8 @@ const Index = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `RICH名單_${new Date().toISOString().split("T")[0]}.csv`;
+    const twDate = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\//g, "-");
+    a.download = `RICH名單_${twDate}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -278,7 +294,7 @@ const Index = () => {
             onDeduplicate={deduplicateContacts}
           />
         </aside>
-        <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`}>
+        <main className={`flex-1 overflow-hidden ${!showDetail ? "hidden md:block" : "block"}`} onTouchStart={handleDetailTouchStart} onTouchEnd={handleDetailTouchEnd}>
           <ContactDetail
             contact={currentSelected}
             contacts={contacts}

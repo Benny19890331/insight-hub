@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2, Activity, RefreshCw } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -25,18 +25,13 @@ interface AdminUser {
   memberCode: string | null;
 }
 
-const usageLevel = (u: AdminUser): { label: string; color: string; level: number } => {
-  const contactCount = Number.isFinite(Number(u.contactCount)) ? Number(u.contactCount) : 0;
-  const interactionCount = Number.isFinite(Number(u.interactionCount)) ? Number(u.interactionCount) : 0;
 
-  // 使用頻率以「互動」為主，名單數為輔（互動權重較高）
-  const score = interactionCount * 2 + contactCount;
-
-  if (score >= 200) return { label: "重度", color: "text-red-400 border-red-500/40 bg-red-500/10", level: 5 };
-  if (score >= 100) return { label: "高頻", color: "text-orange-400 border-orange-500/40 bg-orange-500/10", level: 4 };
-  if (score >= 30) return { label: "中頻", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10", level: 3 };
-  if (score >= 5) return { label: "低頻", color: "text-blue-400 border-blue-500/40 bg-blue-500/10", level: 2 };
-  return { label: "極少", color: "text-gray-400 border-gray-500/40 bg-gray-500/10", level: 1 };
+const activeLevel = (u: AdminUser): { label: string; color: string } => {
+  const lastDays = u.lastSignIn ? Math.floor((Date.now() - new Date(u.lastSignIn).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+  if (lastDays <= 2) return { label: "高活躍", color: "text-green-400 border-green-500/40 bg-green-500/10" };
+  if (lastDays <= 7) return { label: "中活躍", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10" };
+  if (lastDays <= 30) return { label: "低活躍", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" };
+  return { label: "沉睡", color: "text-gray-400 border-gray-500/40 bg-gray-500/10" };
 };
 
 export default function AdminDashboard() {
@@ -162,23 +157,6 @@ export default function AdminDashboard() {
     boxShadow: `0 0 14px -2px ${t.btnPrimary.shadow}`,
   };
 
-
-  const filteredUsers = users
-    .filter((u) => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        (u.displayName || "").toLowerCase().includes(q) ||
-        (u.email || "").toLowerCase().includes(q) ||
-        (u.memberCode || "").toLowerCase().includes(q)
-      );
-    })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  const adminCount = users.filter((u) => u.isAdmin).length;
-  const bannedCount = users.filter((u) => u.isBanned).length;
-  const activeCount = users.length - bannedCount;
-
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
       {bgImages.map((img, i) => (
@@ -228,40 +206,14 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
-                <div className={t.authSubtext}>有效使用者</div>
-                <div className={`text-base font-semibold ${t.authCardText}`}>{activeCount}</div>
-              </div>
-              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
-                <div className={t.authSubtext}>管理員</div>
-                <div className={`text-base font-semibold ${t.authCardText}`}>{adminCount}</div>
-              </div>
-              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
-                <div className={t.authSubtext}>已停權</div>
-                <div className={`text-base font-semibold ${t.authCardText}`}>{bannedCount}</div>
-              </div>
-            </div>
-
             {/* Search bar */}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜尋姓名、Email、會員編號..."
-                className={fieldClass}
-              />
-              <button
-                onClick={loadUsers}
-                disabled={loading}
-                className="rounded-lg border px-3 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-                style={btnStyle}
-                title="重新整理"
-              >
-                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} 重新整理
-              </button>
-            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜尋姓名、Email、會員編號..."
+              className={fieldClass}
+            />
 
             {loading ? (
               <div className="flex justify-center py-8">
@@ -271,7 +223,11 @@ export default function AdminDashboard() {
               <p className={`text-center text-sm py-8 ${t.authSubtext}`}>目前沒有其他使用者</p>
             ) : (
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {filteredUsers.map((u) => (
+                {users.filter((u) => {
+                  if (!searchQuery.trim()) return true;
+                  const q = searchQuery.toLowerCase();
+                  return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
+                }).map((u) => (
                   <div
                     key={u.id}
                     className={`rounded-lg border px-4 py-3 transition-colors space-y-2 ${t.authCard} ${u.isBanned ? "opacity-60" : ""}`}
@@ -291,32 +247,12 @@ export default function AdminDashboard() {
                       <div className={`text-xs ${t.authSubtext} flex flex-wrap items-center gap-x-2`}>
                         <span>註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}</span>
                         {u.lastSignIn && <span>最後登入: {new Date(u.lastSignIn).toLocaleDateString("zh-TW")}</span>}
-                        {(() => {
-                          const usage = usageLevel(u);
-                        
-  const filteredUsers = users
-    .filter((u) => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        (u.displayName || "").toLowerCase().includes(q) ||
-        (u.email || "").toLowerCase().includes(q) ||
-        (u.memberCode || "").toLowerCase().includes(q)
-      );
-    })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  const adminCount = users.filter((u) => u.isAdmin).length;
-  const bannedCount = users.filter((u) => u.isBanned).length;
-  const activeCount = users.length - bannedCount;
-
-  return (
-                            <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium ${usage.color}`}>
-                              <Activity className="h-2.5 w-2.5" />
-                              {usage.label} ({u.contactCount}人/{u.interactionCount}互動)
-                            </span>
-                          );
-                        })()}
+                        <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium ${activeLevel(u).color}`}>
+                          {activeLevel(u).label}
+                        </span>
+                        <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium border-cyan-500/40 bg-cyan-500/10 text-cyan-300">
+                          名單總數 {u.contactCount}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-start justify-between gap-3">
