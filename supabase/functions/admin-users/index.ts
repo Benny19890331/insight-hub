@@ -66,17 +66,25 @@ Deno.serve(async (req) => {
       const { data: adminRoles } = await adminClient.from("user_roles").select("user_id").eq("role", "admin");
       const adminSet = new Set((adminRoles ?? []).map((r: any) => r.user_id));
 
-      // Count contacts and interactions per user using exact count per user for accuracy
+      // Count contacts and interactions per user
+      // Interactions are counted by contact ownership first (more robust if interaction.user_id is inconsistent).
       const contactCountMap = new Map<string, number>();
       const interactionCountMap = new Map<string, number>();
-      for (const u of users) {
-        const [{ count: contactCount }, { count: interactionCount }] = await Promise.all([
-          adminClient.from("contacts").select("id", { count: "exact", head: true }).eq("user_id", u.id),
-          adminClient.from("interactions").select("id", { count: "exact", head: true }).eq("user_id", u.id),
-        ]);
-        contactCountMap.set(u.id, contactCount ?? 0);
-        interactionCountMap.set(u.id, interactionCount ?? 0);
-      }
+
+      const { data: allContacts } = await adminClient.from("contacts").select("id, user_id");
+      const contactOwnerMap = new Map<string, string>();
+      (allContacts ?? []).forEach((c: any) => {
+        contactOwnerMap.set(c.id, c.user_id);
+        contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
+      });
+
+      const { data: allInteractions } = await adminClient.from("interactions").select("id, user_id, contact_id");
+      (allInteractions ?? []).forEach((i: any) => {
+        const ownerByContact = i.contact_id ? contactOwnerMap.get(i.contact_id) : null;
+        const owner = ownerByContact || i.user_id;
+        if (!owner) return;
+        interactionCountMap.set(owner, (interactionCountMap.get(owner) ?? 0) + 1);
+      });
 
       const result = users
         .map((u: any) => ({
