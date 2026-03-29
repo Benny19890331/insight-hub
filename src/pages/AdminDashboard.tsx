@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2 } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -157,6 +157,16 @@ export default function AdminDashboard() {
     boxShadow: `0 0 14px -2px ${t.btnPrimary.shadow}`,
   };
 
+  const filteredUsers = users.filter((u) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
+  });
+
+  const adminCount = users.filter((u) => u.isAdmin).length;
+  const bannedCount = users.filter((u) => u.isBanned).length;
+  const activeCount = users.length - bannedCount;
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
       {bgImages.map((img, i) => (
@@ -206,14 +216,40 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
+                <div className={t.authSubtext}>有效使用者</div>
+                <div className={`text-base font-semibold ${t.authCardText}`}>{activeCount}</div>
+              </div>
+              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
+                <div className={t.authSubtext}>管理員</div>
+                <div className={`text-base font-semibold ${t.authCardText}`}>{adminCount}</div>
+              </div>
+              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
+                <div className={t.authSubtext}>已停權</div>
+                <div className={`text-base font-semibold ${t.authCardText}`}>{bannedCount}</div>
+              </div>
+            </div>
+
             {/* Search bar */}
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜尋姓名、Email、會員編號..."
-              className={fieldClass}
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="搜尋姓名、Email、會員編號..."
+                className={fieldClass}
+              />
+              <button
+                onClick={loadUsers}
+                disabled={loading}
+                className="rounded-lg border px-3 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                style={btnStyle}
+                title="重新整理"
+              >
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} 重新整理
+              </button>
+            </div>
 
             {loading ? (
               <div className="flex justify-center py-8">
@@ -223,11 +259,7 @@ export default function AdminDashboard() {
               <p className={`text-center text-sm py-8 ${t.authSubtext}`}>目前沒有其他使用者</p>
             ) : (
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {users.filter((u) => {
-                  if (!searchQuery.trim()) return true;
-                  const q = searchQuery.toLowerCase();
-                  return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
-                }).map((u) => (
+                {filteredUsers.map((u) => (
                   <div
                     key={u.id}
                     className={`rounded-lg border px-4 py-3 transition-colors space-y-2 ${t.authCard} ${u.isBanned ? "opacity-60" : ""}`}

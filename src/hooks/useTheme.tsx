@@ -79,9 +79,9 @@ export const themes: AppTheme[] = [
     name: "💜 紫羅蘭優雅", emoji: "💜",
     headerBg: "bg-purple-50/70 backdrop-blur-xl",
     headerBorder: "border-purple-200/50",
-    titleColor: "#a855f7",
-    titleGlow: "rgba(168,85,247,0.4)",
-    textColor: "text-gray-950",
+    titleColor: "#f59e0b",
+    titleGlow: "rgba(245,158,11,0.4)",
+    textColor: "text-black",
     sidebarBg: "bg-purple-50/70 backdrop-blur-xl",
     mainBg: "bg-purple-50/60 backdrop-blur-lg",
     cardBg: "bg-white/50 backdrop-blur-md",
@@ -90,24 +90,24 @@ export const themes: AppTheme[] = [
     selectedCard: "bg-purple-100/70",
     selectedBorder: "border-purple-400/50",
     selectedGlow: "shadow-[0_0_12px_-3px_rgba(168,85,247,0.25)]",
-    accent: "text-gray-900",
+    accent: "text-black",
     accentBg: "bg-purple-500/15",
     accentBorder: "border-purple-500/40",
     accentHover: "hover:bg-purple-500/25",
-    mutedText: "text-gray-800",
-    btnPrimary: { color: "hsl(270 70% 50%)", border: "hsl(270 70% 45% / 0.55)", bg: "hsl(270 70% 50% / 0.12)", hoverBg: "hsl(270 70% 50% / 0.24)", shadow: "hsl(270 70% 50% / 0.28)" },
-    btnSecondary: { color: "hsl(330 60% 45%)", border: "hsl(330 60% 45% / 0.45)", bg: "hsl(330 60% 45% / 0.08)", hoverBg: "hsl(330 60% 45% / 0.18)", shadow: "hsl(330 60% 45% / 0.2)" },
-    btnOutline: "border-purple-300/60 text-gray-900 hover:bg-purple-100/70",
+    mutedText: "text-black/85",
+    btnPrimary: { color: "hsl(30 92% 40%)", border: "hsl(30 92% 35% / 0.55)", bg: "hsl(30 92% 40% / 0.12)", hoverBg: "hsl(30 92% 40% / 0.24)", shadow: "hsl(30 92% 40% / 0.28)" },
+    btnSecondary: { color: "hsl(30 85% 38%)", border: "hsl(30 85% 35% / 0.45)", bg: "hsl(30 85% 35% / 0.08)", hoverBg: "hsl(30 85% 35% / 0.18)", shadow: "hsl(30 85% 35% / 0.2)" },
+    btnOutline: "border-orange-300/70 text-black hover:bg-orange-100/70",
     inputBorder: "border-purple-300/60",
     inputBg: "bg-white/70",
     inputFocus: "focus:ring-purple-500/45",
     badgeBg: "bg-purple-100/60",
     authCard: "border-purple-300/35 bg-white/70",
-    authCardText: "text-gray-950",
-    authLabel: "text-gray-800",
-    authInput: "border-purple-300/70 bg-white/65 text-gray-950 placeholder:text-gray-500 focus:ring-purple-500/55",
-    authLink: "text-purple-800 hover:text-purple-900",
-    authSubtext: "text-gray-700",
+    authCardText: "text-black",
+    authLabel: "text-black/85",
+    authInput: "border-orange-300/70 bg-white/70 text-black placeholder:text-black/50 focus:ring-orange-500/55",
+    authLink: "text-orange-700 hover:text-orange-800",
+    authSubtext: "text-black/75",
     authOverlay: "from-purple-500/20 via-transparent to-indigo-400/10",
     switcherActive: "bg-purple-400/30 ring-purple-400/50",
   },
@@ -280,15 +280,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.style.setProperty("--muted", "330 40% 90%");
         root.style.setProperty("--border", "330 30% 80%");
       } else {
-        root.style.setProperty("--foreground", "260 18% 10%");
-        root.style.setProperty("--card-foreground", "260 18% 10%");
-        root.style.setProperty("--popover-foreground", "260 18% 10%");
-        root.style.setProperty("--muted-foreground", "260 10% 28%");
-        root.style.setProperty("--accent-foreground", "260 18% 16%");
-        root.style.setProperty("--secondary-foreground", "260 14% 20%");
+        root.style.setProperty("--foreground", "0 0% 8%");
+        root.style.setProperty("--card-foreground", "0 0% 8%");
+        root.style.setProperty("--popover-foreground", "0 0% 8%");
+        root.style.setProperty("--muted-foreground", "0 0% 20%");
+        root.style.setProperty("--accent-foreground", "30 85% 22%");
+        root.style.setProperty("--secondary-foreground", "0 0% 15%");
         root.style.setProperty("--background", "270 40% 96%");
         root.style.setProperty("--popover", "0 0% 100%");
-        root.style.setProperty("--accent", "270 40% 84%");
+        root.style.setProperty("--accent", "30 80% 88%");
         root.style.setProperty("--card", "0 0% 100%");
         root.style.setProperty("--muted", "270 28% 88%");
         root.style.setProperty("--border", "270 25% 78%");

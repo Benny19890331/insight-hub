@@ -102,7 +102,7 @@ const Index = () => {
     const endY = e.changedTouches[0]?.clientY ?? touchStartYRef.current;
     const deltaX = endX - touchStartXRef.current;
     const deltaY = Math.abs(endY - touchStartYRef.current);
-    if (deltaX > 130 && deltaY < 35) {
+    if (deltaX > 180 && deltaY < 35) {
       setShowDetail(false);
     }
     setSwipeHint(false);
