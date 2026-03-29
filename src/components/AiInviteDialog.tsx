@@ -10,7 +10,7 @@ import bgPrime from "@/assets/bg-prime.jpg";
 import bgViolet from "@/assets/bg-violet.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgWisdom, bgYouth, bgPrime, bgViolet];
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
 interface ContactInsights {
   summary: string;
@@ -28,7 +28,7 @@ interface AiInviteDialogProps {
 const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
 
 export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInviteDialogProps) {
-  const { themeIndex, theme: t } = useTheme();
+  const { themeIndex } = useTheme();
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -164,11 +164,11 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
           </div>
           <div className="relative z-10 p-6 pt-10 pb-6 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
-          <DialogTitle className={`${t.authCardText} flex items-center gap-2`}>
+          <DialogTitle className="text-foreground flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[hsl(290_80%_72%)]" />
             AI 客製化邀約草稿
           </DialogTitle>
-          <DialogDescription className={t.authSubtext}>根據 {contact.name} 的完整資料，由 AI 即時生成</DialogDescription>
+          <DialogDescription>根據 {contact.name} 的完整資料，由 AI 即時生成</DialogDescription>
         </DialogHeader>
 
         {loading && !draft ? (
@@ -178,13 +178,13 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
               <div className="absolute inset-0 h-10 w-10 animate-ping rounded-full bg-[hsl(290_80%_60%_/_0.15)]" />
             </div>
             <div className="text-center">
-              <p className={`text-sm font-medium ${t.authCardText}`}>AI 正在分析客戶資料...</p>
-              <p className={`text-xs mt-1 ${t.authSubtext}`}>根據熱度、產品偏好與背景撰寫邀約</p>
+              <p className="text-sm font-medium text-foreground">AI 正在分析客戶資料...</p>
+              <p className="text-xs text-muted-foreground mt-1">根據熱度、產品偏好與背景撰寫邀約</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4 pt-1">
-            <div className={`rounded-lg border p-4 text-sm leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto ${themeIndex === 1 ? "border-purple-300/70 bg-white/75 text-blue-950" : "border-border bg-black/20"}`}>
+            <div className="rounded-lg border border-border bg-black/20 backdrop-blur-sm p-4 text-sm leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
               {draft}
               {loading && <span className="inline-block w-1.5 h-4 bg-primary/70 animate-pulse ml-0.5 align-middle" />}
             </div>
@@ -192,12 +192,12 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
               <button
                 onClick={generate}
                 disabled={loading}
-                className={`inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm transition-colors cursor-pointer disabled:opacity-50 ${themeIndex === 1 ? "text-blue-950 hover:bg-yellow-100/70" : "text-blue-900/80 hover:bg-muted/50"}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
                 重新生成
               </button>
-              <button onClick={() => onOpenChange(false)} className={`rounded-lg border border-border px-4 py-2 text-sm transition-colors cursor-pointer ${themeIndex === 1 ? "text-blue-950 hover:bg-yellow-100/70" : "text-blue-900/80 hover:bg-muted/50"}`}>
+              <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer">
                 關閉
               </button>
               <button onClick={handleCopy} disabled={loading || !draft} className="neon-btn-magenta disabled:opacity-50">

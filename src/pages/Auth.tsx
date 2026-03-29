@@ -9,7 +9,7 @@ import bgPrime from "@/assets/bg-prime.jpg";
 import bgViolet from "@/assets/bg-violet.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgWisdom, bgYouth, bgPrime, bgViolet];
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 
 
 const getPasswordStrength = (pwd: string) => {
