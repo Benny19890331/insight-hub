@@ -195,11 +195,11 @@ export default function Auth() {
             )}
             {!isLogin && (
               <div>
-                <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號</label>
+                <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號（必填）</label>
                 <input
                   value={memberCode}
                   onChange={(e) => setMemberCode(e.target.value)}
-                  placeholder="例如 A001（選填）"
+                  placeholder="例如 A001"
                   className={fieldClass}
                   required
                 />
