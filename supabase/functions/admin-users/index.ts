@@ -6,6 +6,30 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Paginated fetch helper (Supabase default limit = 1000) ──
+const PAGE_SIZE = 1000;
+
+async function fetchAll<T>(
+  client: any,
+  table: string,
+  selectCols: string,
+  maxRows = 10000,
+): Promise<T[]> {
+  let all: T[] = [];
+  let from = 0;
+  while (from < maxRows) {
+    const { data, error } = await client
+      .from(table)
+      .select(selectCols)
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    all = [...all, ...(data ?? [])];
+    if (!data || data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,12 +46,19 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
+    const anonKey =
+      Deno.env.get("SUPABASE_ANON_KEY") ??
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
+      "";
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await userClient.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -36,6 +67,7 @@ Deno.serve(async (req) => {
     }
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
@@ -54,51 +86,83 @@ Deno.serve(async (req) => {
     const { action } = body;
 
     if (action === "list_users") {
-      const { data: { users }, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+      const {
+        data: { users },
+        error,
+      } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       if (error) throw error;
 
-      const { data: bannedData } = await adminClient.from("banned_users").select("user_id");
-      const bannedSet = new Set((bannedData ?? []).map((b: any) => b.user_id));
+      const { data: bannedData } = await adminClient
+        .from("banned_users")
+        .select("user_id");
+      const bannedSet = new Set(
+        (bannedData ?? []).map((b: any) => b.user_id),
+      );
 
-      const { data: profiles } = await adminClient.from("profiles").select("id, display_name, member_code");
-      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      const { data: profiles } = await adminClient
+        .from("profiles")
+        .select("id, display_name, member_code");
+      const profileMap = new Map(
+        (profiles ?? []).map((p: any) => [p.id, p]),
+      );
 
-      const { data: adminRoles } = await adminClient.from("user_roles").select("user_id").eq("role", "admin");
-      const adminSet = new Set((adminRoles ?? []).map((r: any) => r.user_id));
+      const { data: adminRoles } = await adminClient
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      const adminSet = new Set(
+        (adminRoles ?? []).map((r: any) => r.user_id),
+      );
 
-      // Count contacts and interactions per user
-      // Interactions are counted by contact ownership first (more robust if interaction.user_id is inconsistent).
+      // ── Paginated contact & interaction counts ──
       const contactCountMap = new Map<string, number>();
       const interactionCountMap = new Map<string, number>();
 
-      const { data: allContacts } = await adminClient.from("contacts").select("id, user_id");
+      const allContacts = await fetchAll<{ id: string; user_id: string }>(
+        adminClient,
+        "contacts",
+        "id, user_id",
+      );
+
       const contactOwnerMap = new Map<string, string>();
-      (allContacts ?? []).forEach((c: any) => {
+      for (const c of allContacts) {
         contactOwnerMap.set(c.id, c.user_id);
-        contactCountMap.set(c.user_id, (contactCountMap.get(c.user_id) ?? 0) + 1);
-      });
+        contactCountMap.set(
+          c.user_id,
+          (contactCountMap.get(c.user_id) ?? 0) + 1,
+        );
+      }
 
-      const { data: allInteractions } = await adminClient.from("interactions").select("id, user_id, contact_id");
-      (allInteractions ?? []).forEach((i: any) => {
-        const ownerByContact = i.contact_id ? contactOwnerMap.get(i.contact_id) : null;
+      const allInteractions = await fetchAll<{
+        id: string;
+        user_id: string;
+        contact_id: string;
+      }>(adminClient, "interactions", "id, user_id, contact_id");
+
+      for (const i of allInteractions) {
+        const ownerByContact = i.contact_id
+          ? contactOwnerMap.get(i.contact_id)
+          : null;
         const owner = ownerByContact || i.user_id;
-        if (!owner) return;
-        interactionCountMap.set(owner, (interactionCountMap.get(owner) ?? 0) + 1);
-      });
+        if (!owner) continue;
+        interactionCountMap.set(
+          owner,
+          (interactionCountMap.get(owner) ?? 0) + 1,
+        );
+      }
 
-      const result = users
-        .map((u: any) => ({
-          id: u.id,
-          email: u.email,
-          displayName: profileMap.get(u.id)?.display_name || "",
-          memberCode: profileMap.get(u.id)?.member_code || null,
-          createdAt: u.created_at,
-          lastSignIn: u.last_sign_in_at,
-          isBanned: bannedSet.has(u.id),
-          isAdmin: adminSet.has(u.id),
-          contactCount: contactCountMap.get(u.id) ?? 0,
-          interactionCount: interactionCountMap.get(u.id) ?? 0,
-        }));
+      const result = users.map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        displayName: profileMap.get(u.id)?.display_name || "",
+        memberCode: profileMap.get(u.id)?.member_code || null,
+        createdAt: u.created_at,
+        lastSignIn: u.last_sign_in_at,
+        isBanned: bannedSet.has(u.id),
+        isAdmin: adminSet.has(u.id),
+        contactCount: contactCountMap.get(u.id) ?? 0,
+        interactionCount: interactionCountMap.get(u.id) ?? 0,
+      }));
 
       return new Response(JSON.stringify({ users: result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,22 +172,28 @@ Deno.serve(async (req) => {
     if (action === "toggle_ban") {
       const { targetUserId, ban } = body;
       if (!targetUserId) {
-        return new Response(JSON.stringify({ error: "Missing targetUserId" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Missing targetUserId" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       if (ban) {
-        await adminClient.from("banned_users").upsert({
-          user_id: targetUserId,
-          banned_by: user.id,
-        }, { onConflict: "user_id" });
+        await adminClient.from("banned_users").upsert(
+          { user_id: targetUserId, banned_by: user.id },
+          { onConflict: "user_id" },
+        );
         await adminClient.auth.admin.updateUserById(targetUserId, {
           ban_duration: "876000h",
         });
       } else {
-        await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
+        await adminClient
+          .from("banned_users")
+          .delete()
+          .eq("user_id", targetUserId);
         await adminClient.auth.admin.updateUserById(targetUserId, {
           ban_duration: "none",
         });
@@ -137,19 +207,24 @@ Deno.serve(async (req) => {
     if (action === "toggle_admin") {
       const { targetUserId, grant } = body;
       if (!targetUserId) {
-        return new Response(JSON.stringify({ error: "Missing targetUserId" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Missing targetUserId" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       if (grant) {
-        await adminClient.from("user_roles").upsert({
-          user_id: targetUserId,
-          role: "admin",
-        }, { onConflict: "user_id,role" });
+        await adminClient.from("user_roles").upsert(
+          { user_id: targetUserId, role: "admin" },
+          { onConflict: "user_id,role" },
+        );
       } else {
-        await adminClient.from("user_roles").delete()
+        await adminClient
+          .from("user_roles")
+          .delete()
           .eq("user_id", targetUserId)
           .eq("role", "admin");
       }
@@ -159,14 +234,16 @@ Deno.serve(async (req) => {
       });
     }
 
-
     if (action === "send_password_reset_email") {
       const { targetUserId, targetEmail, redirectTo } = body;
       if (!targetUserId || !targetEmail) {
-        return new Response(JSON.stringify({ error: "Missing targetUserId/targetEmail" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Missing targetUserId/targetEmail" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       const { data: targetRole } = await adminClient
@@ -177,18 +254,23 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (targetRole && targetUserId !== user.id) {
-        return new Response(JSON.stringify({ error: "不可替其他管理員寄送重設密碼信" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "不可替其他管理員寄送重設密碼信" }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
-      const { error: linkError } = await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email: targetEmail,
-        options: { redirectTo: redirectTo || `${new URL(req.url).origin}/` },
-      });
-
+      const { error: linkError } =
+        await adminClient.auth.admin.generateLink({
+          type: "recovery",
+          email: targetEmail,
+          options: {
+            redirectTo: redirectTo || `${new URL(req.url).origin}/`,
+          },
+        });
       if (linkError) throw linkError;
 
       return new Response(JSON.stringify({ success: true }), {
@@ -199,15 +281,19 @@ Deno.serve(async (req) => {
     if (action === "reset_password") {
       const { targetUserId, newPassword } = body;
       if (!targetUserId || !newPassword || newPassword.length < 6) {
-        return new Response(JSON.stringify({ error: "密碼至少需要 6 個字元" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "密碼至少需要 6 個字元" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
-      const { error: resetError } = await adminClient.auth.admin.updateUserById(targetUserId, {
-        password: newPassword,
-      });
+      const { error: resetError } =
+        await adminClient.auth.admin.updateUserById(targetUserId, {
+          password: newPassword,
+        });
       if (resetError) throw resetError;
 
       return new Response(JSON.stringify({ success: true }), {
@@ -218,36 +304,59 @@ Deno.serve(async (req) => {
     if (action === "delete_user") {
       const { targetUserId } = body;
       if (!targetUserId) {
-        return new Response(JSON.stringify({ error: "Missing targetUserId" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Missing targetUserId" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       console.log(`Deleting user: ${targetUserId}`);
 
-      const { error: contactsErr } = await adminClient.from("contacts").delete().eq("user_id", targetUserId);
+      const { error: contactsErr } = await adminClient
+        .from("contacts")
+        .delete()
+        .eq("user_id", targetUserId);
       if (contactsErr) console.log("contacts delete error:", contactsErr.message);
 
-      const { error: interactionsErr } = await adminClient.from("interactions").delete().eq("user_id", targetUserId);
-      if (interactionsErr) console.log("interactions delete error:", interactionsErr.message);
+      const { error: interactionsErr } = await adminClient
+        .from("interactions")
+        .delete()
+        .eq("user_id", targetUserId);
+      if (interactionsErr)
+        console.log("interactions delete error:", interactionsErr.message);
 
-      const { error: profilesErr } = await adminClient.from("profiles").delete().eq("id", targetUserId);
-      if (profilesErr) console.log("profiles delete error:", profilesErr.message);
+      const { error: profilesErr } = await adminClient
+        .from("profiles")
+        .delete()
+        .eq("id", targetUserId);
+      if (profilesErr)
+        console.log("profiles delete error:", profilesErr.message);
 
-      const { error: rolesErr } = await adminClient.from("user_roles").delete().eq("user_id", targetUserId);
+      const { error: rolesErr } = await adminClient
+        .from("user_roles")
+        .delete()
+        .eq("user_id", targetUserId);
       if (rolesErr) console.log("user_roles delete error:", rolesErr.message);
 
-      const { error: bannedErr } = await adminClient.from("banned_users").delete().eq("user_id", targetUserId);
-      if (bannedErr) console.log("banned_users delete error:", bannedErr.message);
+      const { error: bannedErr } = await adminClient
+        .from("banned_users")
+        .delete()
+        .eq("user_id", targetUserId);
+      if (bannedErr)
+        console.log("banned_users delete error:", bannedErr.message);
 
-      const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
+      const { error: deleteError } =
+        await adminClient.auth.admin.deleteUser(targetUserId);
       if (deleteError) {
         console.error("Auth user delete error:", deleteError.message);
         throw deleteError;
       }
 
       console.log(`User ${targetUserId} deleted successfully`);
+
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
