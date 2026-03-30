@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Infinity, Loader2, Download, Eye, EyeOff } from "lucide-react";
 import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
+import { useAuth } from "@/hooks/useAuth";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -55,6 +56,7 @@ export default function Auth() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const { themeIndex, theme: t } = useTheme();
+  const { recoveryMode, setRecoveryMode } = useAuth();
 
   useEffect(() => {
     const isIosDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -76,6 +78,7 @@ export default function Auth() {
       toast.error("請先輸入 Email");
       return;
     }
+    setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: window.location.origin,
     });
@@ -84,11 +87,38 @@ export default function Auth() {
     } else {
       toast.success("重設密碼信已寄出，請到信箱查看");
     }
+    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (recoveryMode) {
+      if (password.length < 6) {
+        toast.error("密碼至少需要 6 個字元");
+        setLoading(false);
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("兩次輸入的密碼不一致");
+        setLoading(false);
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        toast.error(mapAuthError(error.message));
+      } else {
+        toast.success("密碼已更新，請重新登入");
+        setRecoveryMode(false);
+        await supabase.auth.signOut();
+        setIsLogin(true);
+        setPassword("");
+        setConfirmPassword("");
+      }
+      setLoading(false);
+      return;
+    }
 
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -124,7 +154,7 @@ export default function Auth() {
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) {
-          toast.error("註冊成功，但目前仍需驗證信。請到 Supabase 關閉 Email confirmation 後即可略過。");
+          toast.info("註冊成功！請到信箱收取驗證信後再登入。");
           setIsLogin(true);
         } else {
           toast.success("註冊成功，已自動登入。");
@@ -235,18 +265,18 @@ export default function Auth() {
         {/* Form card */}
         <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl transition-colors duration-500 ${t.authCard}`}>
           <h2 className={`text-base font-medium text-center ${t.authCardText}`}>
-            {isLogin ? "登入帳號" : "建立帳號"}
+            {recoveryMode ? "設定新密碼" : (isLogin ? "登入帳號" : "建立帳號")}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            {!isLogin && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
-            {!isLogin && (
+            {!isLogin && !recoveryMode && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
+            {(!isLogin || recoveryMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>姓名</label>
                 <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="您的姓名" className={fieldClass} required autoComplete="name" />
               </div>
             )}
-            {!isLogin && (
+            {(!isLogin || recoveryMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號（必填）</label>
                 <input
@@ -260,13 +290,13 @@ export default function Auth() {
                 />
               </div>
             )}
-            <div>
+            {!recoveryMode && <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required autoComplete="email" inputMode="email" autoCapitalize="none" />
               {emailSuggestion && <p className={`text-[11px] mt-1 ${t.authSubtext}`}>你是不是想輸入：<button type="button" className={`${t.authLink} underline`} onClick={() => setEmail(emailSuggestion)}>{emailSuggestion}</button></p>}
-            </div>
+            </div>}
             <div>
-              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>密碼</label>
+              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "新密碼" : "密碼"}</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -335,16 +365,16 @@ export default function Auth() {
           {isLogin && (
             <p className={`text-center text-xs ${t.authSubtext}`}>
               忘記密碼？
-              <button type="button" onClick={handleForgotPassword} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>寄送重設信</button>
+              <button type="button" onClick={handleForgotPassword} disabled={loading} className={`${t.authLink} ml-1 underline-offset-2 hover:underline disabled:opacity-60`}>{loading ? "寄送中..." : "寄送重設信"}</button>
             </p>
           )}
 
-          <p className={`text-center text-xs ${t.authSubtext}`}>
+          {!recoveryMode && (<p className={`text-center text-xs ${t.authSubtext}`}>
             {isLogin ? "還沒有帳號？" : "已有帳號？"}
             <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setShowConfirmPassword(false); setShowPassword(false); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
               {isLogin ? "立即註冊" : "返回登入"}
             </button>
-          </p>
+          </p>)}
         </div>
 
         {/* Add to Home Screen */}

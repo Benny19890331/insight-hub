@@ -21,7 +21,6 @@ interface AdminUser {
   isBanned: boolean;
   isAdmin: boolean;
   contactCount: number;
-  interactionCount: number;
   memberCode: string | null;
 }
 
@@ -161,7 +160,7 @@ export default function AdminDashboard() {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
-  });
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const adminCount = users.filter((u) => u.isAdmin).length;
   const bannedCount = users.filter((u) => u.isBanned).length;
