@@ -80,7 +80,7 @@ export default function Auth() {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${appBaseUrl}/auth`,
     });
     if (error) {
       toast.error(mapAuthError(error.message));
@@ -177,6 +177,7 @@ export default function Auth() {
   const passwordStrength = getPasswordStrength(password);
   const passwordMatched = confirmPassword.length > 0 && password === confirmPassword;
   const emailSuggestion = suggestEmailTypo(email);
+  const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || window.location.origin).replace(/\/$/, "");
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">

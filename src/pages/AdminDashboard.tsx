@@ -43,6 +43,7 @@ export default function AdminDashboard() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || window.location.origin).replace(/\/$/, "");
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
           action: "send_password_reset_email",
           targetUserId,
           targetEmail,
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${appBaseUrl}/auth`,
         },
       });
       if (error) throw error;
