@@ -116,7 +116,7 @@ export default function AdminDashboard() {
           action: "send_password_reset_email",
           targetUserId,
           targetEmail,
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/auth`,
         },
       });
       if (error) throw error;

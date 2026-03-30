@@ -80,7 +80,7 @@ export default function Auth() {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin,
+      redirectTo: `${window.location.origin}/auth`,
     });
     if (error) {
       toast.error(mapAuthError(error.message));

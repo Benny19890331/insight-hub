@@ -280,6 +280,7 @@ export function useContacts() {
     }
 
     const idsToDelete: string[] = [];
+    const transferPairs: Array<{ from: string; to: string }> = [];
 
     for (const [_, group] of byBaseMemberId) {
       if (group.length > 1) {
@@ -312,6 +313,8 @@ export function useContacts() {
         for (let i = 1; i < group.length; i++) {
           await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", group[i].id);
           idsToDelete.push(group[i].id);
+          transferPairs.push({ from: group[i].id, to: primary.id });
+          transferPairs.push({ from: group[i].id, to: primary.id });
         }
       }
     }
@@ -327,6 +330,38 @@ export function useContacts() {
         for (let i = 1; i < group.length; i++) {
           await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", group[i].id);
           idsToDelete.push(group[i].id);
+          transferPairs.push({ from: group[i].id, to: primary.id });
+        }
+      }
+    }
+
+
+    for (const pair of transferPairs) {
+      await supabase.from("interactions").update({ contact_id: pair.to }).eq("contact_id", pair.from).eq("user_id", user.id);
+
+      const { data: secondaryInsight } = await supabase
+        .from("contact_insights")
+        .select("id, summary, tags, next_action")
+        .eq("contact_id", pair.from)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (secondaryInsight) {
+        const { data: primaryInsight } = await supabase
+          .from("contact_insights")
+          .select("id, summary, tags, next_action")
+          .eq("contact_id", pair.to)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (primaryInsight) {
+          const mergedTags = Array.from(new Set([...(primaryInsight.tags || []), ...(secondaryInsight.tags || [])]));
+          const mergedSummary = [primaryInsight.summary, secondaryInsight.summary].filter(Boolean).join("\n");
+          const mergedNext = primaryInsight.next_action || secondaryInsight.next_action || "";
+          await supabase.from("contact_insights").update({ summary: mergedSummary, tags: mergedTags, next_action: mergedNext }).eq("id", primaryInsight.id);
+          await supabase.from("contact_insights").delete().eq("id", secondaryInsight.id);
+        } else {
+          await supabase.from("contact_insights").update({ contact_id: pair.to }).eq("id", secondaryInsight.id);
         }
       }
     }

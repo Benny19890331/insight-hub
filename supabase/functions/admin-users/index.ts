@@ -277,10 +277,18 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Use resetPasswordForEmail which actually sends the email
-      const { error: resetError } =
-        await adminClient.auth.resetPasswordForEmail(targetEmail, {
-          redirectTo: redirectTo || supabaseUrl,
+      const { error: resetMailError } = await userClient.auth.resetPasswordForEmail(targetEmail, {
+        redirectTo: redirectTo || `${new URL(req.url).origin}/auth`,
+      });
+
+      if (resetMailError) throw resetMailError;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
         });
 
       if (resetError) throw resetError;
