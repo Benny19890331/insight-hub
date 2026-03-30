@@ -8,7 +8,6 @@ const corsHeaders = {
 
 // ── Paginated fetch helper (Supabase default limit = 1000) ──
 const PAGE_SIZE = 1000;
-
 async function fetchAll<T>(
   client: any,
   table: string,
@@ -59,6 +58,7 @@ Deno.serve(async (req) => {
       data: { user },
       error: userError,
     } = await userClient.auth.getUser();
+
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -85,6 +85,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
+    // ════════════════════════════════════════
+    // LIST USERS
+    // ════════════════════════════════════════
     if (action === "list_users") {
       const {
         data: { users },
@@ -169,6 +172,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ════════════════════════════════════════
+    // TOGGLE BAN
+    // ════════════════════════════════════════
     if (action === "toggle_ban") {
       const { targetUserId, ban } = body;
       if (!targetUserId) {
@@ -204,6 +210,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ════════════════════════════════════════
+    // TOGGLE ADMIN
+    // ════════════════════════════════════════
     if (action === "toggle_admin") {
       const { targetUserId, grant } = body;
       if (!targetUserId) {
@@ -234,6 +243,11 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ════════════════════════════════════════
+    // SEND PASSWORD RESET EMAIL
+    // FIX: use resetPasswordForEmail instead of generateLink
+    //      generateLink only returns the link but does NOT send email
+    // ════════════════════════════════════════
     if (action === "send_password_reset_email") {
       const { targetUserId, targetEmail, redirectTo } = body;
       if (!targetUserId || !targetEmail) {
@@ -263,21 +277,22 @@ Deno.serve(async (req) => {
         );
       }
 
-      const { error: linkError } =
-        await adminClient.auth.admin.generateLink({
-          type: "recovery",
-          email: targetEmail,
-          options: {
-            redirectTo: redirectTo || `${new URL(req.url).origin}/`,
-          },
+      // Use resetPasswordForEmail which actually sends the email
+      const { error: resetError } =
+        await adminClient.auth.resetPasswordForEmail(targetEmail, {
+          redirectTo: redirectTo || supabaseUrl,
         });
-      if (linkError) throw linkError;
+
+      if (resetError) throw resetError;
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // ════════════════════════════════════════
+    // RESET PASSWORD (direct)
+    // ════════════════════════════════════════
     if (action === "reset_password") {
       const { targetUserId, newPassword } = body;
       if (!targetUserId || !newPassword || newPassword.length < 6) {
@@ -301,6 +316,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ════════════════════════════════════════
+    // DELETE USER
+    // FIX: delete interactions BEFORE contacts (FK order)
+    // ════════════════════════════════════════
     if (action === "delete_user") {
       const { targetUserId } = body;
       if (!targetUserId) {
@@ -315,12 +334,7 @@ Deno.serve(async (req) => {
 
       console.log(`Deleting user: ${targetUserId}`);
 
-      const { error: contactsErr } = await adminClient
-        .from("contacts")
-        .delete()
-        .eq("user_id", targetUserId);
-      if (contactsErr) console.log("contacts delete error:", contactsErr.message);
-
+      // 1. Delete interactions FIRST (child of contacts via contact_id FK)
       const { error: interactionsErr } = await adminClient
         .from("interactions")
         .delete()
@@ -328,6 +342,15 @@ Deno.serve(async (req) => {
       if (interactionsErr)
         console.log("interactions delete error:", interactionsErr.message);
 
+      // 2. Then delete contacts (parent)
+      const { error: contactsErr } = await adminClient
+        .from("contacts")
+        .delete()
+        .eq("user_id", targetUserId);
+      if (contactsErr)
+        console.log("contacts delete error:", contactsErr.message);
+
+      // 3. Clean up profiles, roles, bans
       const { error: profilesErr } = await adminClient
         .from("profiles")
         .delete()
@@ -339,7 +362,8 @@ Deno.serve(async (req) => {
         .from("user_roles")
         .delete()
         .eq("user_id", targetUserId);
-      if (rolesErr) console.log("user_roles delete error:", rolesErr.message);
+      if (rolesErr)
+        console.log("user_roles delete error:", rolesErr.message);
 
       const { error: bannedErr } = await adminClient
         .from("banned_users")
@@ -348,6 +372,7 @@ Deno.serve(async (req) => {
       if (bannedErr)
         console.log("banned_users delete error:", bannedErr.message);
 
+      // 4. Finally delete auth user
       const { error: deleteError } =
         await adminClient.auth.admin.deleteUser(targetUserId);
       if (deleteError) {
@@ -356,7 +381,6 @@ Deno.serve(async (req) => {
       }
 
       console.log(`User ${targetUserId} deleted successfully`);
-
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
