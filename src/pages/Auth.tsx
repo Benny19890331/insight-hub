@@ -195,7 +195,7 @@ export default function Auth() {
       ))}
 
       {/* Theme switcher */}
-      <div className="fixed top-4 right-4 z-20">
+      <div className="fixed right-4 z-20" style={{ top: "calc(env(safe-area-inset-top, 0px) + 10px)" }}>
         <ThemeSwitcher />
       </div>
 
