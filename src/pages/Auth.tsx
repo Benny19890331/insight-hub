@@ -56,7 +56,7 @@ export default function Auth() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const { themeIndex, theme: t } = useTheme();
-  const { recoveryMode, setRecoveryMode } = useAuth();
+  const { recoveryMode, setRecoveryMode, user } = useAuth();
 
   useEffect(() => {
     const isIosDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -72,7 +72,6 @@ export default function Auth() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  // FIX: Handle token_hash from email link (bypasses Lovable link tracking)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenHash = params.get("token_hash");
@@ -114,6 +113,9 @@ export default function Auth() {
         }
 
         setRecoveryMode(true);
+        setEmail((prev) => prev || "");
+        setPassword("");
+        setConfirmPassword("");
         window.history.replaceState({}, "", "/auth");
       })();
     }
@@ -142,6 +144,19 @@ export default function Auth() {
     setLoading(true);
 
     if (recoveryMode) {
+      const currentEmail = (user?.email || "").toLowerCase();
+      const currentMemberCode = String((user?.user_metadata as any)?.member_code || "").trim();
+
+      if (!email.trim() || email.trim().toLowerCase() !== currentEmail) {
+        toast.error("帳號不符，請輸入本次重設連結對應的帳號");
+        setLoading(false);
+        return;
+      }
+      if (!memberCode.trim() || memberCode.trim() !== currentMemberCode) {
+        toast.error("會員編號不正確");
+        setLoading(false);
+        return;
+      }
       if (password.length < 6) {
         toast.error("密碼至少需要 6 個字元");
         setLoading(false);
@@ -318,13 +333,13 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {!isLogin && !recoveryMode && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
-            {(!isLogin || recoveryMode) && (
+            {(!isLogin && !recoveryMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>姓名</label>
                 <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="您的姓名" className={fieldClass} required autoComplete="name" />
               </div>
             )}
-            {(!isLogin || recoveryMode) && (
+            {((!isLogin && !recoveryMode) || recoveryMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號（必填）</label>
                 <input
@@ -338,11 +353,11 @@ export default function Auth() {
                 />
               </div>
             )}
-            {!recoveryMode && <div>
-              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>Email</label>
+            <div>
+              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "帳號" : "Email"}</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required autoComplete="email" inputMode="email" autoCapitalize="none" />
               {emailSuggestion && <p className={`text-[11px] mt-1 ${t.authSubtext}`}>你是不是想輸入：<button type="button" className={`${t.authLink} underline`} onClick={() => setEmail(emailSuggestion)}>{emailSuggestion}</button></p>}
-            </div>}
+            </div>
             <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "新密碼" : "密碼"}</label>
               <div className="relative">
@@ -368,7 +383,7 @@ export default function Auth() {
               {!isLogin && <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>}
             </div>
 
-            {!isLogin && (
+            {(!isLogin || recoveryMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>確認密碼</label>
                 <div className="relative">
@@ -406,11 +421,11 @@ export default function Auth() {
               onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.bg; }}
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isLogin ? "登入" : "註冊"}
+              {recoveryMode ? "更新密碼" : (isLogin ? "登入" : "註冊")}
             </button>
           </form>
 
-          {isLogin && (
+          {isLogin && !recoveryMode && (
             <p className={`text-center text-xs ${t.authSubtext}`}>
               忘記密碼？
               <button type="button" onClick={handleForgotPassword} disabled={loading} className={`${t.authLink} ml-1 underline-offset-2 hover:underline disabled:opacity-60`}>{loading ? "寄送中..." : "寄送重設信"}</button>
