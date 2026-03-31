@@ -72,6 +72,29 @@ export default function Auth() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  // FIX: Handle token_hash from email link (bypasses Lovable link tracking)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+    if (tokenHash && type === "recovery") {
+      setLoading(true);
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" })
+        .then(({ error }) => {
+          if (error) {
+            toast.error("重設連結已過期或無效，請重新申請。");
+            console.error("verifyOtp error:", error.message);
+          } else {
+            setRecoveryMode(true);
+            toast.success("驗證成功，請設定新密碼。");
+          }
+          // Clean up URL params
+          window.history.replaceState({}, "", window.location.pathname);
+          setLoading(false);
+        });
+    }
+  }, []);
+
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
