@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Infinity, Loader2, Download, Eye, EyeOff } from "lucide-react";
 import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
-import { useAuth } from "@/hooks/useAuth"; 
+import { useAuth } from "@/hooks/useAuth";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -48,6 +48,8 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [customResetToken, setCustomResetToken] = useState<string | null>(null);
+  const [customResetMode, setCustomResetMode] = useState(false);
   const [memberCode, setMemberCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -77,6 +79,7 @@ export default function Auth() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // Legacy: handle Supabase native token_hash (kept for backward compat)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenHash = params.get("token_hash");
@@ -102,19 +105,42 @@ export default function Auth() {
     }
   }, []);
 
+  // NEW: handle custom reset_token from Resend email (bypasses Lovable)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resetToken = params.get("reset_token");
+
+    if (resetToken) {
+      setCustomResetToken(resetToken);
+      setCustomResetMode(true);
+      setPassword("");
+      setConfirmPassword("");
+      toast.info("請設定新密碼。");
+      window.history.replaceState({}, "", "/auth");
+    }
+  }, []);
+
   const handleForgotPassword = async () => {
     if (!email.trim()) {
       toast.error("請先輸入 Email");
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${appBaseUrl}/auth`,
-    });
-    if (error) {
-      toast.error(mapAuthError(error.message));
-    } else {
-      toast.success("重設密碼信已寄出，請到信箱查看");
+    try {
+      const res = await fetch("/api/send-reset-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), app_url: appBaseUrl }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        toast.success("重設密碼信已寄出，請到信箱查看（由 RICH系統 直接寄出）");
+      }
+    } catch (err) {
+      console.error("send-reset-email error:", err);
+      toast.error("寄信失敗，請稍後再試");
     }
     setLoading(false);
   };
@@ -123,6 +149,44 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
+    // Custom reset mode (via Resend email link)
+    if (customResetMode && customResetToken) {
+      if (password.length < 6) {
+        toast.error("密碼至少需要 6 個字元");
+        setLoading(false);
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("兩次輸入的密碼不一致");
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/verify-reset-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: customResetToken, new_password: password }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          toast.error(data.error);
+        } else {
+          toast.success("密碼已更新，請重新登入！");
+          setCustomResetMode(false);
+          setCustomResetToken(null);
+          setIsLogin(true);
+          setPassword("");
+          setConfirmPassword("");
+        }
+      } catch (err) {
+        console.error("verify-reset-token error:", err);
+        toast.error("系統錯誤，請稍後再試");
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Legacy Supabase recovery mode (kept for backward compat)
     if (recoveryMode) {
       const currentEmail = (user?.email || "").toLowerCase();
       const currentMemberCode = String(
@@ -290,24 +354,24 @@ export default function Auth() {
 
         <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl transition-colors duration-500 ${t.authCard}`}>
           <h2 className={`text-base font-medium text-center ${t.authCardText}`}>
-            {recoveryMode ? "設定新密碼" : isLogin ? "登入帳號" : "建立帳號"}
+            {customResetMode ? "設定新密碼" : recoveryMode ? "設定新密碼" : isLogin ? "登入帳號" : "建立帳號"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            {!isLogin && !recoveryMode && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
-            {!isLogin && !recoveryMode && (
+            {!isLogin && !recoveryMode && !customResetMode && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
+            {!isLogin && !recoveryMode && !customResetMode && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>姓名</label>
                 <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="您的姓名" className={fieldClass} required autoComplete="name" />
               </div>
             )}
-            {((!isLogin && !recoveryMode) || recoveryMode) && (
+            {((!isLogin && !recoveryMode && !customResetMode) || recoveryMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號（必填）</label>
                 <input value={memberCode} onChange={(e) => setMemberCode(e.target.value)} placeholder="例如 A001" className={fieldClass} required autoCapitalize="off" autoCorrect="off" />
               </div>
             )}
-            <div>
+            {!customResetMode && <div>
               <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "帳號" : "Email"}</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required autoComplete="email" inputMode="email" autoCapitalize="none" />
               {emailSuggestion && (
@@ -315,19 +379,19 @@ export default function Auth() {
                   你是不是想輸入：<button type="button" className={`${t.authLink} underline`} onClick={() => setEmail(emailSuggestion)}>{emailSuggestion}</button>
                 </p>
               )}
-            </div>
+            </div>}
             <div>
-              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "新密碼" : "密碼"}</label>
+              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{(recoveryMode || customResetMode) ? "新密碼" : "密碼"}</label>
               <div className="relative">
                 <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="至少 6 個字元" className={`${fieldClass} pr-10`} required minLength={6} autoComplete={isLogin ? "current-password" : "new-password"} />
                 <button type="button" onClick={() => setShowPassword((v) => !v)} className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 ${t.authSubtext}`} aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {!isLogin && <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>}
+              {(!isLogin || customResetMode) && <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>}
             </div>
 
-            {(!isLogin || recoveryMode) && (
+            {(!isLogin || recoveryMode || customResetMode) && (
               <div>
                 <label className={`text-xs mb-1.5 block ${t.authLabel}`}>確認密碼</label>
                 <div className="relative">
@@ -348,11 +412,11 @@ export default function Auth() {
               onMouseEnter={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.hoverBg; }}
               onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.bg; }}>
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {recoveryMode ? "更新密碼" : isLogin ? "登入" : "註冊"}
+              {(customResetMode || recoveryMode) ? "更新密碼" : isLogin ? "登入" : "註冊"}
             </button>
           </form>
 
-          {isLogin && !recoveryMode && (
+          {isLogin && !recoveryMode && !customResetMode && (
             <p className={`text-center text-xs ${t.authSubtext}`}>
               忘記密碼？
               <button type="button" onClick={handleForgotPassword} disabled={loading} className={`${t.authLink} ml-1 underline-offset-2 hover:underline disabled:opacity-60`}>
@@ -361,7 +425,7 @@ export default function Auth() {
             </p>
           )}
 
-          {!recoveryMode && (
+          {!recoveryMode && !customResetMode && (
             <p className={`text-center text-xs ${t.authSubtext}`}>
               {isLogin ? "還沒有帳號？" : "已有帳號？"}
               <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setShowConfirmPassword(false); setShowPassword(false); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
