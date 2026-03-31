@@ -96,6 +96,30 @@ export default function Auth() {
   }, []);
 
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+
+    if (type === "recovery" && tokenHash) {
+      (async () => {
+        const { error } = await supabase.auth.verifyOtp({
+          type: "recovery",
+          token_hash: tokenHash,
+        });
+
+        if (error) {
+          toast.error("重設連結已失效或無效，請重新申請");
+          return;
+        }
+
+        setRecoveryMode(true);
+        window.history.replaceState({}, "", "/auth");
+      })();
+    }
+  }, [setRecoveryMode]);
+
+
   const handleForgotPassword = async () => {
     if (!email.trim()) {
       toast.error("請先輸入 Email");
