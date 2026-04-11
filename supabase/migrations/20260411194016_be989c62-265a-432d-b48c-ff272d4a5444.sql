@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN member_code text DEFAULT null;
