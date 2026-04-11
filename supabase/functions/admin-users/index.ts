@@ -154,18 +154,20 @@ Deno.serve(async (req) => {
         );
       }
 
-      const result = users.map((u: any) => ({
+      const result = users.map((u: any) => {
+        const profile = profileMap.get(u.id);
+        return {
         id: u.id,
         email: u.email,
-        displayName: profileMap.get(u.id)?.display_name || "",
-        memberCode: profileMap.get(u.id)?.member_code || null,
+        displayName: profile?.display_name || "",
+        memberCode: profile?.member_code || null,
         createdAt: u.created_at,
         lastSignIn: u.last_sign_in_at,
         isBanned: bannedSet.has(u.id),
         isAdmin: adminSet.has(u.id),
         contactCount: contactCountMap.get(u.id) ?? 0,
         interactionCount: interactionCountMap.get(u.id) ?? 0,
-      }));
+      }});
 
       return new Response(JSON.stringify({ users: result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
