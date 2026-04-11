@@ -156,11 +156,12 @@ Deno.serve(async (req) => {
 
       const result = users.map((u: any) => {
         const profile = profileMap.get(u.id);
+        const memberCode = u.user_metadata?.member_code || profile?.member_code || null;
         return {
         id: u.id,
         email: u.email,
-        displayName: profile?.display_name || "",
-        memberCode: profile?.member_code || null,
+        displayName: profile?.display_name || u.user_metadata?.display_name || "",
+        memberCode,
         createdAt: u.created_at,
         lastSignIn: u.last_sign_in_at,
         isBanned: bannedSet.has(u.id),
