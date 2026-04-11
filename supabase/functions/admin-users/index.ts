@@ -288,16 +288,6 @@ Deno.serve(async (req) => {
       });
     }
 
-
-        });
-
-      if (resetError) throw resetError;
-
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // ════════════════════════════════════════
     // RESET PASSWORD (direct)
     // ════════════════════════════════════════

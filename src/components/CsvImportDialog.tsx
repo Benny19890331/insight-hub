@@ -274,7 +274,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
               <p className="text-sm text-muted-foreground">{"拖曳 CSV 檔案至此，或點擊選擇"}</p>
               <p className="text-xs text-muted-foreground mt-1">{"支援一般 CSV 及組織圖 MAP 格式（自動偵測）"}</p>
             </div>
-            <input ref={fileRef} type="file" accept=".csv,.txt,text/csv,text/comma-separated-values,text/plain,application/csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            <input ref={fileRef} type="file" accept=".csv,.txt,.CSV,.TXT,text/csv,text/plain,text/comma-separated-values,application/csv,application/vnd.ms-excel,application/octet-stream,*/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
             <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-1">
               <p className="text-xs font-medium text-foreground">{"CSV 格式範例："}</p>
