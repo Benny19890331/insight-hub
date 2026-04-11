@@ -208,7 +208,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5" style={{ color: t.titleColor }} />
                 <h2 className={`text-base font-semibold ${t.authCardText}`}>
-                  註冊使用者 ({users.length})
+                  註冊使用者 ({filteredUsers.length}/{users.length})
                 </h2>
               </div>
               <button onClick={() => navigate("/")} className={`text-xs flex items-center gap-1 ${t.authLink} hover:underline`}>
