@@ -226,15 +226,25 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
   const reset = () => { setPreview(null); setErrors([]); setFileName(""); };
 
   const handleFile = (file: File) => {
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.csv') && !name.endsWith('.txt')) {
+      toast.error("請選擇 CSV 或 TXT 檔案");
+      return;
+    }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target?.result as string;
+      let text = e.target?.result as string;
+      // Remove UTF-8 BOM if present
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
       const { contacts, errors } = parseCsv(text, existingContacts);
       setPreview(contacts);
       setErrors(errors);
     };
-    reader.readAsText(file);
+    reader.onerror = () => {
+      toast.error("讀取檔案失敗，請重試");
+    };
+    reader.readAsText(file, 'UTF-8');
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -274,7 +284,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
               <p className="text-sm text-muted-foreground">{"拖曳 CSV 檔案至此，或點擊選擇"}</p>
               <p className="text-xs text-muted-foreground mt-1">{"支援一般 CSV 及組織圖 MAP 格式（自動偵測）"}</p>
             </div>
-            <input ref={fileRef} type="file" accept=".csv,.txt,text/csv,text/comma-separated-values,text/plain,application/csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            <input ref={fileRef} type="file" accept=".csv,.txt,.CSV,.TXT,text/csv,text/plain,text/comma-separated-values,application/csv,application/vnd.ms-excel,application/octet-stream,*/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
             <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-1">
               <p className="text-xs font-medium text-foreground">{"CSV 格式範例："}</p>
