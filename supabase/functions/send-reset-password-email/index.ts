@@ -175,7 +175,8 @@ Deno.serve(async (req) => {
       expires_at: expiresAt,
     })
 
-    const baseUrl = app_url || 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
+    // Always use the preview URL to avoid Lovable auth-bridge redirects
+    const baseUrl = 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
     const confirmationURL = `${baseUrl}/auth?reset_token=${token}`
 
     const emailHtml = `<div style="font-family: sans-serif;">
