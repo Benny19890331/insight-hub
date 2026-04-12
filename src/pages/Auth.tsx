@@ -162,13 +162,13 @@ export default function Auth() {
         return;
       }
       try {
-        const res = await fetch("/api/verify-reset-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: customResetToken, new_password: password }),
+        const { data, error } = await supabase.functions.invoke('verify-reset-token', {
+          body: { token: customResetToken, new_password: password },
         });
-        const data = await res.json();
-        if (data.error) {
+        if (error) {
+          console.error("verify-reset-token error:", error);
+          toast.error("系統錯誤，請稍後再試");
+        } else if (data?.error) {
           toast.error(data.error);
         } else {
           toast.success("密碼已更新，請重新登入！");
