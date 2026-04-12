@@ -3,7 +3,124 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+
+const textEncoder = new TextEncoder()
+const textDecoder = new TextDecoder()
+
+const toBase64 = (value: string) => {
+  const bytes = textEncoder.encode(value)
+  let binary = ''
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+
+  return btoa(binary)
+}
+
+const toMimeHeader = (value: string) => `=?UTF-8?B?${toBase64(value)}?=`
+
+const wrapBase64 = (value: string, width = 76) => {
+  const chunks = value.match(new RegExp(`.{1,${width}}`, 'g'))
+  return chunks?.join('\r\n') ?? ''
+}
+
+const readSmtpResponse = async (conn: Deno.Conn) => {
+  const buffer = new Uint8Array(1024)
+  let response = ''
+
+  while (true) {
+    const read = await conn.read(buffer)
+    if (read === null) {
+      throw new Error(`SMTP connection closed unexpectedly: ${response}`)
+    }
+
+    response += textDecoder.decode(buffer.subarray(0, read), { stream: true })
+    const lines = response.split('\r\n').filter(Boolean)
+    const lastLine = lines.at(-1)
+
+    if (lastLine && /^\d{3} /.test(lastLine)) {
+      return {
+        code: Number(lastLine.slice(0, 3)),
+        message: response,
+      }
+    }
+  }
+}
+
+const writeSmtpCommand = async (conn: Deno.Conn, command: string, expectedCodes: number[]) => {
+  await conn.write(textEncoder.encode(`${command}\r\n`))
+  const response = await readSmtpResponse(conn)
+
+  if (!expectedCodes.includes(response.code)) {
+    throw new Error(`SMTP command failed (${command}): ${response.message}`)
+  }
+
+  return response
+}
+
+const sendViaGmailSmtp = async ({
+  username,
+  password,
+  to,
+  subject,
+  html,
+}: {
+  username: string
+  password: string
+  to: string
+  subject: string
+  html: string
+}) => {
+  const conn = await Deno.connectTls({
+    hostname: 'smtp.gmail.com',
+    port: 465,
+  })
+
+  try {
+    const greeting = await readSmtpResponse(conn)
+    if (greeting.code !== 220) {
+      throw new Error(`SMTP greeting failed: ${greeting.message}`)
+    }
+
+    await writeSmtpCommand(conn, 'EHLO localhost', [250])
+    await writeSmtpCommand(conn, 'AUTH LOGIN', [334])
+    await writeSmtpCommand(conn, toBase64(username), [334])
+    await writeSmtpCommand(conn, toBase64(password), [235])
+    await writeSmtpCommand(conn, `MAIL FROM:<${username}>`, [250])
+    await writeSmtpCommand(conn, `RCPT TO:<${to}>`, [250, 251])
+    await writeSmtpCommand(conn, 'DATA', [354])
+
+    const encodedSubject = toMimeHeader(subject)
+    const encodedFromName = toMimeHeader('RICH系統')
+    const encodedHtml = wrapBase64(toBase64(html))
+    const messageIdDomain = username.split('@')[1] || 'localhost'
+    const mimeMessage = [
+      `From: ${encodedFromName} <${username}>`,
+      `To: <${to}>`,
+      `Subject: ${encodedSubject}`,
+      `Date: ${new Date().toUTCString()}`,
+      `Message-ID: <${crypto.randomUUID()}@${messageIdDomain}>`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      encodedHtml,
+      '.',
+    ].join('\r\n')
+
+    await conn.write(textEncoder.encode(`${mimeMessage}\r\n`))
+
+    const deliveryResponse = await readSmtpResponse(conn)
+    if (deliveryResponse.code !== 250) {
+      throw new Error(`SMTP delivery failed: ${deliveryResponse.message}`)
+    }
+
+    await writeSmtpCommand(conn, 'QUIT', [221])
+  } finally {
+    conn.close()
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -74,27 +191,13 @@ Deno.serve(async (req) => {
   <p>RICH系統 敬上</p>
 </div>`
 
-    const client = new SMTPClient({
-      connection: {
-        hostname: 'smtp.gmail.com',
-        port: 465,
-        tls: true,
-        auth: {
-          username: GMAIL_USER,
-          password: GMAIL_APP_PASSWORD,
-        },
-      },
-    })
-
-    await client.send({
-      from: `RICH系統 <${GMAIL_USER}>`,
+    await sendViaGmailSmtp({
+      username: GMAIL_USER,
+      password: GMAIL_APP_PASSWORD,
       to: email,
       subject: '重設您的 RICH 系統密碼',
-      content: '請使用支援 HTML 的郵件客戶端開啟此信件。',
       html: emailHtml,
     })
-
-    await client.close()
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
