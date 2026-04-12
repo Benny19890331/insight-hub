@@ -90,6 +90,7 @@ export function ContactList({
       (c.background ?? "").toLowerCase().includes(q) ||
       (c.statuses ?? []).some((s) => s.toLowerCase().includes(q)) ||
       (c.productTags ?? []).some((t) => t.toLowerCase().includes(q)) ||
+      (c.insightTags ?? []).some((t) => t.toLowerCase().includes(q)) ||
       (c.notes ?? "").toLowerCase().includes(q);
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
