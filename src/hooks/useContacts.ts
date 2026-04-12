@@ -61,7 +61,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     birthday: db.birthday ?? undefined,
     birthdayReminder: (db.birthday_reminder as BirthdayReminder) ?? "none",
     gender: (db.gender as Gender) ?? "",
-    interactions: interactions.map((i) => ({ date: i.date, summary: i.summary })),
+    interactions: interactions.map((i) => ({ id: i.id, date: i.date, summary: i.summary })),
     productTags: db.product_tags ?? [],
     insightTags: insightTagsMap.get(db.id) ?? [],
   };
