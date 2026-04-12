@@ -45,7 +45,7 @@ serve(async (req) => {
       notes: contact.notes,
       gender: contact.gender,
       last_contact_date: contact.last_contact_date,
-      interactions: interactions ?? [],
+      interactions: interactionsRes.data ?? [],
     };
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
