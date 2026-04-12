@@ -247,51 +247,6 @@ Deno.serve(async (req) => {
     }
 
     // ════════════════════════════════════════
-    // SEND PASSWORD RESET EMAIL
-    // FIX: use resetPasswordForEmail instead of generateLink
-    //      generateLink only returns the link but does NOT send email
-    // ════════════════════════════════════════
-    if (action === "send_password_reset_email") {
-      const { targetUserId, targetEmail, redirectTo } = body;
-      if (!targetUserId || !targetEmail) {
-        return new Response(
-          JSON.stringify({ error: "Missing targetUserId/targetEmail" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      const { data: targetRole } = await adminClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", targetUserId)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (targetRole && targetUserId !== user.id) {
-        return new Response(
-          JSON.stringify({ error: "不可替其他管理員寄送重設密碼信" }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      const { error: resetMailError } = await userClient.auth.resetPasswordForEmail(targetEmail, {
-        redirectTo: redirectTo || `${new URL(req.url).origin}/auth`,
-      });
-
-      if (resetMailError) throw resetMailError;
-
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ════════════════════════════════════════
     // RESET PASSWORD (direct)
     // ════════════════════════════════════════
     if (action === "reset_password") {
