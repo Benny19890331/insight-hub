@@ -3,8 +3,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const GATEWAY_URL = 'https://connector-gateway.lovable.dev/resend'
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,11 +11,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured')
+    const GMAIL_USER = Deno.env.get('GMAIL_USER')
+    if (!GMAIL_USER) throw new Error('GMAIL_USER not configured')
 
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY not configured')
+    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')
+    if (!GMAIL_APP_PASSWORD) throw new Error('GMAIL_APP_PASSWORD not configured')
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -87,28 +86,27 @@ Deno.serve(async (req) => {
 </body>
 </html>`
 
-    const resendRes = await fetch(`${GATEWAY_URL}/emails`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'X-Connection-Api-Key': RESEND_API_KEY,
+    const client = new SMTPClient({
+      connection: {
+        hostname: 'smtp.gmail.com',
+        port: 587,
+        tls: true,
+        auth: {
+          username: GMAIL_USER,
+          password: GMAIL_APP_PASSWORD,
+        },
       },
-      body: JSON.stringify({
-        from: 'RICH系統 <onboarding@resend.dev>',
-        to: [email],
-        subject: '重設您的密碼 — RICH系統',
-        html: emailHtml,
-      }),
     })
 
-    const resendData = await resendRes.json()
-    if (!resendRes.ok) {
-      console.error('Resend error:', resendData)
-      return new Response(JSON.stringify({ error: '寄信失敗，請稍後再試' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    await client.send({
+      from: `RICH系統 <${GMAIL_USER}>`,
+      to: email,
+      subject: '重設您的密碼 — RICH系統',
+      content: '請使用支援 HTML 的郵件客戶端查看此信件。',
+      html: emailHtml,
+    })
+
+    await client.close()
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
