@@ -38,7 +38,7 @@ interface DbInteraction {
   summary: string;
 }
 
-function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>): Contact {
+function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>, insightTagsMap: Map<string, string[]>): Contact {
   const interactions = interactionMap.get(db.id) ?? [];
   return {
     id: db.id,
@@ -63,6 +63,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     gender: (db.gender as Gender) ?? "",
     interactions: interactions.map((i) => ({ date: i.date, summary: i.summary })),
     productTags: db.product_tags ?? [],
+    insightTags: insightTagsMap.get(db.id) ?? [],
   };
 }
 
