@@ -115,7 +115,7 @@ export default function Auth() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${appBaseUrl}/reset-password`,
+        redirectTo: `${appBaseUrl}/update-password`,
       });
       if (error) {
         console.error("resetPasswordForEmail error:", error);
