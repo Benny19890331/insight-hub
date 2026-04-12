@@ -75,7 +75,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const otherContacts = contacts.filter((c) => c.id !== contact.id);
+  const otherContacts = useMemo(() => contacts.filter((c) => c.id !== contact.id), [contacts, contact.id]);
   const filteredReferrers = useMemo(() => {
     if (!referrerSearch) return otherContacts;
     const q = referrerSearch.toLowerCase();

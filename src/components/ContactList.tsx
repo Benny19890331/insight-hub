@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Search, Filter, Package, Merge, Loader2 } from "lucide-react";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -18,7 +19,7 @@ interface ContactListProps {
   onDeduplicate?: () => Promise<{ merged: number }>;
 }
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 export function ContactList({
@@ -37,20 +38,31 @@ export function ContactList({
   const [deduping, setDeduping] = useState(false);
 
   // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
-  const getBaseMemberId = (mid?: string) => {
+  const getBaseMemberId = useCallback((mid?: string) => {
     if (!mid) return null;
     const match = mid.match(/^(\d+)-\d+$/);
     return match ? match[1] : mid;
-  };
+  }, []);
 
-  // Count duplicates by base member_id or name
-  const duplicateCount = contacts.filter((c, i, arr) => {
-    const base = getBaseMemberId(c.memberId);
-    if (base) {
-      return arr.findIndex(x => getBaseMemberId(x.memberId) === base) !== i;
+  // Count duplicates by base member_id or name (memoized to avoid O(n²) on every render)
+  const duplicateCount = useMemo(() => {
+    const seenMemberBases = new Map<string, number>();
+    const seenNames = new Map<string, number>();
+    let dupes = 0;
+    for (const c of contacts) {
+      const base = getBaseMemberId(c.memberId);
+      if (base) {
+        const count = (seenMemberBases.get(base) ?? 0) + 1;
+        seenMemberBases.set(base, count);
+        if (count > 1) dupes++;
+      } else {
+        const count = (seenNames.get(c.name) ?? 0) + 1;
+        seenNames.set(c.name, count);
+        if (count > 1) dupes++;
+      }
     }
-    return arr.findIndex(x => x.name === c.name) !== i;
-  }).length;
+    return dupes;
+  }, [contacts, getBaseMemberId]);
 
   const handleDedupe = async () => {
     if (!onDeduplicate) return;
@@ -69,8 +81,8 @@ export function ContactList({
     }
   };
 
-  const filtered = contacts.filter((c) => {
-    const matchesSearch =
+  const filtered = useMemo(() => contacts.filter((c) => {
+    const matchesSearch = !searchQuery ||
       c.name.includes(searchQuery) ||
       c.region.includes(searchQuery) ||
       (c.statuses ?? []).some((s) => s.includes(searchQuery)) ||
@@ -78,7 +90,16 @@ export function ContactList({
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
     return matchesSearch && matchesHeat && matchesProduct;
-  });
+  }), [contacts, searchQuery, heatFilter, productFilter]);
+
+  // Pre-compute name counts for hasDuplicate check (O(n) instead of O(n²))
+  const nameCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const c of filtered) {
+      counts.set(c.name, (counts.get(c.name) ?? 0) + 1);
+    }
+    return counts;
+  }, [filtered]);
 
   return (
     <div className="flex flex-col h-full">
@@ -130,7 +151,7 @@ export function ContactList({
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
         {filtered.map((contact) => {
-          const hasDuplicate = filtered.filter(c => c.name === contact.name).length > 1;
+          const hasDuplicate = (nameCounts.get(contact.name) ?? 0) > 1;
           return (
           <button
             key={contact.id}

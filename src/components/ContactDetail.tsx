@@ -126,7 +126,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
     }
   };
 
-  const referrerChain = getReferrerChain(contact, contacts, 3);
+  const referrerChain = useMemo(() => getReferrerChain(contact, contacts, 3), [contact, contacts]);
+  const contactDownlines = useMemo(() => contacts.filter(c => c.referrerId === contact.id), [contacts, contact.id]);
 
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
@@ -261,7 +262,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Downline / referrals */}
         {(() => {
-          const downlines = contacts.filter(c => c.referrerId === contact.id);
+          const downlines = contactDownlines;
           return (
             <div className="flex gap-3 items-start">
               <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
