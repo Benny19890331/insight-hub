@@ -87,6 +87,7 @@ export function ContactList({
       (c.nickname ?? "").includes(searchQuery) ||
       c.region.includes(searchQuery) ||
       (c.statuses ?? []).some((s) => s.includes(searchQuery)) ||
+      (c.productTags ?? []).some((t) => t.includes(searchQuery)) ||
       (c.notes ?? "").includes(searchQuery);
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
