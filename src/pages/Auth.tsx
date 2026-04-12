@@ -127,19 +127,17 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-reset-email', {
-        body: { email: email.trim(), app_url: appBaseUrl },
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${appBaseUrl}/auth`,
       });
       if (error) {
-        console.error("send-reset-email error:", error);
-        toast.error("寄信失敗，請稍後再試");
-      } else if (data?.error) {
-        toast.error(data.error);
+        console.error("resetPasswordForEmail error:", error);
+        toast.error(mapAuthError(error.message));
       } else {
-        toast.success("重設密碼信已寄出，請到信箱查看（由 RICH系統 直接寄出）");
+        toast.success("重設密碼信已寄出，請到信箱查看");
       }
     } catch (err) {
-      console.error("send-reset-email error:", err);
+      console.error("resetPasswordForEmail error:", err);
       toast.error("寄信失敗，請稍後再試");
     }
     setLoading(false);
