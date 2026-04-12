@@ -126,7 +126,7 @@ export default function Auth() {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-reset-password-email", {
-        body: { email: email.trim(), app_url: appBaseUrl },
+        body: { email: email.trim() },
       });
       if (error) {
         console.error("send-reset-password-email error:", error);
