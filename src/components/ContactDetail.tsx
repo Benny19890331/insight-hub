@@ -661,10 +661,12 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
                       placeholder="互動內容⋯" rows={2} />
                     <div className="flex gap-1.5">
                       <button onClick={() => {
-                        const updated = [...(contact.interactions ?? [])];
-                        updated[i] = { date: editInteractionDate, summary: editInteractionSummary };
-                        if (onUpdateContact) onUpdateContact({ ...contact, interactions: updated });
+                        const item = (contact.interactions ?? [])[i];
+                        if (onUpdateInteraction && item?.id) {
+                          onUpdateInteraction(contact.id, { id: item.id, date: editInteractionDate, summary: editInteractionSummary });
+                        }
                         setEditingInteractionIdx(null);
+                        toast.success("互動紀錄已更新");
                       }} className="inline-flex items-center gap-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-md">
                         <Check className="h-3 w-3" />儲存
                       </button>
