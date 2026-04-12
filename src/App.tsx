@@ -25,9 +25,8 @@ function AuthRoute() {
   const { user, loading, recoveryMode } = useAuth();
   const params = new URLSearchParams(window.location.search);
   const isRecoveryLink = params.get("type") === "recovery" && !!params.get("token_hash");
-  const isCustomResetLink = !!params.get("reset_token");
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">載入中⋯</div>;
-  if (user && !recoveryMode && !isRecoveryLink && !isCustomResetLink) return <Navigate to="/" replace />;
+  if (user && !recoveryMode && !isRecoveryLink) return <Navigate to="/" replace />;
   return <Auth />;
 }
 
