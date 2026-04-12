@@ -48,8 +48,8 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [_customResetToken, _setCustomResetToken] = useState<string | null>(null);
-  const [customResetMode, _setCustomResetMode] = useState(false);
+  const [customResetToken, setCustomResetToken] = useState<string | null>(null);
+  const [customResetMode, setCustomResetMode] = useState(false);
   const [memberCode, setMemberCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -105,7 +105,18 @@ export default function Auth() {
     }
   }, []);
 
-  // Custom reset_token handling removed — now using built-in password reset
+  // Custom reset_token handling — read token from URL and enter reset mode
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resetToken = params.get("reset_token");
+    if (resetToken) {
+      setCustomResetToken(resetToken);
+      setCustomResetMode(true);
+      setPassword("");
+      setConfirmPassword("");
+      window.history.replaceState({}, "", "/auth");
+    }
+  }, []);
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
@@ -114,17 +125,19 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${appBaseUrl}/update-password`,
+      const { data, error } = await supabase.functions.invoke("send-reset-password-email", {
+        body: { email: email.trim(), app_url: appBaseUrl },
       });
       if (error) {
-        console.error("resetPasswordForEmail error:", error);
-        toast.error(mapAuthError(error.message));
+        console.error("send-reset-password-email error:", error);
+        toast.error("寄信失敗，請稍後再試");
+      } else if (data?.error) {
+        toast.error(data.error);
       } else {
         toast.success("重設密碼信已寄出，請到信箱查看");
       }
     } catch (err) {
-      console.error("resetPasswordForEmail error:", err);
+      console.error("send-reset-password-email error:", err);
       toast.error("寄信失敗，請稍後再試");
     }
     setLoading(false);
@@ -134,7 +147,40 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    // Custom reset mode removed — using built-in Supabase recovery mode only
+    // Custom reset token mode — call verify-reset-token edge function
+    if (customResetMode && customResetToken) {
+      if (password.length < 6) {
+        toast.error("密碼至少需要 6 個字元");
+        setLoading(false);
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("兩次輸入的密碼不一致");
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase.functions.invoke("verify-reset-token", {
+          body: { token: customResetToken, new_password: password },
+        });
+        if (error) {
+          toast.error("系統錯誤，請稍後再試");
+        } else if (data?.error) {
+          toast.error(data.error);
+        } else {
+          toast.success("密碼已更新，請重新登入");
+          setCustomResetMode(false);
+          setCustomResetToken(null);
+          setIsLogin(true);
+          setPassword("");
+          setConfirmPassword("");
+        }
+      } catch (err) {
+        toast.error("系統錯誤，請稍後再試");
+      }
+      setLoading(false);
+      return;
+    }
 
     // Legacy Supabase recovery mode (kept for backward compat)
     if (recoveryMode) {
