@@ -246,7 +246,7 @@ export function useContacts() {
           merged++;
         } else {
           payload.name = c.name;
-          await supabase.from("contacts").insert({ ...payload, id: c.id, user_id: user.id });
+          await supabase.from("contacts").insert({ ...payload, name: c.name, id: c.id, user_id: user.id } as any);
           added++;
         }
       }
