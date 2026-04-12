@@ -125,17 +125,19 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/update-password`,
+      const { data, error } = await supabase.functions.invoke("send-reset-password-email", {
+        body: { email: email.trim(), app_url: appBaseUrl },
       });
       if (error) {
-        console.error("resetPasswordForEmail error:", error);
-        toast.error(error.message || "寄信失敗，請稍後再試");
+        console.error("send-reset-password-email error:", error);
+        toast.error("寄信失敗，請稍後再試");
+      } else if (data?.error) {
+        toast.error(data.error);
       } else {
         toast.success("重設密碼信已寄出，請到信箱查看");
       }
     } catch (err) {
-      console.error("resetPasswordForEmail error:", err);
+      console.error("send-reset-password-email error:", err);
       toast.error("寄信失敗，請稍後再試");
     }
     setLoading(false);

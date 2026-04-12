@@ -109,13 +109,19 @@ export default function AdminDashboard() {
     setToggling(null);
   };
 
-  const sendResetPasswordEmail = async (_targetUserId: string, targetEmail: string) => {
-    setToggling(_targetUserId);
+  const sendResetPasswordEmail = async (targetUserId: string, targetEmail: string) => {
+    setToggling(targetUserId);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
-        redirectTo: `${window.location.origin}/update-password`,
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: {
+          action: "send_password_reset_email",
+          targetUserId,
+          targetEmail,
+          redirectTo: `${appBaseUrl}/auth`,
+        },
       });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       toast.success("已寄送重設密碼信");
     } catch (err: any) {
       toast.error(err.message || "寄送失敗");
