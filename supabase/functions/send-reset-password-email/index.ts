@@ -175,8 +175,9 @@ Deno.serve(async (req) => {
       expires_at: expiresAt,
     })
 
-    // Always use the preview URL to avoid Lovable auth-bridge redirects
-    const baseUrl = 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
+    const normalizedAppUrl = typeof app_url === 'string' ? app_url.trim().replace(/\/$/, '') : ''
+    const fallbackUrl = 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
+    const baseUrl = normalizedAppUrl || fallbackUrl
     const confirmationURL = `${baseUrl}/auth?reset_token=${token}`
 
     const emailHtml = `<div style="font-family: sans-serif;">
