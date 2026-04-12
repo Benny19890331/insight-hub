@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     const client = new SMTPClient({
       connection: {
         hostname: 'smtp.gmail.com',
-        port: 587,
+        port: 465,
         tls: true,
         auth: {
           username: GMAIL_USER,
