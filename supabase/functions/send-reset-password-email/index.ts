@@ -10,11 +10,9 @@ const textDecoder = new TextDecoder()
 const toBase64 = (value: string) => {
   const bytes = textEncoder.encode(value)
   let binary = ''
-
   for (const byte of bytes) {
     binary += String.fromCharCode(byte)
   }
-
   return btoa(binary)
 }
 
@@ -28,22 +26,14 @@ const wrapBase64 = (value: string, width = 76) => {
 const readSmtpResponse = async (conn: Deno.Conn) => {
   const buffer = new Uint8Array(1024)
   let response = ''
-
   while (true) {
     const read = await conn.read(buffer)
-    if (read === null) {
-      throw new Error(`SMTP connection closed unexpectedly: ${response}`)
-    }
-
+    if (read === null) throw new Error(`SMTP connection closed unexpectedly: ${response}`)
     response += textDecoder.decode(buffer.subarray(0, read), { stream: true })
     const lines = response.split('\r\n').filter(Boolean)
     const lastLine = lines.at(-1)
-
     if (lastLine && /^\d{3} /.test(lastLine)) {
-      return {
-        code: Number(lastLine.slice(0, 3)),
-        message: response,
-      }
+      return { code: Number(lastLine.slice(0, 3)), message: response }
     }
   }
 }
@@ -51,37 +41,19 @@ const readSmtpResponse = async (conn: Deno.Conn) => {
 const writeSmtpCommand = async (conn: Deno.Conn, command: string, expectedCodes: number[]) => {
   await conn.write(textEncoder.encode(`${command}\r\n`))
   const response = await readSmtpResponse(conn)
-
   if (!expectedCodes.includes(response.code)) {
     throw new Error(`SMTP command failed (${command}): ${response.message}`)
   }
-
   return response
 }
 
 const sendViaGmailSmtp = async ({
-  username,
-  password,
-  to,
-  subject,
-  html,
-}: {
-  username: string
-  password: string
-  to: string
-  subject: string
-  html: string
-}) => {
-  const conn = await Deno.connectTls({
-    hostname: 'smtp.gmail.com',
-    port: 465,
-  })
-
+  username, password, to, subject, html,
+}: { username: string; password: string; to: string; subject: string; html: string }) => {
+  const conn = await Deno.connectTls({ hostname: 'smtp.gmail.com', port: 465 })
   try {
     const greeting = await readSmtpResponse(conn)
-    if (greeting.code !== 220) {
-      throw new Error(`SMTP greeting failed: ${greeting.message}`)
-    }
+    if (greeting.code !== 220) throw new Error(`SMTP greeting failed: ${greeting.message}`)
 
     await writeSmtpCommand(conn, 'EHLO localhost', [250])
     await writeSmtpCommand(conn, 'AUTH LOGIN', [334])
@@ -91,31 +63,24 @@ const sendViaGmailSmtp = async ({
     await writeSmtpCommand(conn, `RCPT TO:<${to}>`, [250, 251])
     await writeSmtpCommand(conn, 'DATA', [354])
 
-    const encodedSubject = toMimeHeader(subject)
-    const encodedFromName = toMimeHeader('RICH系統')
-    const encodedHtml = wrapBase64(toBase64(html))
     const messageIdDomain = username.split('@')[1] || 'localhost'
     const mimeMessage = [
-      `From: ${encodedFromName} <${username}>`,
+      `From: ${toMimeHeader('RICH系統')} <${username}>`,
       `To: <${to}>`,
-      `Subject: ${encodedSubject}`,
+      `Subject: ${toMimeHeader(subject)}`,
       `Date: ${new Date().toUTCString()}`,
       `Message-ID: <${crypto.randomUUID()}@${messageIdDomain}>`,
       'MIME-Version: 1.0',
       'Content-Type: text/html; charset=UTF-8',
       'Content-Transfer-Encoding: base64',
       '',
-      encodedHtml,
+      wrapBase64(toBase64(html)),
       '.',
     ].join('\r\n')
 
     await conn.write(textEncoder.encode(`${mimeMessage}\r\n`))
-
     const deliveryResponse = await readSmtpResponse(conn)
-    if (deliveryResponse.code !== 250) {
-      throw new Error(`SMTP delivery failed: ${deliveryResponse.message}`)
-    }
-
+    if (deliveryResponse.code !== 250) throw new Error(`SMTP delivery failed: ${deliveryResponse.message}`)
     await writeSmtpCommand(conn, 'QUIT', [221])
   } finally {
     conn.close()
@@ -130,14 +95,13 @@ Deno.serve(async (req) => {
   try {
     const GMAIL_USER = Deno.env.get('GMAIL_USER')
     if (!GMAIL_USER) throw new Error('GMAIL_USER not configured')
-
     const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')
     if (!GMAIL_APP_PASSWORD) throw new Error('GMAIL_APP_PASSWORD not configured')
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    const { email, app_url } = await req.json()
+    const { email } = await req.json()
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ error: '請提供 Email' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -148,36 +112,36 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // Find user by email
-    const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers()
-    if (listErr) throw listErr
+    // Use Supabase native generateLink to get a proper recovery URL
+    const redirectTo = 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app/update-password'
 
-    const user = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
-    if (!user) {
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: email.trim(),
+      options: { redirectTo },
+    })
+
+    if (linkError) {
       // Don't reveal whether user exists
+      console.error('generateLink error:', linkError.message)
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Generate token
-    const token = crypto.randomUUID() + '-' + crypto.randomUUID()
-    const encoder = new TextEncoder()
-    const data = encoder.encode(token)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const tokenHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+    // Build the confirmation URL: extract token_hash and type from the generated link
+    // The generated link contains hashed_token and verification_type
+    const actionLink = linkData?.properties?.action_link
+    if (!actionLink) {
+      console.error('No action_link returned')
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
-
-    await supabase.from('password_reset_tokens').insert({
-      user_id: user.id,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
-    })
-
-    // Always use the preview URL to avoid Lovable auth-bridge redirects
-    const baseUrl = 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
-    const confirmationURL = `${baseUrl}/auth?reset_token=${token}`
+    // The action_link goes through Supabase's verify endpoint which then redirects.
+    // We'll use it directly — it will verify the token and redirect to /update-password
+    const confirmationURL = actionLink
 
     const emailHtml = `<div style="font-family: sans-serif;">
   <h2>重設密碼通知</h2>
@@ -195,7 +159,7 @@ Deno.serve(async (req) => {
     await sendViaGmailSmtp({
       username: GMAIL_USER,
       password: GMAIL_APP_PASSWORD,
-      to: email,
+      to: email.trim(),
       subject: '重設您的 RICH 系統密碼',
       html: emailHtml,
     })
