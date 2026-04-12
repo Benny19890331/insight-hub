@@ -26,23 +26,13 @@ serve(async (req) => {
     const { contact_id } = await req.json();
     if (!contact_id) throw new Error("Missing contact_id");
 
-    // Fetch contact
-    const { data: contact, error: cErr } = await supabase
-      .from("contacts")
-      .select("*")
-      .eq("id", contact_id)
-      .eq("user_id", user.id)
-      .single();
-    if (cErr || !contact) throw new Error("Contact not found");
-
-    // Fetch interactions
-    const { data: interactions } = await supabase
-      .from("interactions")
-      .select("date, summary")
-      .eq("contact_id", contact_id)
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(50);
+    // Fetch contact & interactions in parallel
+    const [contactRes, interactionsRes] = await Promise.all([
+      supabase.from("contacts").select("name,nickname,region,background,statuses,heat,product_tags,notes,gender,last_contact_date").eq("id", contact_id).eq("user_id", user.id).single(),
+      supabase.from("interactions").select("date, summary").eq("contact_id", contact_id).eq("user_id", user.id).order("date", { ascending: false }).limit(20),
+    ]);
+    if (contactRes.error || !contactRes.data) throw new Error("Contact not found");
+    const contact = contactRes.data;
 
     const contactData = {
       name: contact.name,
