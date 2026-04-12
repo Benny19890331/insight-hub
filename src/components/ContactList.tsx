@@ -82,13 +82,15 @@ export function ContactList({
   };
 
   const filtered = useMemo(() => contacts.filter((c) => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch = !searchQuery ||
-      c.name.includes(searchQuery) ||
-      (c.nickname ?? "").includes(searchQuery) ||
-      c.region.includes(searchQuery) ||
-      (c.statuses ?? []).some((s) => s.includes(searchQuery)) ||
-      (c.productTags ?? []).some((t) => t.includes(searchQuery)) ||
-      (c.notes ?? "").includes(searchQuery);
+      c.name.toLowerCase().includes(q) ||
+      (c.nickname ?? "").toLowerCase().includes(q) ||
+      c.region.toLowerCase().includes(q) ||
+      (c.background ?? "").toLowerCase().includes(q) ||
+      (c.statuses ?? []).some((s) => s.toLowerCase().includes(q)) ||
+      (c.productTags ?? []).some((t) => t.toLowerCase().includes(q)) ||
+      (c.notes ?? "").toLowerCase().includes(q);
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
     return matchesSearch && matchesHeat && matchesProduct;
@@ -113,7 +115,7 @@ export function ContactList({
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${t.mutedText}`} />
           <input
             type="text"
-            placeholder="搜尋姓名、綽號、地區、狀態、標籤⋯"
+            placeholder="搜尋姓名、綽號、地區、背景、狀態、標籤⋯"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
