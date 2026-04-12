@@ -99,6 +99,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       });
   }, [contact?.id]);
 
+  const referrerChain = useMemo(() => contact ? getReferrerChain(contact, contacts, 3) : [], [contact, contacts]);
+  const contactDownlines = useMemo(() => contact ? contacts.filter(c => c.referrerId === contact.id) : [], [contacts, contact?.id]);
+
   if (!contact) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
@@ -125,9 +128,6 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       onUpdateContact(updated);
     }
   };
-
-  const referrerChain = useMemo(() => getReferrerChain(contact, contacts, 3), [contact, contacts]);
-  const contactDownlines = useMemo(() => contacts.filter(c => c.referrerId === contact.id), [contacts, contact.id]);
 
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
