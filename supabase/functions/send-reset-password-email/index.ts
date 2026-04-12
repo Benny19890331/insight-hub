@@ -61,30 +61,18 @@ Deno.serve(async (req) => {
     const baseUrl = app_url || 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
     const confirmationURL = `${baseUrl}/auth?reset_token=${token}`
 
-    const emailHtml = `<!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>重設密碼</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px; margin: 0;">
-<div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-  <h2 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">重設密碼通知</h2>
-  <p style="color: #555; font-size: 14px; line-height: 1.6;">您好，</p>
-  <p style="color: #555; font-size: 14px; line-height: 1.6;">我們收到一筆重設密碼的請求。</p>
-  <p style="color: #555; font-size: 14px; line-height: 1.6;">請點擊下方按鈕，設定新的登入密碼：</p>
-  <p style="text-align: center;">
-    <a href="${confirmationURL}" style="display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">立即重設密碼</a>
-  </p>
-  <p style="color: #999; font-size: 12px; line-height: 1.6;">如果按鈕無法點擊，請複製以下連結到瀏覽器開啟：</p>
-  <p style="word-break:break-all; color: #2563eb; font-size: 12px;">${confirmationURL}</p>
-  <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-  <p style="color:#666;font-size:13px;line-height:1.6;">如果這不是您本人操作，請忽略此信件，您的帳號不會被變更。<br/>為了安全，重設連結會在一段時間後失效。</p>
-  <p style="margin-top:20px;color:#333;font-size:14px;">RICH系統 敬上</p>
-</div>
-</body>
-</html>`
+    const emailHtml = `<div style="font-family: sans-serif;">
+  <h2>重設密碼通知</h2>
+  <p>您好，我們收到一筆重設密碼的請求。</p>
+  <p>請點選下方連結來設定您的新密碼：</p>
+  <p><a href="${confirmationURL}" style="display:inline-block; padding:10px 20px; background-color:#2563eb; color:#ffffff; text-decoration:none; border-radius:5px;">立即重設密碼</a></p>
+  <br>
+  <p>如果按鈕失效，請複製此網址到瀏覽器：</p>
+  <p>${confirmationURL}</p>
+  <hr>
+  <p style="font-size:12px; color:#666;">這是系統自動發送的信件，請勿直接回覆。</p>
+  <p>RICH系統 敬上</p>
+</div>`
 
     const client = new SMTPClient({
       connection: {
