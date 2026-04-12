@@ -38,7 +38,7 @@ interface DbInteraction {
   summary: string;
 }
 
-function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>): Contact {
+function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>, insightTagsMap: Map<string, string[]>): Contact {
   const interactions = interactionMap.get(db.id) ?? [];
   return {
     id: db.id,
@@ -63,6 +63,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     gender: (db.gender as Gender) ?? "",
     interactions: interactions.map((i) => ({ date: i.date, summary: i.summary })),
     productTags: db.product_tags ?? [],
+    insightTags: insightTagsMap.get(db.id) ?? [],
   };
 }
 
@@ -132,7 +133,7 @@ export function useContacts() {
     if (!user) { setContacts([]); setLoading(false); return; }
     setLoading(true);
     try {
-      const [allContacts, allInteractions] = await Promise.all([
+      const [allContacts, allInteractions, allInsights] = await Promise.all([
         fetchPaginated<DbContact>(
           (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).range(from, to) as any,
           MAX_CONTACTS
@@ -141,6 +142,7 @@ export function useContacts() {
           (from, to) => supabase.from("interactions").select("*").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
           MAX_INTERACTIONS
         ),
+        supabase.from("contact_insights").select("contact_id, tags").eq("user_id", user.id).then(({ data }) => data ?? []) as Promise<{ contact_id: string; tags: string[] }[]>,
       ]);
 
       const interactionMap = new Map<string, DbInteraction[]>();
@@ -150,7 +152,12 @@ export function useContacts() {
         interactionMap.set(i.contact_id, arr);
       }
 
-      setContacts(allContacts.map((c) => dbToContact(c, interactionMap)));
+      const insightTagsMap = new Map<string, string[]>();
+      for (const ins of allInsights) {
+        insightTagsMap.set(ins.contact_id, ins.tags ?? []);
+      }
+
+      setContacts(allContacts.map((c) => dbToContact(c, interactionMap, insightTagsMap)));
     } catch {
       toast.error("載入資料失敗");
     }

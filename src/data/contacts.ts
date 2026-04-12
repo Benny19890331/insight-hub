@@ -62,6 +62,7 @@ export interface Contact {
   referrerName?: string;
   birthday?: string;
   birthdayReminder?: BirthdayReminder;
+  insightTags?: string[];
 }
 
 export const heatOptions: { value: HeatLevel | "all"; label: string }[] = [
