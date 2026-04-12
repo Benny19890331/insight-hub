@@ -40,15 +40,7 @@ const mapAuthError = (message: string) => {
   return message;
 };
 
-const resetPasswordRedirectUrl = (() => {
-  const origin = window.location.origin.replace(/\/$/, "");
-
-  if (origin.includes("lovableproject.com")) {
-    return "https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app/update-password";
-  }
-
-  return `${origin}/update-password`;
-})();
+const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || window.location.origin).replace(/\/$/, "");
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -131,21 +123,21 @@ export default function Auth() {
       toast.error("請先輸入 Email");
       return;
     }
-
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: resetPasswordRedirectUrl,
+      const { data, error } = await supabase.functions.invoke("send-reset-password-email", {
+        body: { email: email.trim(), app_url: appBaseUrl },
       });
-
       if (error) {
-        console.error("resetPasswordForEmail error:", error);
-        toast.error(mapAuthError(error.message));
+        console.error("send-reset-password-email error:", error);
+        toast.error("寄信失敗，請稍後再試");
+      } else if (data?.error) {
+        toast.error(data.error);
       } else {
         toast.success("重設密碼信已寄出，請到信箱查看");
       }
     } catch (err) {
-      console.error("resetPasswordForEmail error:", err);
+      console.error("send-reset-password-email error:", err);
       toast.error("寄信失敗，請稍後再試");
     }
     setLoading(false);
