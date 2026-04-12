@@ -82,13 +82,15 @@ export function ContactList({
   };
 
   const filtered = useMemo(() => contacts.filter((c) => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch = !searchQuery ||
-      c.name.includes(searchQuery) ||
-      (c.nickname ?? "").includes(searchQuery) ||
-      c.region.includes(searchQuery) ||
-      (c.statuses ?? []).some((s) => s.includes(searchQuery)) ||
-      (c.productTags ?? []).some((t) => t.includes(searchQuery)) ||
-      (c.notes ?? "").includes(searchQuery);
+      c.name.toLowerCase().includes(q) ||
+      (c.nickname ?? "").toLowerCase().includes(q) ||
+      c.region.toLowerCase().includes(q) ||
+      (c.background ?? "").toLowerCase().includes(q) ||
+      (c.statuses ?? []).some((s) => s.toLowerCase().includes(q)) ||
+      (c.productTags ?? []).some((t) => t.toLowerCase().includes(q)) ||
+      (c.notes ?? "").toLowerCase().includes(q);
     const matchesHeat = heatFilter === "all" || c.heat === heatFilter;
     const matchesProduct = !productFilter || (c.productTags ?? []).includes(productFilter);
     return matchesSearch && matchesHeat && matchesProduct;
