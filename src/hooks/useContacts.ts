@@ -209,13 +209,26 @@ export function useContacts() {
     await fetchContacts();
   }, [user, fetchContacts]);
 
+  const updateInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
+    if (!user || !interaction.id) return;
+    const { error } = await supabase.from("interactions").update({
+      date: interaction.date, summary: interaction.summary,
+    }).eq("id", interaction.id).eq("user_id", user.id);
+    if (error) { toast.error("更新互動失敗"); return; }
+    await fetchContacts();
+  }, [user, fetchContacts]);
+
   const deleteInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
-    const { data } = await supabase.from("interactions")
-      .select("id").eq("contact_id", contactId).eq("user_id", user.id)
-      .eq("date", interaction.date).eq("summary", interaction.summary).limit(1);
-    if (data && data.length > 0) {
-      await supabase.from("interactions").delete().eq("id", data[0].id);
+    if (interaction.id) {
+      await supabase.from("interactions").delete().eq("id", interaction.id).eq("user_id", user.id);
+    } else {
+      const { data } = await supabase.from("interactions")
+        .select("id").eq("contact_id", contactId).eq("user_id", user.id)
+        .eq("date", interaction.date).eq("summary", interaction.summary).limit(1);
+      if (data && data.length > 0) {
+        await supabase.from("interactions").delete().eq("id", data[0].id);
+      }
     }
     await fetchContacts();
   }, [user, fetchContacts]);
