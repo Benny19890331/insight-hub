@@ -23,6 +23,35 @@ const getPasswordStrength = (pwd: string) => {
   return { label: "強", color: "text-green-400" };
 };
 
+const getRecoveryParams = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const read = (key: string) => searchParams.get(key) ?? hashParams.get(key);
+
+  return {
+    accessToken: read("access_token"),
+    refreshToken: read("refresh_token"),
+    tokenHash: read("token_hash"),
+    type: read("type"),
+    code: read("code"),
+    error: read("error"),
+    errorDescription: read("error_description"),
+  };
+};
+
+const clearRecoveryParams = () => {
+  window.history.replaceState({}, document.title, window.location.pathname);
+};
+
+const getRecoveryErrorMessage = (raw?: string | null) => {
+  if (!raw) return "重設連結已過期或無效，請重新申請。";
+
+  const normalized = decodeURIComponent(raw).replace(/\+/g, " ");
+  if (normalized.toLowerCase().includes("expired")) return "重設連結已過期，請重新申請。";
+  if (normalized.toLowerCase().includes("invalid")) return "重設連結無效，請重新申請。";
+  return normalized;
+};
+
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,24 +65,76 @@ export default function UpdatePassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // When user clicks the reset link, Supabase automatically exchanges the token
-    // and creates a session. We listen for PASSWORD_RECOVERY or check existing session.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    let active = true;
+
+    const finishVerification = (valid: boolean, errorMessage?: string) => {
+      if (!active) return;
+      setHasSession(valid);
+      setVerifying(false);
+      if (errorMessage) {
+        toast.error(errorMessage);
+      }
+    };
+
+    const bootstrapRecoverySession = async () => {
+      const { accessToken, refreshToken, tokenHash, type, code, error, errorDescription } = getRecoveryParams();
+
+      if (error || errorDescription) {
+        clearRecoveryParams();
+        finishVerification(false, getRecoveryErrorMessage(errorDescription || error));
+        return;
+      }
+
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        clearRecoveryParams();
+        finishVerification(!sessionError, sessionError ? getRecoveryErrorMessage(sessionError.message) : undefined);
+        return;
+      }
+
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+        clearRecoveryParams();
+        finishVerification(!exchangeError, exchangeError ? getRecoveryErrorMessage(exchangeError.message) : undefined);
+        return;
+      }
+
+      if (tokenHash && type === "recovery") {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "recovery",
+        });
+
+        clearRecoveryParams();
+        finishVerification(!verifyError, verifyError ? getRecoveryErrorMessage(verifyError.message) : undefined);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      finishVerification(!!session);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+        clearRecoveryParams();
         setHasSession(true);
         setVerifying(false);
       }
     });
 
-    // Also check if session already exists
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setHasSession(true);
-      }
-      setVerifying(false);
-    });
+    bootstrapRecoverySession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
