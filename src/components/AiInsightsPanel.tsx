@@ -144,7 +144,11 @@ export function AiInsightsPanel({ contact }: Props) {
                   <Copy className="h-3 w-3" />複製
                 </button>
               </div>
-              <p className="text-sm leading-relaxed text-foreground/90">{insights.summary}</p>
+              <div className="text-sm leading-relaxed text-foreground/90 space-y-2">
+                {insights.summary.split(/\n\n|\n/).filter(Boolean).map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
             </div>
 
             {/* Tags */}
