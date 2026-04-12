@@ -5,6 +5,10 @@ const corsHeaders = {
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
+const encodeMimeWord = (value: string) => `=?UTF-8?B?${btoa(new TextEncoder().encode(value).reduce((acc, byte) => acc + String.fromCharCode(byte), ''))}?=`
+
+const encodeBase64Utf8 = (value: string) => btoa(new TextEncoder().encode(value).reduce((acc, byte) => acc + String.fromCharCode(byte), ''))
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -86,12 +90,24 @@ Deno.serve(async (req) => {
       },
     })
 
+    const encodedSubject = encodeMimeWord('重設您的 RICH 系統密碼')
+    const encodedFromName = encodeMimeWord('RICH系統')
+    const htmlBody = [
+      'MIME-Version: 1.0',
+      `From: ${encodedFromName} <${GMAIL_USER}>`,
+      `To: ${email}`,
+      `Subject: ${encodedSubject}`,
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      encodeBase64Utf8(emailHtml),
+    ].join('\r\n')
+
     await client.send({
-      from: `RICH <${GMAIL_USER}>`,
+      from: `${encodedFromName} <${GMAIL_USER}>`,
       to: email,
-      subject: '=?UTF-8?B?' + btoa(unescape(encodeURIComponent('重設您的 RICH 系統密碼'))) + '?=',
-      content: 'Please view this email in an HTML-capable client.',
-      html: emailHtml,
+      subject: encodedSubject,
+      content: htmlBody,
     })
 
     await client.close()
