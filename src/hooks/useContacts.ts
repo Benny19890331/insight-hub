@@ -66,9 +66,35 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
   };
 }
 
+function contactToDbPayload(c: Contact) {
+  return {
+    name: c.name,
+    nickname: c.nickname || null,
+    member_id: c.memberId || null,
+    region: c.region,
+    background: c.background,
+    statuses: c.statuses,
+    heat: c.heat,
+    notes: c.notes,
+    last_contact_date: c.lastContactDate,
+    next_follow_up_date: c.nextFollowUpDate || null,
+    next_follow_up_note: c.nextFollowUpNote || null,
+    next_follow_up_time: c.nextFollowUpTime || null,
+    contact_method: c.contactMethod || null,
+    avatar_url: c.avatarUrl || null,
+    referrer_id: c.referrerId || null,
+    referrer_name: c.referrerName || null,
+    birthday: c.birthday || null,
+    birthday_reminder: c.birthdayReminder || "none",
+    gender: c.gender || null,
+    product_tags: c.productTags,
+  };
+}
+
 const PAGE_SIZE = 1000;
 const MAX_CONTACTS = 3000;
 const MAX_INTERACTIONS = 10000;
+const PARALLEL_BATCH = 10; // concurrent DB operations
 
 async function fetchPaginated<T>(
   queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>,
@@ -84,6 +110,17 @@ async function fetchPaginated<T>(
     from += PAGE_SIZE;
   }
   return all;
+}
+
+/** Run an array of async tasks with concurrency limit */
+async function runParallel<T>(tasks: (() => Promise<T>)[], concurrency: number): Promise<T[]> {
+  const results: T[] = [];
+  for (let i = 0; i < tasks.length; i += concurrency) {
+    const batch = tasks.slice(i, i + concurrency);
+    const batchResults = await Promise.all(batch.map((fn) => fn()));
+    results.push(...batchResults);
+  }
+  return results;
 }
 
 export function useContacts() {
@@ -113,8 +150,7 @@ export function useContacts() {
         interactionMap.set(i.contact_id, arr);
       }
 
-      const mapped = allContacts.map((c) => dbToContact(c, interactionMap));
-      setContacts(mapped);
+      setContacts(allContacts.map((c) => dbToContact(c, interactionMap)));
     } catch {
       toast.error("載入資料失敗");
     }
@@ -125,23 +161,9 @@ export function useContacts() {
 
   const addContact = useCallback(async (contact: Contact) => {
     if (!user) return;
+    const payload = contactToDbPayload(contact);
     const { error } = await supabase.from("contacts").insert({
-      id: contact.id, user_id: user.id, name: contact.name,
-      nickname: contact.nickname || null, member_id: contact.memberId || null,
-      region: contact.region, background: contact.background,
-      statuses: contact.statuses, heat: contact.heat, notes: contact.notes,
-      last_contact_date: contact.lastContactDate,
-      next_follow_up_date: contact.nextFollowUpDate || null,
-      next_follow_up_note: contact.nextFollowUpNote || null,
-      next_follow_up_time: contact.nextFollowUpTime || null,
-      contact_method: contact.contactMethod || null,
-      avatar_url: contact.avatarUrl || null,
-      referrer_id: contact.referrerId || null,
-      referrer_name: contact.referrerName || null,
-      birthday: contact.birthday || null,
-      birthday_reminder: contact.birthdayReminder || "none",
-      gender: contact.gender || null,
-      product_tags: contact.productTags,
+      ...payload, id: contact.id, user_id: user.id,
     });
     if (error) { toast.error("新增失敗"); return; }
     if (contact.interactions?.length) {
@@ -156,24 +178,8 @@ export function useContacts() {
 
   const updateContact = useCallback(async (contact: Contact) => {
     if (!user) return;
-    const { error } = await supabase.from("contacts").update({
-      name: contact.name, nickname: contact.nickname || null,
-      member_id: contact.memberId || null, region: contact.region,
-      background: contact.background, statuses: contact.statuses,
-      heat: contact.heat, notes: contact.notes,
-      last_contact_date: contact.lastContactDate,
-      next_follow_up_date: contact.nextFollowUpDate || null,
-      next_follow_up_note: contact.nextFollowUpNote || null,
-      next_follow_up_time: contact.nextFollowUpTime || null,
-      contact_method: contact.contactMethod || null,
-      avatar_url: contact.avatarUrl || null,
-      referrer_id: contact.referrerId || null,
-      referrer_name: contact.referrerName || null,
-      birthday: contact.birthday || null,
-      birthday_reminder: contact.birthdayReminder || "none",
-      gender: contact.gender || null,
-      product_tags: contact.productTags,
-    }).eq("id", contact.id).eq("user_id", user.id);
+    const { error } = await supabase.from("contacts").update(contactToDbPayload(contact))
+      .eq("id", contact.id).eq("user_id", user.id);
     if (error) { toast.error("更新失敗"); return; }
     await fetchContacts();
   }, [user, fetchContacts]);
@@ -221,36 +227,40 @@ export function useContacts() {
 
     let merged = 0;
     let added = 0;
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < imported.length; i += BATCH_SIZE) {
-      const batch = imported.slice(i, i + BATCH_SIZE);
-      for (const c of batch) {
-        const memberMatch = c.memberId ? existingByMemberId.get(c.memberId) : null;
-        const nameMatch = existingByName.get(c.name) || null;
-        const matchId = memberMatch || nameMatch;
-        const payload: Record<string, any> = {
-          nickname: c.nickname || null, member_id: c.memberId || null,
-          region: c.region, background: c.background, statuses: c.statuses,
-          heat: c.heat, notes: c.notes, last_contact_date: c.lastContactDate,
-          next_follow_up_date: c.nextFollowUpDate || null,
-          contact_method: c.contactMethod || null,
-          birthday: c.birthday || null, birthday_reminder: c.birthdayReminder || "none",
-          product_tags: c.productTags,
-        };
-        if (matchId) {
-          // Only overwrite name when matched by name (same name) or when CSV name is non-empty and match was by memberId with no existing name conflict
-          if (!memberMatch) {
-            payload.name = c.name;
-          }
+
+    // Build all tasks first, then run in parallel batches
+    const tasks: (() => Promise<void>)[] = [];
+
+    for (const c of imported) {
+      const memberMatch = c.memberId ? existingByMemberId.get(c.memberId) : null;
+      const nameMatch = existingByName.get(c.name) || null;
+      const matchId = memberMatch || nameMatch;
+      const payload: Record<string, any> = {
+        nickname: c.nickname || null, member_id: c.memberId || null,
+        region: c.region, background: c.background, statuses: c.statuses,
+        heat: c.heat, notes: c.notes, last_contact_date: c.lastContactDate,
+        next_follow_up_date: c.nextFollowUpDate || null,
+        contact_method: c.contactMethod || null,
+        birthday: c.birthday || null, birthday_reminder: c.birthdayReminder || "none",
+        product_tags: c.productTags,
+      };
+      if (matchId) {
+        if (!memberMatch) payload.name = c.name;
+        tasks.push(async () => {
           await supabase.from("contacts").update(payload).eq("id", matchId).eq("user_id", user.id);
-          merged++;
-        } else {
-          payload.name = c.name;
+        });
+        merged++;
+      } else {
+        payload.name = c.name;
+        tasks.push(async () => {
           await supabase.from("contacts").insert({ ...payload, name: c.name, id: c.id, user_id: user.id } as any);
-          added++;
-        }
+        });
+        added++;
       }
     }
+
+    await runParallel(tasks, PARALLEL_BATCH);
+
     if (merged > 0) { toast.success(`已合併 ${merged} 筆重複名單，新增 ${added} 筆`); }
     await fetchContacts();
   }, [user, fetchContacts]);
@@ -287,65 +297,78 @@ export function useContacts() {
     }
 
     const idsToDelete: string[] = [];
-    const transferPairs: Array<{ from: string; to: string }> = [];
+    // Collect all merge operations to run in parallel
+    const mergeTasks: (() => Promise<void>)[] = [];
+    const transferTasks: (() => Promise<void>)[] = [];
+    const insightPairs: Array<{ from: string; to: string }> = [];
 
+    // Process member ID groups
     for (const [_, group] of byBaseMemberId) {
-      if (group.length > 1) {
-        // Sort: -001 suffix first (primary), then by created_at ascending
-        group.sort((a, b) => {
-          const aIs001 = a.member_id?.endsWith('-001') ? 0 : 1;
-          const bIs001 = b.member_id?.endsWith('-001') ? 0 : 1;
-          if (aIs001 !== bIs001) return aIs001 - bIs001;
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (group.length <= 1) continue;
+      group.sort((a, b) => {
+        const aIs001 = a.member_id?.endsWith('-001') ? 0 : 1;
+        const bIs001 = b.member_id?.endsWith('-001') ? 0 : 1;
+        if (aIs001 !== bIs001) return aIs001 - bIs001;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+
+      const primary = group[0];
+      const newest = group[group.length - 1];
+      const allMemberIds = group.map(c => c.member_id).filter(Boolean).join(', ');
+
+      const merged = {
+        ...primary,
+        ...newest,
+        id: primary.id,
+        member_id: primary.member_id,
+        notes: primary.notes
+          ? `${primary.notes}\n[多經營權: ${allMemberIds}]`
+          : `[多經營權: ${allMemberIds}]`,
+      };
+
+      mergeTasks.push(async () => {
+        await supabase.from("contacts").update(merged).eq("id", primary.id);
+      });
+
+      for (let i = 1; i < group.length; i++) {
+        const dupId = group[i].id;
+        idsToDelete.push(dupId);
+        transferTasks.push(async () => {
+          await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", dupId).eq("user_id", user.id);
         });
-
-        const primary = group[0]; // -001 if exists, otherwise oldest
-        const newest = group[group.length - 1];
-        const allMemberIds = group.map(c => c.member_id).filter(Boolean).join(', ');
-
-        // Merge: keep primary's core info, fill blanks from newest, append multi-ID note
-        const merged = {
-          ...primary,
-          ...newest,
-          id: primary.id,
-          member_id: primary.member_id,
-          notes: primary.notes
-            ? `${primary.notes}\n[多經營權: ${allMemberIds}]`
-            : `[多經營權: ${allMemberIds}]`,
-        };
-
-        await supabase.from("contacts").update(merged).eq("id", primary.id);
-
-        // Re-assign interactions from duplicates to primary
-        for (let i = 1; i < group.length; i++) {
-          await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", group[i].id);
-          idsToDelete.push(group[i].id);
-          transferPairs.push({ from: group[i].id, to: primary.id });
-          transferPairs.push({ from: group[i].id, to: primary.id });
-        }
+        insightPairs.push({ from: dupId, to: primary.id });
       }
     }
 
+    // Process name groups
     for (const [_, group] of byName) {
-      if (group.length > 1) {
-        const primary = group[0];
-        const newest = group[group.length - 1];
-        const merged = { ...primary, ...newest, id: primary.id };
+      if (group.length <= 1) continue;
+      const primary = group[0];
+      const newest = group[group.length - 1];
+      const merged = { ...primary, ...newest, id: primary.id };
 
+      mergeTasks.push(async () => {
         await supabase.from("contacts").update(merged).eq("id", primary.id);
+      });
 
-        for (let i = 1; i < group.length; i++) {
-          await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", group[i].id);
-          idsToDelete.push(group[i].id);
-          transferPairs.push({ from: group[i].id, to: primary.id });
-        }
+      for (let i = 1; i < group.length; i++) {
+        const dupId = group[i].id;
+        idsToDelete.push(dupId);
+        transferTasks.push(async () => {
+          await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", dupId).eq("user_id", user.id);
+        });
+        insightPairs.push({ from: dupId, to: primary.id });
       }
     }
 
+    // Phase 1: Update primary contacts (parallel)
+    await runParallel(mergeTasks, PARALLEL_BATCH);
 
-    for (const pair of transferPairs) {
-      await supabase.from("interactions").update({ contact_id: pair.to }).eq("contact_id", pair.from).eq("user_id", user.id);
+    // Phase 2: Transfer interactions (parallel)
+    await runParallel(transferTasks, PARALLEL_BATCH);
 
+    // Phase 3: Merge insights (parallel)
+    const insightTasks = insightPairs.map((pair) => async () => {
       const { data: secondaryInsight } = await supabase
         .from("contact_insights")
         .select("id, summary, tags, next_action")
@@ -353,26 +376,28 @@ export function useContacts() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (secondaryInsight) {
-        const { data: primaryInsight } = await supabase
-          .from("contact_insights")
-          .select("id, summary, tags, next_action")
-          .eq("contact_id", pair.to)
-          .eq("user_id", user.id)
-          .maybeSingle();
+      if (!secondaryInsight) return;
 
-        if (primaryInsight) {
-          const mergedTags = Array.from(new Set([...(primaryInsight.tags || []), ...(secondaryInsight.tags || [])]));
-          const mergedSummary = [primaryInsight.summary, secondaryInsight.summary].filter(Boolean).join("\n");
-          const mergedNext = primaryInsight.next_action || secondaryInsight.next_action || "";
-          await supabase.from("contact_insights").update({ summary: mergedSummary, tags: mergedTags, next_action: mergedNext }).eq("id", primaryInsight.id);
-          await supabase.from("contact_insights").delete().eq("id", secondaryInsight.id);
-        } else {
-          await supabase.from("contact_insights").update({ contact_id: pair.to }).eq("id", secondaryInsight.id);
-        }
+      const { data: primaryInsight } = await supabase
+        .from("contact_insights")
+        .select("id, summary, tags, next_action")
+        .eq("contact_id", pair.to)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (primaryInsight) {
+        const mergedTags = Array.from(new Set([...(primaryInsight.tags || []), ...(secondaryInsight.tags || [])]));
+        const mergedSummary = [primaryInsight.summary, secondaryInsight.summary].filter(Boolean).join("\n");
+        const mergedNext = primaryInsight.next_action || secondaryInsight.next_action || "";
+        await supabase.from("contact_insights").update({ summary: mergedSummary, tags: mergedTags, next_action: mergedNext }).eq("id", primaryInsight.id);
+        await supabase.from("contact_insights").delete().eq("id", secondaryInsight.id);
+      } else {
+        await supabase.from("contact_insights").update({ contact_id: pair.to }).eq("id", secondaryInsight.id);
       }
-    }
+    });
+    await runParallel(insightTasks, PARALLEL_BATCH);
 
+    // Phase 4: Batch delete duplicates
     if (idsToDelete.length > 0) {
       for (let i = 0; i < idsToDelete.length; i += 100) {
         const batch = idsToDelete.slice(i, i + 100);
