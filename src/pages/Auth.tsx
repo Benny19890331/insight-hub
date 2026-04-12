@@ -127,13 +127,13 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/send-reset-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), app_url: appBaseUrl }),
+      const { data, error } = await supabase.functions.invoke('send-reset-email', {
+        body: { email: email.trim(), app_url: appBaseUrl },
       });
-      const data = await res.json();
-      if (data.error) {
+      if (error) {
+        console.error("send-reset-email error:", error);
+        toast.error("寄信失敗，請稍後再試");
+      } else if (data?.error) {
         toast.error(data.error);
       } else {
         toast.success("重設密碼信已寄出，請到信箱查看（由 RICH系統 直接寄出）");
