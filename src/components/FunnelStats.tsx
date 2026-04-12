@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Contact } from "@/data/contacts";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -7,11 +8,16 @@ interface FunnelStatsProps {
 
 export function FunnelStats({ contacts }: FunnelStatsProps) {
   const { theme: t } = useTheme();
-  const total = contacts.length;
-  const hot = contacts.filter((c) => c.heat === "hot").length;
-  const warm = contacts.filter((c) => c.heat === "warm").length;
-  const loyal = contacts.filter((c) => c.heat === "loyal").length;
-  const cold = contacts.filter((c) => c.heat === "cold").length;
+  const { total, hot, warm, loyal, cold } = useMemo(() => {
+    let hot = 0, warm = 0, loyal = 0, cold = 0;
+    for (const c of contacts) {
+      if (c.heat === "hot") hot++;
+      else if (c.heat === "warm") warm++;
+      else if (c.heat === "loyal") loyal++;
+      else cold++;
+    }
+    return { total: contacts.length, hot, warm, loyal, cold };
+  }, [contacts]);
 
   return (
     <div className="px-4 pt-4 pb-2">

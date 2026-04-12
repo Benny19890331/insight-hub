@@ -99,6 +99,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       });
   }, [contact?.id]);
 
+  const referrerChain = useMemo(() => contact ? getReferrerChain(contact, contacts, 3) : [], [contact, contacts]);
+  const contactDownlines = useMemo(() => contact ? contacts.filter(c => c.referrerId === contact.id) : [], [contacts, contact?.id]);
+
   if (!contact) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
@@ -125,8 +128,6 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       onUpdateContact(updated);
     }
   };
-
-  const referrerChain = getReferrerChain(contact, contacts, 3);
 
   return (
     <div className="p-6 space-y-6 h-full overflow-y-auto">
@@ -261,7 +262,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
         {/* Downline / referrals */}
         {(() => {
-          const downlines = contacts.filter(c => c.referrerId === contact.id);
+          const downlines = contactDownlines;
           return (
             <div className="flex gap-3 items-start">
               <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBoxClass}`}>
