@@ -48,8 +48,8 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [_customResetToken, _setCustomResetToken] = useState<string | null>(null);
-  const [customResetMode, _setCustomResetMode] = useState(false);
+  const [customResetToken, setCustomResetToken] = useState<string | null>(null);
+  const [customResetMode, setCustomResetMode] = useState(false);
   const [memberCode, setMemberCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
