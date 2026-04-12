@@ -413,7 +413,7 @@ export default function Auth() {
             </button>
           </form>
 
-          {isLogin && !recoveryMode && !customResetMode && (
+          {!recoveryMode && !customResetMode && (
             <>
               <div className="flex items-center gap-3 my-1">
                 <div className={`flex-1 h-px ${t.authSubtext} opacity-30`} style={{ background: 'currentColor' }} />
@@ -450,7 +450,7 @@ export default function Auth() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
-                  使用 Google 帳號登入
+                  {isLogin ? "使用 Google 帳號登入" : "使用 Google 帳號註冊"}
                 </button>
 
                 <button
@@ -478,16 +478,18 @@ export default function Auth() {
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
                   </svg>
-                  使用 Apple 帳號登入
+                  {isLogin ? "使用 Apple 帳號登入" : "使用 Apple 帳號註冊"}
                 </button>
               </div>
 
-              <p className={`text-center text-xs ${t.authSubtext}`}>
-                忘記密碼？
-                <button type="button" onClick={handleForgotPassword} disabled={loading} className={`${t.authLink} ml-1 underline-offset-2 hover:underline disabled:opacity-60`}>
-                  {loading ? "寄送中..." : "寄送重設信"}
-                </button>
-              </p>
+              {isLogin && (
+                <p className={`text-center text-xs ${t.authSubtext}`}>
+                  忘記密碼？
+                  <button type="button" onClick={handleForgotPassword} disabled={loading} className={`${t.authLink} ml-1 underline-offset-2 hover:underline disabled:opacity-60`}>
+                    {loading ? "寄送中..." : "寄送重設信"}
+                  </button>
+                </p>
+              )}
             </>
           )}
 
