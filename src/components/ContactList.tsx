@@ -84,6 +84,7 @@ export function ContactList({
   const filtered = useMemo(() => contacts.filter((c) => {
     const matchesSearch = !searchQuery ||
       c.name.includes(searchQuery) ||
+      (c.nickname ?? "").includes(searchQuery) ||
       c.region.includes(searchQuery) ||
       (c.statuses ?? []).some((s) => s.includes(searchQuery)) ||
       (c.notes ?? "").includes(searchQuery);
@@ -111,7 +112,7 @@ export function ContactList({
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${t.mutedText}`} />
           <input
             type="text"
-            placeholder="搜尋姓名、地區、狀態⋯"
+            placeholder="搜尋姓名、綽號、地區、狀態⋯"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
