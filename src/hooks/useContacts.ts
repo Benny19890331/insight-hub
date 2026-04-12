@@ -225,9 +225,11 @@ export function useContacts() {
     for (let i = 0; i < imported.length; i += BATCH_SIZE) {
       const batch = imported.slice(i, i + BATCH_SIZE);
       for (const c of batch) {
-        const matchId = (c.memberId && existingByMemberId.get(c.memberId)) || existingByName.get(c.name) || null;
-        const payload = {
-          name: c.name, nickname: c.nickname || null, member_id: c.memberId || null,
+        const memberMatch = c.memberId ? existingByMemberId.get(c.memberId) : null;
+        const nameMatch = existingByName.get(c.name) || null;
+        const matchId = memberMatch || nameMatch;
+        const payload: Record<string, any> = {
+          nickname: c.nickname || null, member_id: c.memberId || null,
           region: c.region, background: c.background, statuses: c.statuses,
           heat: c.heat, notes: c.notes, last_contact_date: c.lastContactDate,
           next_follow_up_date: c.nextFollowUpDate || null,
@@ -236,9 +238,14 @@ export function useContacts() {
           product_tags: c.productTags,
         };
         if (matchId) {
+          // Only overwrite name when matched by name (same name) or when CSV name is non-empty and match was by memberId with no existing name conflict
+          if (!memberMatch) {
+            payload.name = c.name;
+          }
           await supabase.from("contacts").update(payload).eq("id", matchId).eq("user_id", user.id);
           merged++;
         } else {
+          payload.name = c.name;
           await supabase.from("contacts").insert({ ...payload, id: c.id, user_id: user.id });
           added++;
         }
