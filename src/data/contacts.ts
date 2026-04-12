@@ -12,6 +12,7 @@ export const genderOptions: { value: Gender; label: string }[] = [
 ];
 
 export interface Interaction {
+  id?: string;
   date: string;
   summary: string;
 }

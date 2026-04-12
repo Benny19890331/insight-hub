@@ -23,7 +23,7 @@ const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 const Index = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
+  const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
   const [requireMemberCode, setRequireMemberCode] = useState(false);
@@ -325,6 +325,7 @@ const Index = () => {
             onSelectContact={handleSelectById}
             onDeleteContact={handleDeleteContact}
             onAddInteraction={handleAddInteraction}
+            onUpdateInteraction={updateInteraction}
             onDeleteInteraction={deleteInteraction}
           />
         </main>
