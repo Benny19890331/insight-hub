@@ -87,10 +87,10 @@ Deno.serve(async (req) => {
     })
 
     await client.send({
-      from: `RICH系統 <${GMAIL_USER}>`,
+      from: `RICH <${GMAIL_USER}>`,
       to: email,
-      subject: '重設您的密碼 — RICH系統',
-      content: '請使用支援 HTML 的郵件客戶端查看此信件。',
+      subject: '=?UTF-8?B?' + btoa(unescape(encodeURIComponent('重設您的 RICH 系統密碼'))) + '?=',
+      content: 'Please view this email in an HTML-capable client.',
       html: emailHtml,
     })
 
