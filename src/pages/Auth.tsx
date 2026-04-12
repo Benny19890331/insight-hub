@@ -105,7 +105,18 @@ export default function Auth() {
     }
   }, []);
 
-  // Custom reset_token handling removed — now using built-in password reset
+  // Custom reset_token handling — read token from URL and enter reset mode
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const resetToken = params.get("reset_token");
+    if (resetToken) {
+      setCustomResetToken(resetToken);
+      setCustomResetMode(true);
+      setPassword("");
+      setConfirmPassword("");
+      window.history.replaceState({}, "", "/auth");
+    }
+  }, []);
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
