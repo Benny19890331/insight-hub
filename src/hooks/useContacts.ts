@@ -258,7 +258,8 @@ export function useContacts() {
 
     for (const c of imported) {
       const memberMatch = c.memberId ? existingByMemberId.get(c.memberId) : null;
-      const nameMatch = existingByName.get(c.name) || null;
+      // Only match by name if the name is unique in existing contacts
+      const nameMatch = (!memberMatch && !duplicateNames.has(c.name)) ? (existingByName.get(c.name) || null) : null;
       const matchId = memberMatch || nameMatch;
       const payload: Record<string, any> = {
         nickname: c.nickname || null, member_id: c.memberId || null,
