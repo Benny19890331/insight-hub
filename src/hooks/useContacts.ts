@@ -240,9 +240,14 @@ export function useContacts() {
 
     const existingByMemberId = new Map<string, string>();
     const existingByName = new Map<string, string>();
+    const duplicateNames = new Set<string>();
     for (const e of (existing ?? [])) {
       if (e.member_id) existingByMemberId.set(e.member_id, e.id);
-      existingByName.set(e.name, e.id);
+      if (existingByName.has(e.name)) {
+        duplicateNames.add(e.name);
+      } else {
+        existingByName.set(e.name, e.id);
+      }
     }
 
     let merged = 0;
@@ -253,7 +258,8 @@ export function useContacts() {
 
     for (const c of imported) {
       const memberMatch = c.memberId ? existingByMemberId.get(c.memberId) : null;
-      const nameMatch = existingByName.get(c.name) || null;
+      // Only match by name if the name is unique in existing contacts
+      const nameMatch = (!memberMatch && !duplicateNames.has(c.name)) ? (existingByName.get(c.name) || null) : null;
       const matchId = memberMatch || nameMatch;
       const payload: Record<string, any> = {
         nickname: c.nickname || null, member_id: c.memberId || null,
