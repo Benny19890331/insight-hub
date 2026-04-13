@@ -273,7 +273,9 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const isResetView = customResetMode || recoveryMode;
   const fieldClass = `w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`;
+  const resetFieldClass = `w-full rounded-lg border px-4 py-3.5 text-base backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`;
 
   const btnStyle: React.CSSProperties = {
     color: t.btnPrimary.color,
