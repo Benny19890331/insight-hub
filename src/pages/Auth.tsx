@@ -429,22 +429,21 @@ export default function Auth() {
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={async () => {
-                    setLoading(true);
-                    try {
-                      const result = await lovable.auth.signInWithOAuth("google", {
-                        redirect_uri: window.location.origin,
-                      });
+                  onClick={() => {
+                    lovable.auth.signInWithOAuth("google", {
+                      redirect_uri: window.location.origin,
+                    }).then((result) => {
                       if (result.error) {
                         toast.error("Google 登入失敗，請稍後再試");
                         console.error("Google OAuth error:", result.error);
                       }
                       if (result.redirected) return;
-                    } catch (err) {
+                      setLoading(false);
+                    }).catch((err) => {
                       toast.error("Google 登入失敗");
                       console.error(err);
-                    }
-                    setLoading(false);
+                      setLoading(false);
+                    });
                   }}
                   className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 border backdrop-blur-sm ${t.authCard} ${t.authCardText}`}
                 >
@@ -460,22 +459,21 @@ export default function Auth() {
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={async () => {
-                    setLoading(true);
-                    try {
-                      const result = await lovable.auth.signInWithOAuth("apple", {
-                        redirect_uri: window.location.origin,
-                      });
+                  onClick={() => {
+                    lovable.auth.signInWithOAuth("apple", {
+                      redirect_uri: window.location.origin,
+                    }).then((result) => {
                       if (result.error) {
                         toast.error("Apple 登入失敗，請稍後再試");
                         console.error("Apple OAuth error:", result.error);
                       }
                       if (result.redirected) return;
-                    } catch (err) {
+                      setLoading(false);
+                    }).catch((err) => {
                       toast.error("Apple 登入失敗");
                       console.error(err);
-                    }
-                    setLoading(false);
+                      setLoading(false);
+                    });
                   }}
                   className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 border backdrop-blur-sm ${t.authCard} ${t.authCardText}`}
                 >
