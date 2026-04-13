@@ -44,6 +44,13 @@ const mapAuthError = (message: string) => {
 const PUBLISHED_URL = "https://orbit-crm-34.lovable.app";
 const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || PUBLISHED_URL).replace(/\/$/, "");
 
+// If accessed from a non-Lovable domain (e.g. Vercel), redirect to the official published site
+const currentOrigin = window.location.origin;
+const isLovableDomain = currentOrigin.includes("lovable.app") || currentOrigin.includes("lovableproject.com") || currentOrigin.includes("localhost");
+if (!isLovableDomain) {
+  window.location.replace(`${PUBLISHED_URL}/auth${window.location.search}`);
+}
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
