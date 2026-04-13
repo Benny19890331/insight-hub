@@ -41,7 +41,8 @@ const mapAuthError = (message: string) => {
   return message;
 };
 
-const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || window.location.origin).replace(/\/$/, "");
+const PUBLISHED_URL = "https://orbit-crm-34.lovable.app";
+const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || PUBLISHED_URL).replace(/\/$/, "");
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);

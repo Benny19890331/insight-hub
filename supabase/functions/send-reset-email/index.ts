@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       expires_at: expiresAt,
     })
 
-    const baseUrl = app_url || 'https://id-preview--8b8c1b89-a942-4abc-ad82-e429efb965cb.lovable.app'
+    const baseUrl = app_url || 'https://orbit-crm-34.lovable.app'
     const resetLink = `${baseUrl}/auth?reset_token=${token}`
 
     const emailHtml = `<!DOCTYPE html>
