@@ -240,9 +240,14 @@ export function useContacts() {
 
     const existingByMemberId = new Map<string, string>();
     const existingByName = new Map<string, string>();
+    const duplicateNames = new Set<string>();
     for (const e of (existing ?? [])) {
       if (e.member_id) existingByMemberId.set(e.member_id, e.id);
-      existingByName.set(e.name, e.id);
+      if (existingByName.has(e.name)) {
+        duplicateNames.add(e.name);
+      } else {
+        existingByName.set(e.name, e.id);
+      }
     }
 
     let merged = 0;
