@@ -350,12 +350,13 @@ export default function Auth() {
           </h1>
         </div>
 
-        <div className={`rounded-xl border backdrop-blur-md p-6 space-y-4 shadow-2xl transition-colors duration-500 ${t.authCard}`}>
-          <h2 className={`text-base font-medium text-center ${t.authCardText}`}>
+        <div className={`rounded-xl border backdrop-blur-md ${isResetView ? 'p-8 space-y-6' : 'p-6 space-y-4'} shadow-2xl transition-colors duration-500 ${t.authCard}`}>
+          <h2 className={`${isResetView ? 'text-xl' : 'text-base'} font-medium text-center ${t.authCardText}`}>
             {customResetMode ? "設定新密碼" : recoveryMode ? "設定新密碼" : isLogin ? "登入帳號" : "建立帳號"}
           </h2>
+          {isResetView && <p className={`text-sm text-center ${t.authSubtext}`}>請在下方輸入您的新密碼</p>}
 
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className={isResetView ? "space-y-5" : "space-y-3"}>
             {!isLogin && !recoveryMode && !customResetMode && <p className={`text-[11px] ${t.authSubtext}`}>* 建立帳號欄位皆為必填</p>}
             {!isLogin && !recoveryMode && !customResetMode && (
               <div>
@@ -365,13 +366,13 @@ export default function Auth() {
             )}
             {((!isLogin && !recoveryMode && !customResetMode) || recoveryMode) && (
               <div>
-                <label className={`text-xs mb-1.5 block ${t.authLabel}`}>會員編號（必填）</label>
-                <input value={memberCode} onChange={(e) => setMemberCode(e.target.value)} placeholder="例如 A001" className={fieldClass} required autoCapitalize="off" autoCorrect="off" />
+                <label className={`${isResetView ? 'text-sm' : 'text-xs'} mb-1.5 block ${t.authLabel}`}>會員編號（必填）</label>
+                <input value={memberCode} onChange={(e) => setMemberCode(e.target.value)} placeholder="例如 A001" className={isResetView ? resetFieldClass : fieldClass} required autoCapitalize="off" autoCorrect="off" />
               </div>
             )}
             {!customResetMode && <div>
-              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "帳號" : "Email"}</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} required autoComplete="email" inputMode="email" autoCapitalize="none" />
+              <label className={`${isResetView ? 'text-sm' : 'text-xs'} mb-1.5 block ${t.authLabel}`}>{recoveryMode ? "帳號" : "Email"}</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={isResetView ? resetFieldClass : fieldClass} required autoComplete="email" inputMode="email" autoCapitalize="none" />
               {emailSuggestion && (
                 <p className={`text-[11px] mt-1 ${t.authSubtext}`}>
                   你是不是想輸入：<button type="button" className={`${t.authLink} underline`} onClick={() => setEmail(emailSuggestion)}>{emailSuggestion}</button>
@@ -379,37 +380,37 @@ export default function Auth() {
               )}
             </div>}
             <div>
-              <label className={`text-xs mb-1.5 block ${t.authLabel}`}>{(recoveryMode || customResetMode) ? "新密碼" : "密碼"}</label>
+              <label className={`${isResetView ? 'text-sm' : 'text-xs'} mb-1.5 block ${t.authLabel}`}>{(recoveryMode || customResetMode) ? "新密碼" : "密碼"}</label>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="至少 6 個字元" className={`${fieldClass} pr-10`} required minLength={6} autoComplete={isLogin ? "current-password" : "new-password"} />
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="至少 6 個字元" className={`${isResetView ? resetFieldClass : fieldClass} pr-10`} required minLength={6} autoComplete={isLogin ? "current-password" : "new-password"} />
                 <button type="button" onClick={() => setShowPassword((v) => !v)} className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 ${t.authSubtext}`} aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}>
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className={isResetView ? "h-5 w-5" : "h-4 w-4"} /> : <Eye className={isResetView ? "h-5 w-5" : "h-4 w-4"} />}
                 </button>
               </div>
-              {(!isLogin || customResetMode) && <p className={`text-[11px] mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>}
+              {(!isLogin || customResetMode) && <p className={`${isResetView ? 'text-xs' : 'text-[11px]'} mt-1 ${passwordStrength.color}`}>密碼強度：{passwordStrength.label}</p>}
             </div>
 
             {(!isLogin || recoveryMode || customResetMode) && (
               <div>
-                <label className={`text-xs mb-1.5 block ${t.authLabel}`}>確認密碼</label>
+                <label className={`${isResetView ? 'text-sm' : 'text-xs'} mb-1.5 block ${t.authLabel}`}>確認密碼</label>
                 <div className="relative">
-                  <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="再次輸入密碼" className={`${fieldClass} pr-10`} required minLength={6} />
+                  <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="再次輸入密碼" className={`${isResetView ? resetFieldClass : fieldClass} pr-10`} required minLength={6} />
                   <button type="button" onClick={() => setShowConfirmPassword((v) => !v)} className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 ${t.authSubtext}`} aria-label={showConfirmPassword ? "隱藏確認密碼" : "顯示確認密碼"}>
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? <EyeOff className={isResetView ? "h-5 w-5" : "h-4 w-4"} /> : <Eye className={isResetView ? "h-5 w-5" : "h-4 w-4"} />}
                   </button>
                 </div>
                 {confirmPassword.length > 0 && (
-                  <p className={`text-[11px] mt-1 ${passwordMatched ? "text-green-400" : "text-red-400"}`}>
-                    {passwordMatched ? "密碼一致" : "密碼不一致"}
+                  <p className={`${isResetView ? 'text-xs' : 'text-[11px]'} mt-1 ${passwordMatched ? "text-green-400" : "text-red-400"}`}>
+                    {passwordMatched ? "✅ 密碼一致" : "❌ 密碼不一致"}
                   </p>
                 )}
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50" style={btnStyle}
+            <button type="submit" disabled={loading} className={`w-full inline-flex items-center justify-center gap-1.5 rounded-lg ${isResetView ? 'px-4 py-4 text-lg' : 'px-3.5 py-2.5 text-sm'} font-semibold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50`} style={btnStyle}
               onMouseEnter={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.hoverBg; }}
               onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.bg; }}>
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading && <Loader2 className={isResetView ? "h-5 w-5 animate-spin" : "h-4 w-4 animate-spin"} />}
               {(customResetMode || recoveryMode) ? "更新密碼" : isLogin ? "登入" : "註冊"}
             </button>
           </form>
