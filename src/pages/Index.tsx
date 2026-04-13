@@ -43,7 +43,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [heatFilter, setHeatFilter] = useState<HeatLevel | "all">("all");
   const [productFilter, setProductFilter] = useState("");
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
@@ -66,15 +66,14 @@ const Index = () => {
   }, [navigate, isAdmin]);
 
   const handleSelect = useCallback((c: Contact) => {
-    const fresh = contacts.find((x) => x.id === c.id) ?? c;
-    setSelectedContact(fresh);
+    setSelectedContactId(c.id);
     setShowDetail(true);
-  }, [contacts]);
+  }, []);
 
   const handleSelectById = useCallback((id: string) => {
-    const found = contacts.find((c) => c.id === id);
+    const found = contacts.some((c) => c.id === id);
     if (found) {
-      setSelectedContact(found);
+      setSelectedContactId(id);
       setShowDetail(true);
     }
   }, [contacts]);
@@ -144,12 +143,11 @@ const Index = () => {
 
   const handleUpdateContact = useCallback(async (updated: Contact) => {
     await updateContact(updated);
-    setSelectedContact(updated);
   }, [updateContact]);
 
   const handleDeleteContact = useCallback(async (id: string) => {
     await deleteContact(id);
-    setSelectedContact(null);
+    setSelectedContactId(null);
     setShowDetail(false);
   }, [deleteContact]);
 
@@ -188,7 +186,7 @@ const Index = () => {
     setSavingMemberCode(false);
   }, [memberCodeInput, user]);
 
-  const currentSelected = selectedContact ? contacts.find(c => c.id === selectedContact.id) ?? selectedContact : null;
+  const currentSelected = selectedContactId ? contacts.find((c) => c.id === selectedContactId) ?? null : null;
 
   // Themed button styles
   const primaryBtnStyle: React.CSSProperties = {
@@ -318,6 +316,7 @@ const Index = () => {
             </div>
           )}
           <ContactDetail
+            key={currentSelected?.id ?? "empty-contact"}
             contact={currentSelected}
             contacts={contacts}
             onBack={handleBack}
