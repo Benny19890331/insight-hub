@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { buildCanonicalUrl, getCanonicalAppUrl, shouldRedirectToCanonicalApp } from "@/lib/app-url";
 import { toast } from "sonner";
 import { Infinity, Loader2, Download, Eye, EyeOff } from "lucide-react";
 import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
@@ -41,16 +42,6 @@ const mapAuthError = (message: string) => {
   return message;
 };
 
-const PUBLISHED_URL = "https://orbit-crm-34.lovable.app";
-const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || PUBLISHED_URL).replace(/\/$/, "");
-
-// If accessed from a non-Lovable domain (e.g. Vercel), redirect to the official published site
-const currentOrigin = window.location.origin;
-const isLovableDomain = currentOrigin.includes("lovable.app") || currentOrigin.includes("lovableproject.com") || currentOrigin.includes("localhost");
-if (!isLovableDomain) {
-  window.location.replace(`${PUBLISHED_URL}/auth${window.location.search}`);
-}
-
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -69,6 +60,15 @@ export default function Auth() {
   const [showIosGuide, setShowIosGuide] = useState(false);
   const { themeIndex, theme: t } = useTheme();
   const { recoveryMode, setRecoveryMode, user } = useAuth();
+  const appBaseUrl = getCanonicalAppUrl();
+
+  useEffect(() => {
+    if (!shouldRedirectToCanonicalApp()) return;
+
+    window.location.replace(
+      buildCanonicalUrl(window.location.pathname, window.location.search, window.location.hash)
+    );
+  }, []);
 
   useEffect(() => {
     const isIosDevice =
@@ -295,6 +295,10 @@ export default function Auth() {
   const passwordMatched = confirmPassword.length > 0 && password === confirmPassword;
   const emailSuggestion = suggestEmailTypo(email);
 
+  if (shouldRedirectToCanonicalApp()) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
       {bgImages.map((img, i) => (
@@ -438,7 +442,7 @@ export default function Auth() {
                   disabled={loading}
                   onClick={() => {
                     lovable.auth.signInWithOAuth("google", {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: appBaseUrl,
                     }).then((result) => {
                       if (result.error) {
                         toast.error("Google 登入失敗，請稍後再試");
@@ -468,7 +472,7 @@ export default function Auth() {
                   disabled={loading}
                   onClick={() => {
                     lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: appBaseUrl,
                     }).then((result) => {
                       if (result.error) {
                         toast.error("Apple 登入失敗，請稍後再試");
