@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
     })
 
     const normalizedAppUrl = typeof app_url === 'string' ? app_url.trim().replace(/\/$/, '') : ''
-    const fallbackUrl = 'https://orbit-crm-34.lovable.app'
+    const fallbackUrl = 'https://nuprich-list.lovable.app'
     const baseUrl = normalizedAppUrl || fallbackUrl
     const confirmationURL = `${baseUrl}/auth?reset_token=${token}`
 
