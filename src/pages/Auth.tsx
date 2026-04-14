@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { buildCanonicalUrl, getCanonicalAppUrl, shouldRedirectToCanonicalApp } from "@/lib/app-url";
+import { getCanonicalAppUrl } from "@/lib/app-url";
 import { toast } from "sonner";
 import { Infinity, Loader2, Download, Eye, EyeOff } from "lucide-react";
 import { useTheme, ThemeSwitcher, themes } from "@/hooks/useTheme";
@@ -62,13 +62,6 @@ export default function Auth() {
   const { recoveryMode, setRecoveryMode, user } = useAuth();
   const appBaseUrl = getCanonicalAppUrl();
 
-  useEffect(() => {
-    if (!shouldRedirectToCanonicalApp()) return;
-
-    window.location.replace(
-      buildCanonicalUrl(window.location.pathname, window.location.search, window.location.hash)
-    );
-  }, []);
 
   useEffect(() => {
     const isIosDevice =
@@ -294,10 +287,6 @@ export default function Auth() {
   const passwordStrength = getPasswordStrength(password);
   const passwordMatched = confirmPassword.length > 0 && password === confirmPassword;
   const emailSuggestion = suggestEmailTypo(email);
-
-  if (shouldRedirectToCanonicalApp()) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
