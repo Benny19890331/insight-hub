@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       expires_at: expiresAt,
     })
 
-    const baseUrl = app_url || 'https://orbit-crm-34.lovable.app'
+    const baseUrl = app_url || 'https://nuprich-list.lovable.app'
     const resetLink = `${baseUrl}/auth?reset_token=${token}`
 
     const emailHtml = `<!DOCTYPE html>
