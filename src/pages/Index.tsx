@@ -348,25 +348,40 @@ const Index = () => {
         </main>
       </div>
 
-      {requireMemberCode && (
+      {requireProfileCompletion && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm">
           <div className={`w-full max-w-sm mx-4 rounded-xl border p-5 space-y-3 ${t.authCard}`}>
-            <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先補上會員編號</h3>
-            <p className={`text-xs ${t.authSubtext}`}>你的個人資料尚未填寫會員編號，填完才能繼續使用系統。</p>
-            <input
-              value={memberCodeInput}
-              onChange={(e) => setMemberCodeInput(e.target.value)}
-              placeholder="例如 A001"
-              className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
-              autoFocus
-            />
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先完善個人資料</h3>
+            <p className={`text-xs ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統。</p>
+            {missingDisplayName && (
+              <div>
+                <label className={`text-xs mb-1 block ${t.authCardText}`}>姓名</label>
+                <input
+                  value={displayNameInput}
+                  onChange={(e) => setDisplayNameInput(e.target.value)}
+                  placeholder="您的姓名"
+                  className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                  autoFocus
+                />
+              </div>
+            )}
+            <div>
+              <label className={`text-xs mb-1 block ${t.authCardText}`}>會員編號</label>
+              <input
+                value={memberCodeInput}
+                onChange={(e) => setMemberCodeInput(e.target.value)}
+                placeholder="例如 A001"
+                className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                autoFocus={!missingDisplayName}
+              />
+            </div>
             <button
-              onClick={handleSaveMemberCode}
-              disabled={savingMemberCode}
+              onClick={handleSaveProfile}
+              disabled={savingProfile}
               className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50"
               style={primaryBtnStyle}
             >
-              {savingMemberCode && <Loader2 className="h-4 w-4 animate-spin" />}
+              {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
               儲存並繼續
             </button>
           </div>
