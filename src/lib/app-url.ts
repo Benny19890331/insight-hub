@@ -1,6 +1,6 @@
 /**
  * Always use the current browser origin so the app works on any domain
- * (Lovable preview, published .lovable.app, Vercel, custom domain, localhost).
+ * (Lovable preview, published nuprich-list.lovable.app, custom domain, localhost).
  */
 export const getCanonicalAppUrl = () =>
   window.location.origin.replace(/\/$/, "");
