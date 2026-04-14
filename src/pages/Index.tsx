@@ -44,7 +44,7 @@ const Index = () => {
     // OAuth users: require name if display_name empty, always require member_code
     // Email users: only require member_code
     if (isOAuth && (!hasMemberCode || !hasDisplayName)) {
-      setMissingDisplayName(!hasDisplayName);
+      setMissingDisplayName(true);
       setRequireProfileCompletion(true);
     } else if (!hasMemberCode) {
       setMissingDisplayName(false);
