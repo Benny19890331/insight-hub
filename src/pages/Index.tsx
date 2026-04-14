@@ -26,9 +26,11 @@ const Index = () => {
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [requireMemberCode, setRequireMemberCode] = useState(false);
+  const [requireProfileCompletion, setRequireProfileCompletion] = useState(false);
+  const [missingDisplayName, setMissingDisplayName] = useState(false);
+  const [displayNameInput, setDisplayNameInput] = useState("");
   const [memberCodeInput, setMemberCodeInput] = useState("");
-  const [savingMemberCode, setSavingMemberCode] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     if (!user) return;
