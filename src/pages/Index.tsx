@@ -34,8 +34,14 @@ const Index = () => {
 
   useEffect(() => {
     if (!user) return;
-    const currentMemberCode = (user.user_metadata as any)?.member_code;
-    setRequireMemberCode(!currentMemberCode || !String(currentMemberCode).trim());
+    const meta = user.user_metadata as any;
+    const currentMemberCode = meta?.member_code;
+    const currentDisplayName = meta?.display_name || meta?.full_name || meta?.name;
+    const needsMemberCode = !currentMemberCode || !String(currentMemberCode).trim();
+    const needsDisplayName = !currentDisplayName || !String(currentDisplayName).trim();
+    setMissingDisplayName(needsDisplayName);
+    setRequireProfileCompletion(needsMemberCode || needsDisplayName);
+    if (currentDisplayName) setDisplayNameInput(String(currentDisplayName).trim());
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
         .then(({ data }) => setIsAdmin(!!data));
