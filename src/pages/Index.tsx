@@ -35,13 +35,21 @@ const Index = () => {
   useEffect(() => {
     if (!user) return;
     const meta = user.user_metadata as any;
+    const provider = user.app_metadata?.provider;
+    const isOAuth = provider && provider !== "email";
     const currentMemberCode = meta?.member_code;
-    const currentDisplayName = meta?.display_name || meta?.full_name || meta?.name;
-    const needsMemberCode = !currentMemberCode || !String(currentMemberCode).trim();
-    const needsDisplayName = !currentDisplayName || !String(currentDisplayName).trim();
-    setMissingDisplayName(needsDisplayName);
-    setRequireProfileCompletion(needsMemberCode || needsDisplayName);
-    if (currentDisplayName) setDisplayNameInput(String(currentDisplayName).trim());
+    const hasMemberCode = currentMemberCode && String(currentMemberCode).trim();
+    // OAuth users must always fill in name + member code (Apple gives junk names)
+    // Email users only need member code check
+    if (isOAuth && !hasMemberCode) {
+      setMissingDisplayName(true); // always ask name for OAuth
+      setRequireProfileCompletion(true);
+    } else if (!hasMemberCode) {
+      setMissingDisplayName(false);
+      setRequireProfileCompletion(true);
+    } else {
+      setRequireProfileCompletion(false);
+    }
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
         .then(({ data }) => setIsAdmin(!!data));
