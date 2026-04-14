@@ -26,14 +26,22 @@ const Index = () => {
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [requireMemberCode, setRequireMemberCode] = useState(false);
+  const [requireProfileCompletion, setRequireProfileCompletion] = useState(false);
+  const [missingDisplayName, setMissingDisplayName] = useState(false);
+  const [displayNameInput, setDisplayNameInput] = useState("");
   const [memberCodeInput, setMemberCodeInput] = useState("");
-  const [savingMemberCode, setSavingMemberCode] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    const currentMemberCode = (user.user_metadata as any)?.member_code;
-    setRequireMemberCode(!currentMemberCode || !String(currentMemberCode).trim());
+    const meta = user.user_metadata as any;
+    const currentMemberCode = meta?.member_code;
+    const currentDisplayName = meta?.display_name || meta?.full_name || meta?.name;
+    const needsMemberCode = !currentMemberCode || !String(currentMemberCode).trim();
+    const needsDisplayName = !currentDisplayName || !String(currentDisplayName).trim();
+    setMissingDisplayName(needsDisplayName);
+    setRequireProfileCompletion(needsMemberCode || needsDisplayName);
+    if (currentDisplayName) setDisplayNameInput(String(currentDisplayName).trim());
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
         .then(({ data }) => setIsAdmin(!!data));
@@ -163,28 +171,38 @@ const Index = () => {
   }, [importContacts, isAdmin]);
 
 
-  const handleSaveMemberCode = useCallback(async () => {
+  const handleSaveProfile = useCallback(async () => {
+    if (!displayNameInput.trim()) {
+      toast.error("請輸入姓名");
+      return;
+    }
     if (!memberCodeInput.trim()) {
       toast.error("請輸入會員編號");
       return;
     }
-    setSavingMemberCode(true);
+    setSavingProfile(true);
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       const { error } = await supabase.auth.updateUser({
         data: {
           ...(user?.user_metadata || {}),
+          display_name: displayNameInput.trim(),
           member_code: memberCodeInput.trim(),
         },
       });
       if (error) throw error;
-      toast.success("會員編號已更新");
-      setRequireMemberCode(false);
+      // Also update profiles table
+      await supabase.from("profiles").update({
+        display_name: displayNameInput.trim(),
+        member_code: memberCodeInput.trim(),
+      }).eq("id", user?.id);
+      toast.success("資料已更新");
+      setRequireProfileCompletion(false);
     } catch (err: any) {
       toast.error(err?.message || "更新失敗");
     }
-    setSavingMemberCode(false);
-  }, [memberCodeInput, user]);
+    setSavingProfile(false);
+  }, [displayNameInput, memberCodeInput, user]);
 
   const currentSelected = selectedContactId ? contacts.find((c) => c.id === selectedContactId) ?? null : null;
 
@@ -330,25 +348,40 @@ const Index = () => {
         </main>
       </div>
 
-      {requireMemberCode && (
+      {requireProfileCompletion && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm">
           <div className={`w-full max-w-sm mx-4 rounded-xl border p-5 space-y-3 ${t.authCard}`}>
-            <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先補上會員編號</h3>
-            <p className={`text-xs ${t.authSubtext}`}>你的個人資料尚未填寫會員編號，填完才能繼續使用系統。</p>
-            <input
-              value={memberCodeInput}
-              onChange={(e) => setMemberCodeInput(e.target.value)}
-              placeholder="例如 A001"
-              className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
-              autoFocus
-            />
+            <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先完善個人資料</h3>
+            <p className={`text-xs ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統。</p>
+            {missingDisplayName && (
+              <div>
+                <label className={`text-xs mb-1 block ${t.authCardText}`}>姓名</label>
+                <input
+                  value={displayNameInput}
+                  onChange={(e) => setDisplayNameInput(e.target.value)}
+                  placeholder="您的姓名"
+                  className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                  autoFocus
+                />
+              </div>
+            )}
+            <div>
+              <label className={`text-xs mb-1 block ${t.authCardText}`}>會員編號</label>
+              <input
+                value={memberCodeInput}
+                onChange={(e) => setMemberCodeInput(e.target.value)}
+                placeholder="例如 A001"
+                className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                autoFocus={!missingDisplayName}
+              />
+            </div>
             <button
-              onClick={handleSaveMemberCode}
-              disabled={savingMemberCode}
+              onClick={handleSaveProfile}
+              disabled={savingProfile}
               className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50"
               style={primaryBtnStyle}
             >
-              {savingMemberCode && <Loader2 className="h-4 w-4 animate-spin" />}
+              {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
               儲存並繼續
             </button>
           </div>
