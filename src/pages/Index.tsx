@@ -171,28 +171,38 @@ const Index = () => {
   }, [importContacts, isAdmin]);
 
 
-  const handleSaveMemberCode = useCallback(async () => {
+  const handleSaveProfile = useCallback(async () => {
+    if (!displayNameInput.trim()) {
+      toast.error("請輸入姓名");
+      return;
+    }
     if (!memberCodeInput.trim()) {
       toast.error("請輸入會員編號");
       return;
     }
-    setSavingMemberCode(true);
+    setSavingProfile(true);
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       const { error } = await supabase.auth.updateUser({
         data: {
           ...(user?.user_metadata || {}),
+          display_name: displayNameInput.trim(),
           member_code: memberCodeInput.trim(),
         },
       });
       if (error) throw error;
-      toast.success("會員編號已更新");
-      setRequireMemberCode(false);
+      // Also update profiles table
+      await supabase.from("profiles").update({
+        display_name: displayNameInput.trim(),
+        member_code: memberCodeInput.trim(),
+      }).eq("id", user?.id);
+      toast.success("資料已更新");
+      setRequireProfileCompletion(false);
     } catch (err: any) {
       toast.error(err?.message || "更新失敗");
     }
-    setSavingMemberCode(false);
-  }, [memberCodeInput, user]);
+    setSavingProfile(false);
+  }, [displayNameInput, memberCodeInput, user]);
 
   const currentSelected = selectedContactId ? contacts.find((c) => c.id === selectedContactId) ?? null : null;
 
