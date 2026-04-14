@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCanonicalAppUrl } from "@/lib/app-url";
 import { useTheme, themes } from "@/hooks/useTheme";
 import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const appBaseUrl = ((import.meta as any).env?.VITE_APP_URL || window.location.origin).replace(/\/$/, "");
+  const appBaseUrl = getCanonicalAppUrl();
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
