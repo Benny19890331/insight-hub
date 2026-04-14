@@ -39,10 +39,12 @@ const Index = () => {
     const isOAuth = provider && provider !== "email";
     const currentMemberCode = meta?.member_code;
     const hasMemberCode = currentMemberCode && String(currentMemberCode).trim();
-    // OAuth users must always fill in name + member code (Apple gives junk names)
-    // Email users only need member code check
-    if (isOAuth && !hasMemberCode) {
-      setMissingDisplayName(true); // always ask name for OAuth
+    const currentDisplayName = meta?.display_name;
+    const hasDisplayName = currentDisplayName && String(currentDisplayName).trim();
+    // OAuth users: require name if display_name empty, always require member_code
+    // Email users: only require member_code
+    if (isOAuth && (!hasMemberCode || !hasDisplayName)) {
+      setMissingDisplayName(!hasDisplayName);
       setRequireProfileCompletion(true);
     } else if (!hasMemberCode) {
       setMissingDisplayName(false);
