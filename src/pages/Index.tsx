@@ -41,11 +41,10 @@ const Index = () => {
     const hasMemberCode = currentMemberCode && String(currentMemberCode).trim();
     const currentDisplayName = meta?.display_name;
     const displayNameStr = currentDisplayName ? String(currentDisplayName).trim() : "";
-    const hasDisplayName = displayNameStr.length > 0 && displayNameStr.length <= 20;
-    // OAuth users: require name if display_name empty or >20 chars (garbled), always require member_code
-    // Email users: only require member_code
-    if (isOAuth && (!hasMemberCode || !hasDisplayName)) {
-      setMissingDisplayName(!hasDisplayName);
+    const nameNeedsUpdate = displayNameStr.length === 0 || displayNameStr.length > 20;
+    // OAuth users: always show name field; require update if name empty or >20 chars, or missing member_code
+    if (isOAuth && (!hasMemberCode || nameNeedsUpdate)) {
+      setMissingDisplayName(true);
       setRequireProfileCompletion(true);
     } else if (!hasMemberCode) {
       setMissingDisplayName(false);
