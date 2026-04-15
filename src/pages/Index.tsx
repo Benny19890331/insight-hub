@@ -47,7 +47,7 @@ const Index = () => {
       setMissingDisplayName(true);
       setRequireProfileCompletion(true);
     } else if (!hasMemberCode) {
-      setMissingDisplayName(false);
+      setMissingDisplayName(true);
       setRequireProfileCompletion(true);
     } else {
       setRequireProfileCompletion(false);
