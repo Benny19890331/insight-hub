@@ -370,23 +370,14 @@ const Index = () => {
       </div>
 
       {requireProfileCompletion && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
-          <div className="flex min-h-full items-start justify-center px-4 pt-[max(2dvh,env(safe-area-inset-top))] pb-20">
-            <div className={`w-full max-w-sm rounded-xl border-2 p-6 space-y-4 max-h-[96dvh] overflow-y-auto overscroll-contain ${t.authCard}`}>
-            <div className="text-center space-y-2">
-              <h3 className={`text-lg font-bold ${t.authCardText}`}>請先完善個人資料</h3>
-              <p className={`text-sm ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統</p>
-            </div>
-
-            <div className={`rounded-lg border px-4 py-3 text-sm leading-relaxed ${t.authInput}`}>
-              <p className={`font-semibold ${t.authCardText}`}>請先填寫姓名，再填會員編號。</p>
-              <p className={t.authSubtext}>若您是使用 Google / Apple 登入，也需要補上真實姓名，方便後台辨識。</p>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className={`w-full max-w-sm mx-4 rounded-xl border-2 p-5 space-y-3 ${t.authCard}`}>
+            <h3 className={`text-base font-bold text-center ${t.authCardText}`}>請先完善個人資料</h3>
             
             {/* 姓名欄位 */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className={`text-sm font-semibold block ${t.authCardText}`}>
-                姓名 <span className="text-red-500">*</span>
+                ① 姓名 <span className="text-red-500">*</span>
               </label>
               <input
                 value={displayNameInput}
@@ -395,7 +386,7 @@ const Index = () => {
                   if (nameError) setNameError("");
                 }}
                 placeholder="請輸入您的真實姓名"
-                className={`w-full rounded-lg border-2 px-4 py-3 text-base backdrop-blur-sm focus:outline-none focus:ring-2 transition-all ${
+                className={`w-full rounded-lg border-2 px-3 py-2.5 text-base backdrop-blur-sm focus:outline-none focus:ring-2 transition-all ${
                   nameError 
                     ? "border-red-500 bg-red-50/10 focus:ring-red-500/50" 
                     : `border-current/20 ${t.authInput} focus:ring-current/30`
@@ -413,9 +404,9 @@ const Index = () => {
             </div>
             
             {/* 會員編號欄位 */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className={`text-sm font-semibold block ${t.authCardText}`}>
-                會員編號 <span className="text-red-500">*</span>
+                ② 會員編號 <span className="text-red-500">*</span>
               </label>
               <input
                 value={memberCodeInput}
@@ -424,7 +415,7 @@ const Index = () => {
                   if (memberCodeError) setMemberCodeError("");
                 }}
                 placeholder="例如：A001"
-                className={`w-full rounded-lg border-2 px-4 py-3 text-base backdrop-blur-sm focus:outline-none focus:ring-2 transition-all ${
+                className={`w-full rounded-lg border-2 px-3 py-2.5 text-base backdrop-blur-sm focus:outline-none focus:ring-2 transition-all ${
                   memberCodeError 
                     ? "border-red-500 bg-red-50/10 focus:ring-red-500/50" 
                     : `border-current/20 ${t.authInput} focus:ring-current/30`
@@ -443,7 +434,7 @@ const Index = () => {
               <button
                 onClick={handleSaveProfile}
                 disabled={savingProfile}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3.5 text-base font-bold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50 mt-2"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-base font-bold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50"
                 style={primaryBtnStyle}
               >
                 {savingProfile && <Loader2 className="h-5 w-5 animate-spin" />}
@@ -451,7 +442,6 @@ const Index = () => {
               </button>
             </div>
           </div>
-        </div>
       )}
 
       <CsvImportDialog open={csvOpen} onOpenChange={setCsvOpen} onImport={handleCsvImport} existingContacts={contacts} />
