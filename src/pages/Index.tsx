@@ -370,11 +370,17 @@ const Index = () => {
       </div>
 
       {requireProfileCompletion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className={`w-full max-w-sm mx-4 rounded-xl border-2 p-6 space-y-4 ${t.authCard}`}>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
+          <div className="flex min-h-full items-start justify-center px-4 pt-[max(2dvh,env(safe-area-inset-top))] pb-20">
+            <div className={`w-full max-w-sm rounded-xl border-2 p-6 space-y-4 max-h-[96dvh] overflow-y-auto overscroll-contain ${t.authCard}`}>
             <div className="text-center space-y-2">
               <h3 className={`text-lg font-bold ${t.authCardText}`}>請先完善個人資料</h3>
               <p className={`text-sm ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統</p>
+            </div>
+
+            <div className={`rounded-lg border px-4 py-3 text-sm leading-relaxed ${t.authInput}`}>
+              <p className={`font-semibold ${t.authCardText}`}>請先填寫姓名，再填會員編號。</p>
+              <p className={t.authSubtext}>若您是使用 Google / Apple 登入，也需要補上真實姓名，方便後台辨識。</p>
             </div>
             
             {/* 姓名欄位 */}
@@ -434,15 +440,16 @@ const Index = () => {
               )}
             </div>
             
-            <button
-              onClick={handleSaveProfile}
-              disabled={savingProfile}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3.5 text-base font-bold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50 mt-2"
-              style={primaryBtnStyle}
-            >
-              {savingProfile && <Loader2 className="h-5 w-5 animate-spin" />}
-              儲存並繼續
-            </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3.5 text-base font-bold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50 mt-2"
+                style={primaryBtnStyle}
+              >
+                {savingProfile && <Loader2 className="h-5 w-5 animate-spin" />}
+                儲存並繼續
+              </button>
+            </div>
           </div>
         </div>
       )}
