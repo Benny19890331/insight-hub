@@ -31,6 +31,8 @@ const Index = () => {
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [memberCodeInput, setMemberCodeInput] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [memberCodeError, setMemberCodeError] = useState("");
 
   useEffect(() => {
     if (!user) return;
