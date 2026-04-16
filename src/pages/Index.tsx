@@ -186,14 +186,21 @@ const Index = () => {
 
 
   const handleSaveProfile = useCallback(async () => {
+    // 重置錯誤訊息
+    setNameError("");
+    setMemberCodeError("");
+    
+    let hasError = false;
     if (!displayNameInput.trim()) {
-      toast.error("請輸入姓名");
-      return;
+      setNameError("請填寫您的姓名，這是必要欄位");
+      hasError = true;
     }
     if (!memberCodeInput.trim()) {
-      toast.error("請輸入會員編號");
-      return;
+      setMemberCodeError("請填寫會員編號（例如：A001），這是必要欄位");
+      hasError = true;
     }
+    if (hasError) return;
+    
     setSavingProfile(true);
     try {
       const { supabase } = await import("@/integrations/supabase/client");
@@ -213,7 +220,7 @@ const Index = () => {
       toast.success("資料已更新");
       setRequireProfileCompletion(false);
     } catch (err: any) {
-      toast.error(err?.message || "更新失敗");
+      toast.error(err?.message || "更新失敗，請稍後再試");
     }
     setSavingProfile(false);
   }, [displayNameInput, memberCodeInput, user]);
