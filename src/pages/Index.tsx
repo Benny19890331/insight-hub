@@ -42,6 +42,8 @@ const Index = () => {
     const currentDisplayName = meta?.display_name;
     const displayNameStr = currentDisplayName ? String(currentDisplayName).trim() : "";
     const nameNeedsUpdate = displayNameStr.length === 0 || displayNameStr.length > 20;
+    setDisplayNameInput(displayNameStr.length <= 20 ? displayNameStr : "");
+    setMemberCodeInput(hasMemberCode ? String(currentMemberCode).trim() : "");
     // OAuth users: always show name field; require update if name empty or >20 chars, or missing member_code
     if (isOAuth && (!hasMemberCode || nameNeedsUpdate)) {
       setMissingDisplayName(true);
@@ -363,18 +365,16 @@ const Index = () => {
           <div className={`w-full max-w-sm mx-4 rounded-xl border p-5 space-y-3 ${t.authCard}`}>
             <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先完善個人資料</h3>
             <p className={`text-xs ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統。</p>
-            {missingDisplayName && (
-              <div>
-                <label className={`text-xs mb-1 block ${t.authCardText}`}>姓名</label>
-                <input
-                  value={displayNameInput}
-                  onChange={(e) => setDisplayNameInput(e.target.value)}
-                  placeholder="您的姓名"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
-                  autoFocus
-                />
-              </div>
-            )}
+            <div>
+              <label className={`text-xs mb-1 block ${t.authCardText}`}>姓名</label>
+              <input
+                value={displayNameInput}
+                onChange={(e) => setDisplayNameInput(e.target.value)}
+                placeholder="您的姓名"
+                className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                autoFocus
+              />
+            </div>
             <div>
               <label className={`text-xs mb-1 block ${t.authCardText}`}>會員編號</label>
               <input
@@ -382,7 +382,6 @@ const Index = () => {
                 onChange={(e) => setMemberCodeInput(e.target.value)}
                 placeholder="例如 A001"
                 className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
-                autoFocus={!missingDisplayName}
               />
             </div>
             <button
