@@ -370,36 +370,77 @@ const Index = () => {
       </div>
 
       {requireProfileCompletion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm">
-          <div className={`w-full max-w-sm mx-4 rounded-xl border p-5 space-y-3 ${t.authCard}`}>
-            <h3 className={`text-sm font-semibold ${t.authCardText}`}>請先完善個人資料</h3>
-            <p className={`text-xs ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統。</p>
-            <div>
-              <label className={`text-xs mb-1 block ${t.authCardText}`}>姓名</label>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className={`w-full max-w-sm mx-4 rounded-xl border-2 p-6 space-y-4 ${t.authCard}`}>
+            <div className="text-center space-y-2">
+              <h3 className={`text-lg font-bold ${t.authCardText}`}>請先完善個人資料</h3>
+              <p className={`text-sm ${t.authSubtext}`}>請填寫以下資料才能繼續使用系統</p>
+            </div>
+            
+            {/* 姓名欄位 */}
+            <div className="space-y-1.5">
+              <label className={`text-sm font-semibold block ${t.authCardText}`}>
+                姓名 <span className="text-red-500">*</span>
+              </label>
               <input
                 value={displayNameInput}
-                onChange={(e) => setDisplayNameInput(e.target.value)}
-                placeholder="您的姓名"
-                className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                onChange={(e) => {
+                  setDisplayNameInput(e.target.value);
+                  if (nameError) setNameError("");
+                }}
+                placeholder="請輸入您的真實姓名"
+                className={`w-full rounded-lg border-2 px-4 py-3 text-base backdrop-blur-sm focus:outline-none focus:ring-2 transition-all ${
+                  nameError 
+                    ? "border-red-500 bg-red-50/10 focus:ring-red-500/50" 
+                    : `border-current/20 ${t.authInput} focus:ring-current/30`
+                }`}
                 autoFocus
               />
+              {nameError && (
+                <div className="flex items-start gap-1.5 text-red-500 text-sm mt-1.5 animate-in fade-in slide-in-from-top-1">
+                  <svg className="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-medium">{nameError}</span>
+                </div>
+              )}
             </div>
-            <div>
-              <label className={`text-xs mb-1 block ${t.authCardText}`}>會員編號</label>
+            
+            {/* 會員編號欄位 */}
+            <div className="space-y-1.5">
+              <label className={`text-sm font-semibold block ${t.authCardText}`}>
+                會員編號 <span className="text-red-500">*</span>
+              </label>
               <input
                 value={memberCodeInput}
-                onChange={(e) => setMemberCodeInput(e.target.value)}
-                placeholder="例如 A001"
-                className={`w-full rounded-lg border px-3 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:ring-1 transition-colors ${t.authInput}`}
+                onChange={(e) => {
+                  setMemberCodeInput(e.target.value);
+                  if (memberCodeError) setMemberCodeError("");
+                }}
+                placeholder="例如：A001"
+                className={`w-full rounded-lg border-2 px-4 py-3 text-base backdrop-blur-sm focus:outline-none focus:ring-2 transition-all ${
+                  memberCodeError 
+                    ? "border-red-500 bg-red-50/10 focus:ring-red-500/50" 
+                    : `border-current/20 ${t.authInput} focus:ring-current/30`
+                }`}
               />
+              {memberCodeError && (
+                <div className="flex items-start gap-1.5 text-red-500 text-sm mt-1.5 animate-in fade-in slide-in-from-top-1">
+                  <svg className="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-medium">{memberCodeError}</span>
+                </div>
+              )}
             </div>
+            
             <button
               onClick={handleSaveProfile}
               disabled={savingProfile}
-              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3.5 text-base font-bold tracking-wide transition-all duration-200 cursor-pointer disabled:opacity-50 mt-2"
               style={primaryBtnStyle}
             >
-              {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
+              {savingProfile && <Loader2 className="h-5 w-5 animate-spin" />}
               儲存並繼續
             </button>
           </div>
