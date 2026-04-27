@@ -225,26 +225,70 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
 
   const reset = () => { setPreview(null); setErrors([]); setFileName(""); };
 
+  const decodeBuffer = (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer);
+    // 檢查 UTF-8 BOM
+    if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+      return new TextDecoder('utf-8').decode(bytes.slice(3));
+    }
+    // 嘗試 UTF-8 嚴格解碼，失敗則 fallback 到 Big5
+    try {
+      const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      return text;
+    } catch {
+      try {
+        return new TextDecoder('big5').decode(bytes);
+      } catch {
+        try {
+          return new TextDecoder('gbk').decode(bytes);
+        } catch {
+          return new TextDecoder('utf-8').decode(bytes);
+        }
+      }
+    }
+  };
+
   const handleFile = (file: File) => {
     const name = file.name.toLowerCase();
     if (!name.endsWith('.csv') && !name.endsWith('.txt')) {
-      toast.error("請選擇 CSV 或 TXT 檔案");
+      toast.error("請選擇 CSV 或 TXT 檔案（副檔名需為 .csv 或 .txt）");
+      return;
+    }
+    if (file.size === 0) {
+      toast.error("檔案是空的，請重新選擇");
       return;
     }
     setFileName(file.name);
+    toast.info(`讀取中：${file.name}`);
     const reader = new FileReader();
     reader.onload = (e) => {
-      let text = e.target?.result as string;
-      // Remove UTF-8 BOM if present
-      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-      const { contacts, errors } = parseCsv(text, existingContacts);
-      setPreview(contacts);
-      setErrors(errors);
+      try {
+        const buffer = e.target?.result as ArrayBuffer;
+        if (!buffer) {
+          toast.error("檔案內容為空，請重新選擇");
+          return;
+        }
+        let text = decodeBuffer(buffer);
+        // 額外移除殘留 BOM
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const { contacts, errors } = parseCsv(text, existingContacts);
+        setPreview(contacts);
+        setErrors(errors);
+        if (contacts.length === 0 && errors.length === 0) {
+          toast.error("未解析到任何資料，請檢查 CSV 格式");
+        } else {
+          toast.success(`解析完成：${contacts.length} 筆`);
+        }
+      } catch (err) {
+        console.error('CSV parse error:', err);
+        toast.error("解析失敗：檔案編碼或格式異常");
+      }
     };
     reader.onerror = () => {
       toast.error("讀取檔案失敗，請重試");
     };
-    reader.readAsText(file, 'UTF-8');
+    // 用 ArrayBuffer 讀取，由 decodeBuffer 自動偵測 UTF-8 / Big5 / GBK
+    reader.readAsArrayBuffer(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -284,7 +328,19 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
               <p className="text-sm text-muted-foreground">{"拖曳 CSV 檔案至此，或點擊選擇"}</p>
               <p className="text-xs text-muted-foreground mt-1">{"支援一般 CSV 及組織圖 MAP 格式（自動偵測）"}</p>
             </div>
-            <input ref={fileRef} type="file" accept=".csv,.txt,.CSV,.TXT,text/csv,text/plain,text/comma-separated-values,application/csv,application/vnd.ms-excel,application/octet-stream,*/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            <input
+              ref={fileRef}
+              type="file"
+              
+              accept="*/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+                // 重置 value 讓相同檔案可重新選取（Android 常見問題）
+                e.target.value = '';
+              }}
+            />
 
             <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-1">
               <p className="text-xs font-medium text-foreground">{"CSV 格式範例："}</p>
