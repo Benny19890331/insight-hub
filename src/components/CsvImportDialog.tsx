@@ -331,7 +331,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
             <input
               ref={fileRef}
               type="file"
-              {/* Android 多家廠商檔案管理器會誤判 CSV MIME，改用 wildcard 確保可選取，再由 JS 驗證副檔名 */}
+              
               accept="*/*"
               className="hidden"
               onChange={(e) => {
