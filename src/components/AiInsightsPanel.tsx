@@ -33,7 +33,7 @@ export function AiInsightsPanel({ contact }: Props) {
     setLoadingStored(true);
     supabase
       .from("contact_insights" as any)
-      .select("summary, tags, next_action")
+      .select("summary, tags, next_action, invite_scripts")
       .eq("contact_id", contact.id)
       .maybeSingle()
       .then(({ data }) => {
