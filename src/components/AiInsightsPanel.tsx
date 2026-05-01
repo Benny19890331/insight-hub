@@ -33,7 +33,7 @@ export function AiInsightsPanel({ contact }: Props) {
     setLoadingStored(true);
     supabase
       .from("contact_insights" as any)
-      .select("summary, tags, next_action")
+      .select("summary, tags, next_action, invite_scripts")
       .eq("contact_id", contact.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -151,19 +151,26 @@ export function AiInsightsPanel({ contact }: Props) {
                 </button>
               </div>
               <div className="text-sm leading-relaxed text-foreground/90 space-y-1.5">
-                {insights.summary
-                  .split(/\n+/)
+                {(insights.summary || "")
+                  .split(/\r?\n+/)
                   .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
-                  .filter(Boolean)
+                  .filter((l) => {
+                    if (!l) return false;
+                    if (/^[：:]?$/.test(l)) return false;
+                    // 「項目：」後面是空的
+                    if (/^[^：:]{1,12}[：:]\s*$/.test(l)) return false;
+                    if (/(資料不足|無資料|尚無資料|無相關資料)/.test(l)) return false;
+                    return true;
+                  })
                   .map((line, i) => {
-                    const m = line.match(/^([^：:]{1,12})[：:]\s*(.*)$/);
+                    const m = line.match(/^([^：:]{1,12})[：:]\s*(.+)$/);
                     if (m) {
                       return (
                         <div key={i} className="flex gap-2">
                           <span className="shrink-0 font-semibold" style={{ color: t.titleColor }}>
                             • {m[1]}
                           </span>
-                          <span className="text-foreground/85">{m[2] || "—"}</span>
+                          <span className="text-foreground/85">{m[2]}</span>
                         </div>
                       );
                     }
