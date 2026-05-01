@@ -40,6 +40,7 @@ export type Database = {
           contact_id: string
           created_at: string
           id: string
+          invite_scripts: Json
           next_action: string
           summary: string
           tags: string[]
@@ -50,6 +51,7 @@ export type Database = {
           contact_id: string
           created_at?: string
           id?: string
+          invite_scripts?: Json
           next_action?: string
           summary?: string
           tags?: string[]
@@ -60,6 +62,7 @@ export type Database = {
           contact_id?: string
           created_at?: string
           id?: string
+          invite_scripts?: Json
           next_action?: string
           summary?: string
           tags?: string[]

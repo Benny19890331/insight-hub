@@ -1,0 +1,1 @@
+ALTER TABLE public.contact_insights ADD COLUMN IF NOT EXISTS invite_scripts jsonb NOT NULL DEFAULT '[]'::jsonb;
