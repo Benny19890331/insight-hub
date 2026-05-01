@@ -3,13 +3,19 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Contact } from "@/data/contacts";
 import { useTheme } from "@/hooks/useTheme";
-import { Brain, RefreshCw, Loader2, Lightbulb, Tags, ArrowRight, Copy } from "lucide-react";
+import { Brain, RefreshCw, Loader2, Lightbulb, Tags, ArrowRight, Copy, MessageSquareQuote } from "lucide-react";
 import { toast } from "sonner";
+
+interface InviteScript {
+  tone: string;
+  script: string;
+}
 
 interface Insights {
   summary: string;
   tags: string[];
   next_action: string;
+  invite_scripts?: InviteScript[];
 }
 
 interface Props {
@@ -205,6 +211,56 @@ export function AiInsightsPanel({ contact }: Props) {
                 {insights.next_action}
               </div>
             </div>
+
+            {/* Invite scripts */}
+            {insights.invite_scripts && insights.invite_scripts.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MessageSquareQuote className="h-3.5 w-3.5" style={{ color: t.titleColor }} />
+                  領袖邀約話術模板
+                </div>
+                <div className="space-y-2">
+                  {insights.invite_scripts.map((s, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg border p-3 space-y-2"
+                      style={{
+                        background: `${t.titleColor}06`,
+                        borderColor: `${t.titleColor}25`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-xs font-semibold px-2 py-0.5 rounded-full border"
+                          style={{
+                            color: t.titleColor,
+                            borderColor: `${t.titleColor}40`,
+                            background: `${t.titleColor}10`,
+                          }}
+                        >
+                          {s.tone}
+                        </span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(s.script).then(
+                              () => toast.success(`已複製「${s.tone}」話術`),
+                              () => toast.error("複製失敗")
+                            );
+                          }}
+                          className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md transition-colors hover:bg-white/10"
+                          style={{ color: t.titleColor }}
+                        >
+                          <Copy className="h-3 w-3" />複製
+                        </button>
+                      </div>
+                      <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                        {s.script}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
