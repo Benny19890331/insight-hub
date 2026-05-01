@@ -106,11 +106,24 @@ serve(async (req) => {
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { type: "string", description: "150字以內總結" },
+                  summary: { type: "string", description: "重點條列摘要" },
                   tags: { type: "array", items: { type: "string" }, description: "特性標籤" },
                   next_action: { type: "string", description: "下一步建議" },
+                  invite_scripts: {
+                    type: "array",
+                    description: "三段不同語氣的邀約話術",
+                    items: {
+                      type: "object",
+                      properties: {
+                        tone: { type: "string", enum: ["親切寒暄", "專業邀約", "好友直球"] },
+                        script: { type: "string" },
+                      },
+                      required: ["tone", "script"],
+                      additionalProperties: false,
+                    },
+                  },
                 },
-                required: ["summary", "tags", "next_action"],
+                required: ["summary", "tags", "next_action", "invite_scripts"],
                 additionalProperties: false,
               },
             },
