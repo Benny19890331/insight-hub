@@ -144,10 +144,30 @@ export function AiInsightsPanel({ contact }: Props) {
                   <Copy className="h-3 w-3" />複製
                 </button>
               </div>
-              <div className="text-sm leading-relaxed text-foreground/90 space-y-2">
-                {insights.summary.split(/\n\n|\n/).filter(Boolean).map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
+              <div className="text-sm leading-relaxed text-foreground/90 space-y-1.5">
+                {insights.summary
+                  .split(/\n+/)
+                  .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
+                  .filter(Boolean)
+                  .map((line, i) => {
+                    const m = line.match(/^([^：:]{1,12})[：:]\s*(.*)$/);
+                    if (m) {
+                      return (
+                        <div key={i} className="flex gap-2">
+                          <span className="shrink-0 font-semibold" style={{ color: t.titleColor }}>
+                            • {m[1]}
+                          </span>
+                          <span className="text-foreground/85">{m[2] || "—"}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={i} className="flex gap-2">
+                        <span style={{ color: t.titleColor }}>•</span>
+                        <span>{line}</span>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
 
