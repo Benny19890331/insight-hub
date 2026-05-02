@@ -7,6 +7,26 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function buildFallbackInvitePayload(contact: any, reason = "AI 暫時無法回應") {
+  const who = contact?.nickname || contact?.name || "你";
+  const scripts = [
+    { tone: "親切寒暄", script: `${who} 最近還好嗎？想關心一下你最近的狀況，這週有空我們輕鬆聊聊近況。` },
+    { tone: "專業邀約", script: `${who}，我整理了一份對你現況有幫助的重點，約 20 分鐘對焦，看看下一步怎麼安排最有效率。` },
+    { tone: "好友直球", script: `${who} 我直接約你，這週找時間喝咖啡聊聊，我把重點一次講清楚，對你會有幫助。` },
+  ];
+  const legacyScript = scripts.map((s) => `【${s.tone}】\n${s.script}`).join("\n\n");
+  return {
+    scripts,
+    script: legacyScript,
+    invite_scripts: scripts,
+    text: legacyScript,
+    content: legacyScript,
+    draft: legacyScript,
+    result: legacyScript,
+    fallback_reason: reason,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,7 +48,10 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      const { contact } = await req.json().catch(() => ({ contact: null }));
+      return new Response(JSON.stringify(buildFallbackInvitePayload(contact, "LOVABLE_API_KEY 未設定")), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { contact, insights, debug } = await req.json();
@@ -154,19 +177,19 @@ ${insightsBlock}
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "AI 請求過於頻繁，請稍後再試" }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify(buildFallbackInvitePayload(contact, "AI 請求過於頻繁")), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI 額度不足，請至設定頁面加值" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify(buildFallbackInvitePayload(contact, "AI 額度不足")), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const text = await response.text();
       console.error("AI gateway error:", response.status, text);
-      return new Response(JSON.stringify({ error: "AI 生成失敗，請稍後再試" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify(buildFallbackInvitePayload(contact, `AI gateway error ${response.status}`)), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -272,9 +295,8 @@ ${insightsBlock}
     });
   } catch (e) {
     console.error("ai-invite error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify(buildFallbackInvitePayload(null, e instanceof Error ? e.message : "Unknown error")), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
