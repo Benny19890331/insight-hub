@@ -137,9 +137,13 @@ serve(async (req) => {
 
     const insights = JSON.parse(toolCall.function.arguments);
 
-    // Sanitize summary: drop empty bullets, headers without content, and trailing junk
+    // Sanitize summary: normalize escaped newlines, drop empty bullets/headers, and strip trailing junk
     if (typeof insights.summary === "string") {
       insights.summary = insights.summary
+        .replace(/\\r\\n/g, "\n")
+        .replace(/\\n/g, "\n")
+        .replace(/(?:\n[•\-\*]\s*)+$/g, "")
+        .trim()
         .split(/\r?\n/)
         .map((l: string) => l.replace(/\s+$/, ""))
         .filter((l: string) => {
@@ -156,7 +160,9 @@ serve(async (req) => {
         .join("\n")
         // collapse any accidental double newlines
         .replace(/\n{2,}/g, "\n")
-        // strip trailing bullets / whitespace
+        // strip trailing bullets / whitespace, including escaped newlines from model output
+        .replace(/(?:\\n|\n)+$/g, "")
+        .replace(/(?:\\n|\n)[•\-\*\s]*$/g, "")
         .replace(/[\s•\-\*]+$/g, "")
         .trim();
     }
