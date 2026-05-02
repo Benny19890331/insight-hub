@@ -1,25 +1,33 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Contact } from "@/data/contacts";
 import { useTheme } from "@/hooks/useTheme";
-import { Brain, RefreshCw, Loader2, Lightbulb, Tags, ArrowRight, Copy, MessageSquareQuote } from "lucide-react";
+import { Brain, RefreshCw, Loader2, Lightbulb, Tags, ArrowRight, Copy } from "lucide-react";
 import { toast } from "sonner";
-
-interface InviteScript {
-  tone: string;
-  script: string;
-}
 
 interface Insights {
   summary: string;
   tags: string[];
   next_action: string;
-  invite_scripts?: InviteScript[];
 }
 
 interface Props {
   contact: Contact;
+}
+
+// Strict cleaner: drop empty/punctuation/header-only/no-data lines and trailing junk
+function cleanSummary(raw: string): string[] {
+  return (raw || "")
+    .split(/\r?\n+/)
+    .map((l) => l.replace(/\s+$/, ""))
+    .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
+    .filter((l) => {
+      if (!l) return false;
+      if (/^[•\-\*：:\s]*$/.test(l)) return false;
+      if (/^[^：:]{1,12}[：:]\s*$/.test(l)) return false;
+      if (/(資料不足|無資料|尚無資料|無相關資料|未提供|未知|待補)/.test(l)) return false;
+      return true;
+    });
 }
 
 export function AiInsightsPanel({ contact }: Props) {
@@ -28,12 +36,11 @@ export function AiInsightsPanel({ contact }: Props) {
   const [loading, setLoading] = useState(false);
   const [loadingStored, setLoadingStored] = useState(true);
 
-  // Load stored insights
   useEffect(() => {
     setLoadingStored(true);
     supabase
       .from("contact_insights" as any)
-      .select("summary, tags, next_action, invite_scripts")
+      .select("summary, tags, next_action")
       .eq("contact_id", contact.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -74,9 +81,10 @@ export function AiInsightsPanel({ contact }: Props) {
     "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30",
   ];
 
+  const summaryLines = insights ? cleanSummary(insights.summary) : [];
+
   return (
     <div className="space-y-3">
-      {/* Generate / Regenerate button */}
       {!insights && !loading && (
         <button
           onClick={generate}
@@ -115,7 +123,6 @@ export function AiInsightsPanel({ contact }: Props) {
             borderColor: `${t.titleColor}30`,
           }}
         >
-          {/* Header */}
           <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: `${t.titleColor}20` }}>
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4" style={{ color: t.titleColor }} />
@@ -140,7 +147,7 @@ export function AiInsightsPanel({ contact }: Props) {
                 </div>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(insights.summary).then(
+                    navigator.clipboard.writeText(summaryLines.map((l) => `• ${l}`).join("\n")).then(
                       () => toast.success("已複製狀態總結"),
                       () => toast.error("複製失敗")
                     );
@@ -151,36 +158,25 @@ export function AiInsightsPanel({ contact }: Props) {
                 </button>
               </div>
               <div className="text-sm leading-relaxed text-foreground/90 space-y-1.5">
-                {(insights.summary || "")
-                  .split(/\r?\n+/)
-                  .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
-                  .filter((l) => {
-                    if (!l) return false;
-                    if (/^[：:]?$/.test(l)) return false;
-                    // 「項目：」後面是空的
-                    if (/^[^：:]{1,12}[：:]\s*$/.test(l)) return false;
-                    if (/(資料不足|無資料|尚無資料|無相關資料)/.test(l)) return false;
-                    return true;
-                  })
-                  .map((line, i) => {
-                    const m = line.match(/^([^：:]{1,12})[：:]\s*(.+)$/);
-                    if (m) {
-                      return (
-                        <div key={i} className="flex gap-2">
-                          <span className="shrink-0 font-semibold" style={{ color: t.titleColor }}>
-                            • {m[1]}
-                          </span>
-                          <span className="text-foreground/85">{m[2]}</span>
-                        </div>
-                      );
-                    }
+                {summaryLines.map((line, i) => {
+                  const m = line.match(/^([^：:]{1,12})[：:]\s*(.+)$/);
+                  if (m) {
                     return (
                       <div key={i} className="flex gap-2">
-                        <span style={{ color: t.titleColor }}>•</span>
-                        <span>{line}</span>
+                        <span className="shrink-0 font-semibold" style={{ color: t.titleColor }}>
+                          • {m[1]}
+                        </span>
+                        <span className="text-foreground/85">{m[2]}</span>
                       </div>
                     );
-                  })}
+                  }
+                  return (
+                    <div key={i} className="flex gap-2">
+                      <span style={{ color: t.titleColor }}>•</span>
+                      <span>{line}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -218,56 +214,6 @@ export function AiInsightsPanel({ contact }: Props) {
                 {insights.next_action}
               </div>
             </div>
-
-            {/* Invite scripts */}
-            {insights.invite_scripts && insights.invite_scripts.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MessageSquareQuote className="h-3.5 w-3.5" style={{ color: t.titleColor }} />
-                  領袖邀約話術模板
-                </div>
-                <div className="space-y-2">
-                  {insights.invite_scripts.map((s, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg border p-3 space-y-2"
-                      style={{
-                        background: `${t.titleColor}06`,
-                        borderColor: `${t.titleColor}25`,
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs font-semibold px-2 py-0.5 rounded-full border"
-                          style={{
-                            color: t.titleColor,
-                            borderColor: `${t.titleColor}40`,
-                            background: `${t.titleColor}10`,
-                          }}
-                        >
-                          {s.tone}
-                        </span>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(s.script).then(
-                              () => toast.success(`已複製「${s.tone}」話術`),
-                              () => toast.error("複製失敗")
-                            );
-                          }}
-                          className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md transition-colors hover:bg-white/10"
-                          style={{ color: t.titleColor }}
-                        >
-                          <Copy className="h-3 w-3" />複製
-                        </button>
-                      </div>
-                      <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
-                        {s.script}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
