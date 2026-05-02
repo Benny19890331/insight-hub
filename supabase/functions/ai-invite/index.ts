@@ -259,7 +259,15 @@ ${insightsBlock}
 
     const legacyScript = scripts.map((s) => `【${s.tone}】\n${s.script}`).join("\n\n");
 
-    return new Response(JSON.stringify({ scripts, script: legacyScript, invite_scripts: scripts }), {
+    return new Response(JSON.stringify({
+      scripts,
+      script: legacyScript,
+      invite_scripts: scripts,
+      text: legacyScript,
+      content: legacyScript,
+      draft: legacyScript,
+      result: legacyScript,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
