@@ -41,31 +41,26 @@ serve(async (req) => {
       loyal: "忠實（老客戶、已多次購買、可發展為經銷夥伴）",
     };
 
-    const systemPrompt = `你是一位善於人際互動的文案高手。你的任務是幫使用者撰寫一封給「${honorific}」的訊息，用途可能是打招呼、噓寒問暖、關心近況、或是邀約見面/活動。
+    const systemPrompt = `你是一位善於人際互動的文案高手。請為「${honorific}」生成 **三段不同語氣** 的邀約訊息草稿，方便領袖依場合直接複製傳訊息。
 
-要求：
-- 語氣要像真正的朋友傳訊息，自然口語、有溫度，不要像罐頭訊息
-- 根據熱度等級調整語氣：
-  冷 → 輕鬆破冰、不給壓力，像是久違的朋友打聲招呼
-  溫 → 自然關心近況，順勢提到可以一起做什麼
-  熱 → 熱情邀約，展現期待感
-  忠實 → 老朋友語氣，可以談更深入的合作或升級話題
-- 如果有產品標籤，自然融入生活場景，不要硬推
-- 如果有背景資訊，用來找到共同話題或貼近對方生活
-- 如果有特殊註記，巧妙參考但不要直接複述
-- 適當使用 emoji 增加親切感（2-4 個即可）
+每段訊息要求：
+- 自然口語、有溫度，像真正朋友傳訊息，不要罐頭感
+- 根據熱度等級調整語氣（冷=破冰／溫=關心話題／熱=熱情邀約／忠實=老朋友深聊）
+- 自然融入產品標籤、背景、特殊註記，但不要硬推、不要直接複述
+- 適當使用 emoji（2-4 個）
 - 稱呼使用「${honorific}」
-- 訊息長度約 120-200 字，分 2-3 段（開場關心、中段話題/邀約、結尾）
-- 繁體中文，台灣用語
+- 長度約 120-200 字，分 2-3 段（開場關心、中段話題/邀約、結尾）
+- 繁體中文、台灣口語
 - 不要用「親愛的」、「您好」等制式開頭，直接用稱呼開始
-- 每次生成都要有不同的切入角度和風格
+
+三段語氣定義（必須回三段）：
+1. tone="親切寒暄"：先關心近況、輕鬆破冰，再自然帶到邀約
+2. tone="專業邀約"：直接、有條理、強調價值與時間，適合忙碌或理性的對象
+3. tone="好友直球"：像熟朋友直接開口，口語、有感情，適合熱度高或交情好的對象
 
 嚴格禁止：
-- 不要出現「業務員」、「銷售員」、「推銷」、「直銷」、「傳銷」等詞彙
-- 不要使用「成交」、「業績」、「下線」等商業術語
-- 用「分享」取代「推薦」、「銷售」
-- 不要用「客戶」稱呼對方
-- 整體語氣是朋友間的關心與互動，不是商業文案`;
+- 不要出現「業務員」、「銷售員」、「推銷」、「直銷」、「傳銷」、「客戶」、「成交」、「業績」、「下線」
+- 用「分享」取代「推薦」、「銷售」`;
 
     let insightsBlock = "";
     if (insights) {
@@ -75,12 +70,11 @@ serve(async (req) => {
 特性標籤：${(insights.tags || []).join("、") || "無"}
 下一步建議：${insights.next_action || "無"}
 
-請將以上分析洞察自然融入訊息中，讓內容更貼近對方的狀態與需求。
+請將以上分析洞察自然融入訊息中。
 `;
     }
 
-    const userPrompt = `請根據以下客戶資料撰寫一封個人化邀約訊息：
-
+    const userPrompt = `客戶資料：
 姓名：${contact.name}
 稱呼：${honorific}
 ${genderText ? `性別：${genderText}` : ""}
@@ -88,12 +82,12 @@ ${genderText ? `性別：${genderText}` : ""}
 背景/職業：${contact.background || "未知"}
 熱度：${heatMap[contact.heat] || "未知"}
 當前狀態：${(contact.statuses || []).join("、") || "無"}
-關注產品：${(contact.productTags || []).join("、") || "無特定產品"}
+關注產品：${(contact.productTags || contact.product_tags || []).join("、") || "無特定產品"}
 特殊註記：${contact.notes || "無"}
-聯絡方式：${contact.contactMethod || "未知"}
-最後聯絡日期：${contact.lastContactDate || "未知"}
+聯絡方式：${contact.contactMethod || contact.contact_method || "未知"}
+最後聯絡日期：${contact.lastContactDate || contact.last_contact_date || "未知"}
 ${insightsBlock}
-請直接輸出邀約訊息內容，不要加任何前綴說明。`;
+請呼叫 submit_invite_scripts 工具回傳三段不同語氣的邀約訊息。`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -109,54 +103,72 @@ ${insightsBlock}
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          stream: true,
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "submit_invite_scripts",
+                description: "Submit three invitation scripts in different tones",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    scripts: {
+                      type: "array",
+                      description: "三段不同語氣的邀約訊息，必須剛好 3 個",
+                      items: {
+                        type: "object",
+                        properties: {
+                          tone: { type: "string", enum: ["親切寒暄", "專業邀約", "好友直球"] },
+                          script: { type: "string" },
+                        },
+                        required: ["tone", "script"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["scripts"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "submit_invite_scripts" } },
         }),
       }
     );
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "AI 請求過於頻繁，請稍後再試" }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "AI 請求過於頻繁，請稍後再試" }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI 額度不足，請至設定頁面加值" }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "AI 額度不足，請至設定頁面加值" }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       const text = await response.text();
       console.error("AI gateway error:", response.status, text);
-      return new Response(
-        JSON.stringify({ error: "AI 生成失敗，請稍後再試" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "AI 生成失敗，請稍後再試" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    const aiResult = await response.json();
+    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) throw new Error("No tool call in AI response");
+    const parsed = JSON.parse(toolCall.function.arguments);
+    const scripts = Array.isArray(parsed.scripts) ? parsed.scripts : [];
+
+    return new Response(JSON.stringify({ scripts }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("ai-invite error:", e);
     return new Response(
-      JSON.stringify({
-        error: e instanceof Error ? e.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
