@@ -105,33 +105,31 @@ export function AiInsightsPanel({ contact }: Props) {
 
   return (
     <div className="space-y-3">
+      <button
+        onClick={() => {
+          const next = !diag;
+          setDiag(next);
+          localStorage.setItem("ai_diag", next ? "1" : "0");
+          toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
+        }}
+        className="w-full text-xs rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-white/5"
+      >
+        診斷模式：{diag ? "開啟" : "關閉"}
+      </button>
       {!insights && !loading && (
-        <div className="space-y-2">
-          <button
-            onClick={generate}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
-            style={{
-              background: `linear-gradient(135deg, ${t.titleColor}22, ${t.titleColor}08)`,
-              borderColor: `${t.titleColor}44`,
-              color: t.titleColor,
-              boxShadow: `0 0 20px -6px ${t.titleColor}33`,
-            }}
-          >
-            <Brain className="h-4.5 w-4.5" />
-            AI 提煉 C單（分析報告）
-          </button>
-          <button
-            onClick={() => {
-              const next = !diag;
-              setDiag(next);
-              localStorage.setItem("ai_diag", next ? "1" : "0");
-              toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
-            }}
-            className="w-full text-xs rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-white/5"
-          >
-            診斷模式：{diag ? "開啟" : "關閉"}
-          </button>
-        </div>
+        <button
+          onClick={generate}
+          className="w-full flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+          style={{
+            background: `linear-gradient(135deg, ${t.titleColor}22, ${t.titleColor}08)`,
+            borderColor: `${t.titleColor}44`,
+            color: t.titleColor,
+            boxShadow: `0 0 20px -6px ${t.titleColor}33`,
+          }}
+        >
+          <Brain className="h-4.5 w-4.5" />
+          AI 提煉 C單（分析報告）
+        </button>
       )}
 
       {loading && (

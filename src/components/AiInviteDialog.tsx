@@ -130,6 +130,17 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
                 AI 客製化邀約草稿
               </DialogTitle>
               <DialogDescription>根據 {contact.name} 的完整資料，AI 生成三種語氣版本</DialogDescription>
+              <button
+                onClick={() => {
+                  const next = !diag;
+                  setDiag(next);
+                  localStorage.setItem("ai_diag", next ? "1" : "0");
+                  toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
+                }}
+                className="mt-2 inline-flex w-fit items-center rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted/40"
+              >
+                診斷模式：{diag ? "開啟" : "關閉"}
+              </button>
             </DialogHeader>
 
             {loading ? (
@@ -174,17 +185,6 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
                   ))
                 )}
                 <div className="flex justify-end gap-2 flex-wrap pt-1">
-                  <button
-                    onClick={() => {
-                      const next = !diag;
-                      setDiag(next);
-                      localStorage.setItem("ai_diag", next ? "1" : "0");
-                      toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer"
-                  >
-                    診斷模式：{diag ? "開啟" : "關閉"}
-                  </button>
                   <button
                     onClick={generate}
                     disabled={loading}
