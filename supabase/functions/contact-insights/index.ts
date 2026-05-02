@@ -137,31 +137,31 @@ serve(async (req) => {
 
     const insights = JSON.parse(toolCall.function.arguments);
 
-    // Sanitize summary: remove empty bullet lines and trailing "•"/"\n" garbage
+    // Sanitize summary: drop empty bullets, headers without content, and trailing junk
     if (typeof insights.summary === "string") {
       insights.summary = insights.summary
         .split(/\r?\n/)
         .map((l: string) => l.replace(/\s+$/, ""))
         .filter((l: string) => {
           const stripped = l.replace(/^[•\-\*]\s*/, "").trim();
-          // drop empty bullet lines, lines that are just "項目：" with no content,
-          // and lines that say 資料不足 / 無資料
           if (!stripped) return false;
-          if (/^[：:]?$/.test(stripped)) return false;
+          // pure punctuation / dangling bullet
+          if (/^[•\-\*：:\s]*$/.test(stripped)) return false;
+          // "項目：" with no content
           if (/^[^：:]{1,12}[：:]\s*$/.test(stripped)) return false;
-          if (/(資料不足|無資料|尚無資料|無相關資料)/.test(stripped)) return false;
+          // explicit "no data" lines
+          if (/(資料不足|無資料|尚無資料|無相關資料|未提供|未知|待補)/.test(stripped)) return false;
           return true;
         })
         .join("\n")
+        // collapse any accidental double newlines
+        .replace(/\n{2,}/g, "\n")
+        // strip trailing bullets / whitespace
+        .replace(/[\s•\-\*]+$/g, "")
         .trim();
     }
 
-    // Ensure invite_scripts is an array
-    if (!Array.isArray(insights.invite_scripts)) {
-      insights.invite_scripts = [];
-    }
-
-    // Upsert into contact_insights
+    // Upsert into contact_insights (invite_scripts now lives in ai-invite, store empty array)
     const { error: upsertErr } = await supabase
       .from("contact_insights")
       .upsert({
@@ -170,7 +170,7 @@ serve(async (req) => {
         summary: insights.summary,
         tags: insights.tags,
         next_action: insights.next_action,
-        invite_scripts: insights.invite_scripts,
+        invite_scripts: [],
         updated_at: new Date().toISOString(),
       }, { onConflict: "contact_id" });
 
