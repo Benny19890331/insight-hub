@@ -43,7 +43,7 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
     abortRef.current = controller;
 
     setLoading(true);
-    setScripts([]);
+    // Keep existing scripts while refreshing to avoid blank modal flicker.
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-invite", {
@@ -79,6 +79,17 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
 
   useEffect(() => {
     if (open) {
+      supabase
+        .from("contact_insights" as any)
+        .select("invite_scripts")
+        .eq("contact_id", contact.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          const cached = Array.isArray((data as any)?.invite_scripts) ? (data as any).invite_scripts : [];
+          if (cached.length > 0) {
+            setScripts(cached as InviteScript[]);
+          }
+        });
       generate();
     }
     return () => {

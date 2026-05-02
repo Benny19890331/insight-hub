@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +13,18 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Missing auth");
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !user) throw new Error("Unauthorized");
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -196,6 +209,21 @@ ${insightsBlock}
           .trim(),
       }))
       .filter((s) => s.tone && s.script);
+
+    if (contact?.id && scripts.length > 0) {
+      const { error: upsertErr } = await supabase
+        .from("contact_insights")
+        .upsert(
+          {
+            contact_id: contact.id,
+            user_id: user.id,
+            invite_scripts: scripts,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "contact_id" }
+        );
+      if (upsertErr) console.error("Failed to save invite_scripts:", upsertErr);
+    }
 
     return new Response(JSON.stringify({ scripts }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
