@@ -22,9 +22,9 @@ function cleanSummary(raw: string): string[] {
   for (let i = 0; i < 3; i += 1) {
     unescaped = unescaped
       .replace(/\r\n/g, "\n")
-      .replace(/\\+r\\+n/g, "\n")
-      .replace(/\\+n/g, "\n")
-      .replace(/\/+n/g, "\n");
+      .replace(/\\u000a/gi, "\n")
+      .replace(/[\\＼／/]+\s*r[\\＼／/]+\s*n/gi, "\n")
+      .replace(/[\\＼／/]+\s*n/gi, "\n");
   }
 
   return unescaped

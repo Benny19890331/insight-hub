@@ -257,7 +257,9 @@ ${insightsBlock}
       if (upsertErr) console.error("Failed to save invite_scripts:", upsertErr);
     }
 
-    return new Response(JSON.stringify({ scripts }), {
+    const legacyScript = scripts.map((s) => `【${s.tone}】\n${s.script}`).join("\n\n");
+
+    return new Response(JSON.stringify({ scripts, script: legacyScript, invite_scripts: scripts }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
