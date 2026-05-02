@@ -52,17 +52,17 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const contactName = contact.nickname || contact.name;
-    const systemPrompt = `你是一位頂尖的人脈經營顧問，擅長從有限資料中萃取關鍵洞察。這份分析報告是給「領袖」快速了解「${contactName}」這個人，必須一眼看懂、條列清楚，方便領袖判斷如何借力與邀約。
+    const systemPrompt = `你是一位頂尖的人脈經營顧問，擅長從有限資料中萃取關鍵洞察。這份分析報告是給「領袖」快速了解「${contactName}」這個人，必須一眼看懂、條列清楚。
 
 嚴格使用 tool calling 回傳結果，欄位說明：
 
-- summary: **重點條列式**摘要（不是段落文章）。每一項一行，使用「• 項目名稱：內容」格式，項目之間用換行符號 \\n 分隔。請依照下列固定順序輸出，但**只列出有實質內容的項目**，資料不足的項目請完全省略（不要寫「資料不足」也不要列出來）：
+- summary: **重點條列式**摘要（不是段落文章）。每一項一行，使用「• 項目名稱：內容」格式，項目之間用單一換行符號 \\n 分隔（**不要連續多個換行、不要在結尾加多餘的 \\n 或空的 •**）。請依照下列固定順序輸出，但**只列出有實質內容、且資料中真的提到或可合理推論的項目**，其餘**完全省略**（不要寫「資料不足」、「無」、「未知」、「待補」，也不要保留空白項目）：
   • 姓名
   • 年齡
   • 背景（出身、家庭、地區）
   • 職務（工作或專業）
   • 信任感（高/中/低 + 一句說明，依互動熱度與紀錄判斷）
-  • 想找哪位領袖借力（建議借力的領袖類型或方向）
+  • 想找哪位領袖借力（**只有在「特殊註記 (notes)」明確提到「借力 / 借誰的力 / 想找 XX 介紹 / 想認識某類型領袖」等內容時才列出，否則整項省略，不要列**）
   • 需求（目前最可能的需求或痛點）
   • 關係（與我們的關係深淺、認識來源）
   • 如何邀約（最適合的邀約方式與切入點，一句話）
@@ -73,17 +73,12 @@ serve(async (req) => {
 
 - tags: 萃取特性、興趣或痛點標籤，3～8 個，具體
 - next_action: 下一步具體邀約或跟進建議（80字以內），含時間建議或話題切入點
-- invite_scripts: 三段「領袖邀約話術模板」陣列，**必須回傳 3 個物件**，依「如何邀約」項目延伸，每段都要可以**直接複製傳訊息**給對方，需自然帶入「${contactName}」稱呼，長度 60～120 字：
-  1. tone="親切寒暄"：先關心近況、輕鬆破冰，再自然帶到邀約
-  2. tone="專業邀約"：直接、有條理、強調價值與時間，適合對忙碌或理性的人
-  3. tone="好友直球"：像熟朋友直接開口，口語、有感情，適合熱度高或交情好的對象
-  每個物件格式：{ "tone": string, "script": string }
 
 重要規則：
 - 繁體中文，內部經營筆記口吻
 - 全文以「${contactName}」稱呼，不要用「客戶」、「該客戶」、「此客戶」、「業務員」、「銷售員」、「推銷」
-- 只根據提供的資料分析，不要編造；資料不足的 summary 項目直接省略
-- summary 順序不可調動，但可省略；invite_scripts 三段都必須產出`;
+- 只根據提供的資料分析，不要編造；資料不足的 summary 項目直接省略整行
+- summary **結尾不可有多餘的換行或空 bullet**，最後一行就是最後一個有內容的項目`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -109,21 +104,8 @@ serve(async (req) => {
                   summary: { type: "string", description: "重點條列摘要" },
                   tags: { type: "array", items: { type: "string" }, description: "特性標籤" },
                   next_action: { type: "string", description: "下一步建議" },
-                  invite_scripts: {
-                    type: "array",
-                    description: "三段不同語氣的邀約話術",
-                    items: {
-                      type: "object",
-                      properties: {
-                        tone: { type: "string", enum: ["親切寒暄", "專業邀約", "好友直球"] },
-                        script: { type: "string" },
-                      },
-                      required: ["tone", "script"],
-                      additionalProperties: false,
-                    },
-                  },
                 },
-                required: ["summary", "tags", "next_action", "invite_scripts"],
+                required: ["summary", "tags", "next_action"],
                 additionalProperties: false,
               },
             },
@@ -155,31 +137,31 @@ serve(async (req) => {
 
     const insights = JSON.parse(toolCall.function.arguments);
 
-    // Sanitize summary: remove empty bullet lines and trailing "•"/"\n" garbage
+    // Sanitize summary: drop empty bullets, headers without content, and trailing junk
     if (typeof insights.summary === "string") {
       insights.summary = insights.summary
         .split(/\r?\n/)
         .map((l: string) => l.replace(/\s+$/, ""))
         .filter((l: string) => {
           const stripped = l.replace(/^[•\-\*]\s*/, "").trim();
-          // drop empty bullet lines, lines that are just "項目：" with no content,
-          // and lines that say 資料不足 / 無資料
           if (!stripped) return false;
-          if (/^[：:]?$/.test(stripped)) return false;
+          // pure punctuation / dangling bullet
+          if (/^[•\-\*：:\s]*$/.test(stripped)) return false;
+          // "項目：" with no content
           if (/^[^：:]{1,12}[：:]\s*$/.test(stripped)) return false;
-          if (/(資料不足|無資料|尚無資料|無相關資料)/.test(stripped)) return false;
+          // explicit "no data" lines
+          if (/(資料不足|無資料|尚無資料|無相關資料|未提供|未知|待補)/.test(stripped)) return false;
           return true;
         })
         .join("\n")
+        // collapse any accidental double newlines
+        .replace(/\n{2,}/g, "\n")
+        // strip trailing bullets / whitespace
+        .replace(/[\s•\-\*]+$/g, "")
         .trim();
     }
 
-    // Ensure invite_scripts is an array
-    if (!Array.isArray(insights.invite_scripts)) {
-      insights.invite_scripts = [];
-    }
-
-    // Upsert into contact_insights
+    // Upsert into contact_insights (invite_scripts now lives in ai-invite, store empty array)
     const { error: upsertErr } = await supabase
       .from("contact_insights")
       .upsert({
@@ -188,7 +170,7 @@ serve(async (req) => {
         summary: insights.summary,
         tags: insights.tags,
         next_action: insights.next_action,
-        invite_scripts: insights.invite_scripts,
+        invite_scripts: [],
         updated_at: new Date().toISOString(),
       }, { onConflict: "contact_id" });
 
