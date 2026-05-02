@@ -68,7 +68,11 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
         toast.error(data.error);
         return;
       }
-      setScripts(Array.isArray(data?.scripts) ? data.scripts : []);
+      const nextScripts = Array.isArray(data?.scripts) ? data.scripts : [];
+      setScripts(nextScripts);
+      if (nextScripts.length === 0) {
+        toast.error("AI 未回傳邀約草稿，請按「重新生成」再試一次");
+      }
     } catch (e: any) {
       if (e.name !== "AbortError") {
         console.error("AI invite error:", e);

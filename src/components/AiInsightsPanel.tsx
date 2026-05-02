@@ -17,11 +17,18 @@ interface Props {
 
 // Strict cleaner: normalize escaped newlines, then drop empty/punctuation/header-only/no-data lines
 function cleanSummary(raw: string): string[] {
-  return (raw || "")
+  const normalized = (raw || "");
+  // Some model outputs may contain multi-layer escaped line breaks such as
+  // "\\n", "\\\\n", or mixed "\r\n" spellings. Normalize repeatedly.
+  const unescaped = normalized
+    .replace(/\\\\\\\\r\\\\\\\\n/g, "\n")
+    .replace(/\\\\\\\\n/g, "\n")
     .replace(/\\\\r\\\\n/g, "\n")
     .replace(/\\\\n/g, "\n")
     .replace(/\\r\\n/g, "\n")
-    .replace(/\\n/g, "\n")
+    .replace(/\\n/g, "\n");
+
+  return unescaped
     .replace(/(?:\n[•\-\*]\s*)+$/g, "")
     .trim()
     .split(/\r?\n+/)

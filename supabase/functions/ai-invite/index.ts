@@ -156,10 +156,46 @@ ${insightsBlock}
     }
 
     const aiResult = await response.json();
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("No tool call in AI response");
-    const parsed = JSON.parse(toolCall.function.arguments);
-    const scripts = Array.isArray(parsed.scripts) ? parsed.scripts : [];
+    const message = aiResult.choices?.[0]?.message;
+    const toolCall = message?.tool_calls?.[0];
+    let scripts: Array<{ tone: string; script: string }> = [];
+
+    if (toolCall?.function?.arguments) {
+      const parsed = JSON.parse(toolCall.function.arguments);
+      scripts = Array.isArray(parsed?.scripts) ? parsed.scripts : [];
+    }
+
+    // Fallback: sometimes model returns JSON in content instead of tool call.
+    if (scripts.length === 0 && typeof message?.content === "string") {
+      const content = message.content.trim();
+      try {
+        const parsed = JSON.parse(content);
+        scripts = Array.isArray(parsed?.scripts) ? parsed.scripts : [];
+      } catch {
+        const chunks = content
+          .split(/\n{2,}/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+        scripts = chunks.slice(0, 3).map((script: string, idx: number) => ({
+          tone: ["親切寒暄", "專業邀約", "好友直球"][idx] || `版本${idx + 1}`,
+          script,
+        }));
+      }
+    }
+
+    scripts = scripts
+      .map((s) => ({
+        tone: String(s?.tone || "").trim(),
+        script: String(s?.script || "")
+          .replace(/\\\\\\\\r\\\\\\\\n/g, "\n")
+          .replace(/\\\\\\\\n/g, "\n")
+          .replace(/\\\\r\\\\n/g, "\n")
+          .replace(/\\\\n/g, "\n")
+          .replace(/\\r\\n/g, "\n")
+          .replace(/\\n/g, "\n")
+          .trim(),
+      }))
+      .filter((s) => s.tone && s.script);
 
     return new Response(JSON.stringify({ scripts }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
