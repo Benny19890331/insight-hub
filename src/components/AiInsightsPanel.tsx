@@ -15,9 +15,13 @@ interface Props {
   contact: Contact;
 }
 
-// Strict cleaner: drop empty/punctuation/header-only/no-data lines and trailing junk
+// Strict cleaner: normalize escaped newlines, then drop empty/punctuation/header-only/no-data lines
 function cleanSummary(raw: string): string[] {
   return (raw || "")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/(?:\n[•\-\*]\s*)+$/g, "")
+    .trim()
     .split(/\r?\n+/)
     .map((l) => l.replace(/\s+$/, ""))
     .map((l) => l.replace(/^[•\-\*]\s*/, "").trim())
