@@ -140,6 +140,8 @@ serve(async (req) => {
     // Sanitize summary: normalize escaped newlines, drop empty bullets/headers, and strip trailing junk
     if (typeof insights.summary === "string") {
       insights.summary = insights.summary
+        .replace(/\\\\r\\\\n/g, "\n")
+        .replace(/\\\\n/g, "\n")
         .replace(/\\r\\n/g, "\n")
         .replace(/\\n/g, "\n")
         .replace(/(?:\n[•\-\*]\s*)+$/g, "")
