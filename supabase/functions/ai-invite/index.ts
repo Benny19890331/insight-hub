@@ -13,17 +13,17 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing auth");
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authErr } = await supabase.auth.getUser();
-    if (authErr || !user) throw new Error("Unauthorized");
+    const authHeader = req.headers.get("Authorization");
+    const supabase = createClient(supabaseUrl, supabaseKey, authHeader
+      ? { global: { headers: { Authorization: authHeader } } }
+      : undefined);
+    let userId: string | null = null;
+    if (authHeader) {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id ?? null;
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -210,13 +210,13 @@ ${insightsBlock}
       }))
       .filter((s) => s.tone && s.script);
 
-    if (contact?.id && scripts.length > 0) {
+    if (contact?.id && scripts.length > 0 && userId) {
       const { error: upsertErr } = await supabase
         .from("contact_insights")
         .upsert(
           {
             contact_id: contact.id,
-            user_id: user.id,
+            user_id: userId,
             invite_scripts: scripts,
             updated_at: new Date().toISOString(),
           },
