@@ -23,6 +23,11 @@ function buildFallbackInvitePayload(contact: any, reason = "AI 暫時無法回�
     content: legacyScript,
     draft: legacyScript,
     result: legacyScript,
+    message: legacyScript,
+    output: legacyScript,
+    generated_text: legacyScript,
+    data: legacyScript,
+    payload: { scripts, script: legacyScript },
     fallback_reason: reason,
   };
 }
@@ -283,6 +288,7 @@ ${insightsBlock}
     const legacyScript = scripts.map((s) => `【${s.tone}】\n${s.script}`).join("\n\n");
 
     return new Response(JSON.stringify({
+      ...buildFallbackInvitePayload(contact, ""),
       scripts,
       script: legacyScript,
       invite_scripts: scripts,
@@ -290,6 +296,12 @@ ${insightsBlock}
       content: legacyScript,
       draft: legacyScript,
       result: legacyScript,
+      message: legacyScript,
+      output: legacyScript,
+      generated_text: legacyScript,
+      data: legacyScript,
+      payload: { scripts, script: legacyScript },
+      fallback_reason: "",
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
