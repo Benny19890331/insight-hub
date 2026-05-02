@@ -144,7 +144,8 @@ serve(async (req) => {
         normalizedSummary = normalizedSummary
           .replace(/\r\n/g, "\n")
           .replace(/\\+r\\+n/g, "\n")
-          .replace(/\\+n/g, "\n");
+          .replace(/\\+n/g, "\n")
+          .replace(/\/+n/g, "\n");
       }
 
       insights.summary = normalizedSummary

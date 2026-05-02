@@ -23,7 +23,8 @@ function cleanSummary(raw: string): string[] {
     unescaped = unescaped
       .replace(/\r\n/g, "\n")
       .replace(/\\+r\\+n/g, "\n")
-      .replace(/\\+n/g, "\n");
+      .replace(/\\+n/g, "\n")
+      .replace(/\/+n/g, "\n");
   }
 
   return unescaped

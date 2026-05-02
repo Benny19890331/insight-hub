@@ -172,6 +172,9 @@ ${insightsBlock}
     const message = aiResult.choices?.[0]?.message;
     const toolCall = message?.tool_calls?.[0];
     let scripts: Array<{ tone: string; script: string }> = [];
+    const rawContent = Array.isArray(message?.content)
+      ? message.content.map((p: any) => (typeof p?.text === "string" ? p.text : "")).join("\n")
+      : (typeof message?.content === "string" ? message.content : "");
 
     if (toolCall?.function?.arguments) {
       const parsed = JSON.parse(toolCall.function.arguments);
@@ -179,8 +182,8 @@ ${insightsBlock}
     }
 
     // Fallback: sometimes model returns JSON in content instead of tool call.
-    if (scripts.length === 0 && typeof message?.content === "string") {
-      const content = message.content.trim();
+    if (scripts.length === 0 && rawContent) {
+      const content = rawContent.trim();
       try {
         const parsed = JSON.parse(content);
         scripts = Array.isArray(parsed?.scripts) ? parsed.scripts : [];
@@ -209,6 +212,16 @@ ${insightsBlock}
           .trim(),
       }))
       .filter((s) => s.tone && s.script);
+
+    if (scripts.length === 0) {
+      const fallback = rawContent || JSON.stringify(aiResult);
+      scripts = [
+        { tone: "親切寒暄", script: fallback.slice(0, 280).trim() || "（AI 暫無回應，請重新生成）" },
+        { tone: "專業邀約", script: "（AI 回覆格式異常，請按重新生成）" },
+        { tone: "好友直球", script: "（若持續發生，請聯絡管理員檢查 ai-invite 函式日誌）" },
+      ];
+      console.error("ai-invite: empty parsed scripts, fallback used", aiResult);
+    }
 
     if (contact?.id && scripts.length > 0 && userId) {
       const { error: upsertErr } = await supabase
