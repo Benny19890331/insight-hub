@@ -38,6 +38,32 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
   const abortRef = useRef<AbortController | null>(null);
   const [diag, setDiag] = useState(false);
 
+  const normalizeScripts = (data: any): InviteScript[] => {
+    const requiredTones = ["親切寒暄", "專業邀約", "好友直球"];
+    let scripts: InviteScript[] = Array.isArray(data?.scripts) ? data.scripts : [];
+
+    if (scripts.length === 0) {
+      const raw = [data?.script, data?.text, data?.content, data?.message, data?.result].find((v) => typeof v === "string") as string | undefined;
+      if (raw) {
+        scripts = raw
+          .split(/【(?=親切寒暄|專業邀約|好友直球)/)
+          .map((b) => b.trim())
+          .filter(Boolean)
+          .map((block) => {
+            const m = block.match(/^(親切寒暄|專業邀約|好友直球)】?\s*([\s\S]*)$/);
+            return { tone: m?.[1] || "", script: (m?.[2] || "").trim() };
+          })
+          .filter((s) => s.tone && s.script);
+      }
+    }
+
+    const byTone = new Map(scripts.map((s) => [s.tone, s.script]));
+    return requiredTones.map((tone, idx) => ({
+      tone,
+      script: byTone.get(tone) || scripts[idx]?.script || "",
+    })).filter((s) => s.script);
+  };
+
   const generate = async () => {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -64,7 +90,7 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
         return;
       }
 
-      const nextScripts = Array.isArray(data?.scripts) ? data.scripts : [];
+      const nextScripts = normalizeScripts(data);
       setScripts(nextScripts);
       if (nextScripts.length === 0) {
         toast.error("AI 沒有回傳可用內容，請重新生成");
