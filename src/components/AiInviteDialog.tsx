@@ -38,26 +38,6 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
   const abortRef = useRef<AbortController | null>(null);
   const [diag, setDiag] = useState(false);
 
-  const buildLocalFallbackScripts = (): InviteScript[] => {
-    const who = contact.nickname || contact.name || "你";
-    const topic = (contact.productTags && contact.productTags[0]) || "近況";
-    const action = insights?.next_action || "找個 20 分鐘聊聊近況與下一步規劃";
-    return [
-      {
-        tone: "親切寒暄",
-        script: `${who} 最近還好嗎？😊 想到你之前有提到 ${topic}，想關心一下你最近的狀況。若你方便，這週找個輕鬆時間聊聊，我也想聽聽你的近況。`,
-      },
-      {
-        tone: "專業邀約",
-        script: `${who}，我整理了一份重點建議，和你目前狀況很貼近。建議我們約 20 分鐘對焦一下，重點會放在「${action}」，你看平日晚上或週末哪個時段方便？`,
-      },
-      {
-        tone: "好友直球",
-        script: `${who} 我直接說～我覺得你現在這階段很適合聊一下下一步🔥 不推銷，純粹幫你對焦方向。這週找一天喝個咖啡，我把想法一次跟你說清楚！`,
-      },
-    ];
-  };
-
   const generate = async () => {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -85,15 +65,14 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
       }
 
       const nextScripts = Array.isArray(data?.scripts) ? data.scripts : [];
-      setScripts(nextScripts.length > 0 ? nextScripts : buildLocalFallbackScripts());
+      setScripts(nextScripts);
       if (nextScripts.length === 0) {
-        toast.error("AI 暫時沒有回傳，已先提供本地三種邀約建議");
+        toast.error("AI 沒有回傳可用內容，請重新生成");
       }
     } catch (e: any) {
       if (e.name !== "AbortError") {
         console.error("AI invite error:", e);
-        setScripts(buildLocalFallbackScripts());
-        toast.error("AI 生成失敗，已先提供本地三種邀約建議");
+        toast.error("AI 生成失敗，請稍後再試");
       }
     } finally {
       setLoading(false);
