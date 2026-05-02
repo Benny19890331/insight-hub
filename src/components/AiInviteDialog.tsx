@@ -36,6 +36,7 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
   const [loading, setLoading] = useState(false);
   const [scripts, setScripts] = useState<InviteScript[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const [diag, setDiag] = useState(false);
 
   const generate = async () => {
     abortRef.current?.abort();
@@ -46,7 +47,7 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
     // Keep existing scripts while refreshing to avoid blank modal flicker.
 
     try {
-      const debug = typeof window !== "undefined" && localStorage.getItem("ai_diag") === "1";
+      const debug = diag;
       const { data, error } = await supabase.functions.invoke("ai-invite", {
         body: { contact, insights: insights || null, debug },
       });
@@ -77,6 +78,12 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDiag(localStorage.getItem("ai_diag") === "1");
+    }
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -167,6 +174,17 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
                   ))
                 )}
                 <div className="flex justify-end gap-2 flex-wrap pt-1">
+                  <button
+                    onClick={() => {
+                      const next = !diag;
+                      setDiag(next);
+                      localStorage.setItem("ai_diag", next ? "1" : "0");
+                      toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+                  >
+                    診斷模式：{diag ? "開啟" : "關閉"}
+                  </button>
                   <button
                     onClick={generate}
                     disabled={loading}
