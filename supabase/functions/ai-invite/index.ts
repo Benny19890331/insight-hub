@@ -152,17 +152,23 @@ ${insightsBlock}
 
     if (!response.ok) {
       if (response.status === 429) {
+        const cachedResp = await tryReturnCachedScripts("AI 請求過於頻繁");
+        if (cachedResp) return cachedResp;
         return new Response(JSON.stringify({ error: "AI 請求過於頻繁，請稍後再試" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
+        const cachedResp = await tryReturnCachedScripts("AI 額度不足");
+        if (cachedResp) return cachedResp;
         return new Response(JSON.stringify({ error: "AI 額度不足，請至設定頁面加值" }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const text = await response.text();
       console.error("AI gateway error:", response.status, text);
+      const cachedResp = await tryReturnCachedScripts(`AI gateway error ${response.status}`);
+      if (cachedResp) return cachedResp;
       return new Response(JSON.stringify({ error: "AI 生成失敗，請稍後再試" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -281,3 +287,32 @@ ${insightsBlock}
     );
   }
 });
+    async function tryReturnCachedScripts(reason: string) {
+      if (!contact?.id || !userId) return null;
+      const { data } = await supabase
+        .from("contact_insights")
+        .select("invite_scripts")
+        .eq("contact_id", contact.id)
+        .maybeSingle();
+      const cached = Array.isArray((data as any)?.invite_scripts) ? (data as any).invite_scripts : [];
+      if (cached.length === 0) return null;
+      const legacyScript = cached.map((s: any) => `【${s.tone || "邀約"}】\n${s.script || ""}`).join("\n\n");
+      console.warn("ai-invite cached fallback:", reason);
+      return new Response(JSON.stringify({
+        scripts: cached,
+        script: legacyScript,
+        invite_scripts: cached,
+        text: legacyScript,
+        content: legacyScript,
+        draft: legacyScript,
+        result: legacyScript,
+        message: legacyScript,
+        output: legacyScript,
+        generated_text: legacyScript,
+        data: legacyScript,
+        payload: { scripts: cached, script: legacyScript },
+        fallback_reason: reason,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
