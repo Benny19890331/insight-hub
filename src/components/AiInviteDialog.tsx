@@ -46,8 +46,9 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
     // Keep existing scripts while refreshing to avoid blank modal flicker.
 
     try {
+      const debug = typeof window !== "undefined" && localStorage.getItem("ai_diag") === "1";
       const { data, error } = await supabase.functions.invoke("ai-invite", {
-        body: { contact, insights: insights || null },
+        body: { contact, insights: insights || null, debug },
       });
 
       if (controller.signal.aborted) return;

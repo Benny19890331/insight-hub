@@ -13,6 +13,7 @@ serve(async (req) => {
   }
 
   try {
+    const DIAG_ENABLED = Deno.env.get("AI_DIAGNOSTIC") === "true";
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const authHeader = req.headers.get("Authorization");
@@ -30,7 +31,8 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { contact, insights } = await req.json();
+    const { contact, insights, debug } = await req.json();
+    const diag = DIAG_ENABLED || debug === true;
     if (!contact) {
       return new Response(JSON.stringify({ error: "Missing contact data" }), {
         status: 400,
@@ -169,6 +171,9 @@ ${insightsBlock}
     }
 
     const aiResult = await response.json();
+    if (diag) {
+      console.log("[AI_DIAG][ai-invite] raw aiResult:", JSON.stringify(aiResult));
+    }
     const message = aiResult.choices?.[0]?.message;
     const toolCall = message?.tool_calls?.[0];
     let scripts: Array<{ tone: string; script: string }> = [];
@@ -221,6 +226,10 @@ ${insightsBlock}
         { tone: "好友直球", script: "（若持續發生，請聯絡管理員檢查 ai-invite 函式日誌）" },
       ];
       console.error("ai-invite: empty parsed scripts, fallback used", aiResult);
+    }
+
+    if (diag) {
+      console.log("[AI_DIAG][ai-invite] parsed scripts:", JSON.stringify(scripts));
     }
 
     if (contact?.id && scripts.length > 0 && userId) {

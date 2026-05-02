@@ -68,8 +68,9 @@ export function AiInsightsPanel({ contact }: Props) {
   const generate = async () => {
     setLoading(true);
     try {
+      const debug = typeof window !== "undefined" && localStorage.getItem("ai_diag") === "1";
       const { data, error } = await supabase.functions.invoke("contact-insights", {
-        body: { contact_id: contact.id },
+        body: { contact_id: contact.id, debug },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
