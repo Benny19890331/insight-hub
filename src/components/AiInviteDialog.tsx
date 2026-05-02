@@ -4,6 +4,7 @@ import { Contact } from "@/data/contacts";
 import { Copy, Sparkles, Loader2, RefreshCw, MessageSquareQuote } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
+import { supabase } from "@/integrations/supabase/client";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -30,13 +31,12 @@ interface AiInviteDialogProps {
   insights?: ContactInsights | null;
 }
 
-const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
-
 export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInviteDialogProps) {
   const { themeIndex } = useTheme();
   const [loading, setLoading] = useState(false);
   const [scripts, setScripts] = useState<InviteScript[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const [diag, setDiag] = useState(false);
 
   const generate = async () => {
     abortRef.current?.abort();
@@ -44,31 +44,31 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
     abortRef.current = controller;
 
     setLoading(true);
-    setScripts([]);
+    // Keep existing scripts while refreshing to avoid blank modal flicker.
 
     try {
-      const resp = await fetch(AI_INVITE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ contact, insights: insights || null }),
-        signal: controller.signal,
+      const debug = diag;
+      const { data, error } = await supabase.functions.invoke("ai-invite", {
+        body: { contact, insights: insights || null, debug },
       });
 
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: "AI 生成失敗" }));
-        toast.error(err.error || "AI 生成失敗");
+      if (controller.signal.aborted) return;
+
+      if (error) {
+        toast.error(error.message || "AI 生成失敗");
         return;
       }
 
-      const data = await resp.json();
       if (data?.error) {
-        toast.error(data.error);
+        toast.error(data.error || "AI 生成失敗");
         return;
       }
-      setScripts(Array.isArray(data?.scripts) ? data.scripts : []);
+
+      const nextScripts = Array.isArray(data?.scripts) ? data.scripts : [];
+      setScripts(nextScripts);
+      if (nextScripts.length === 0) {
+        toast.error("AI 沒有回傳可用內容，請重新生成");
+      }
     } catch (e: any) {
       if (e.name !== "AbortError") {
         console.error("AI invite error:", e);
@@ -80,7 +80,24 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDiag(localStorage.getItem("ai_diag") === "1");
+    }
+  }, []);
+
+  useEffect(() => {
     if (open) {
+      supabase
+        .from("contact_insights" as any)
+        .select("invite_scripts")
+        .eq("contact_id", contact.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          const cached = Array.isArray((data as any)?.invite_scripts) ? (data as any).invite_scripts : [];
+          if (cached.length > 0) {
+            setScripts(cached as InviteScript[]);
+          }
+        });
       generate();
     }
     return () => {
@@ -113,6 +130,17 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
                 AI 客製化邀約草稿
               </DialogTitle>
               <DialogDescription>根據 {contact.name} 的完整資料，AI 生成三種語氣版本</DialogDescription>
+              <button
+                onClick={() => {
+                  const next = !diag;
+                  setDiag(next);
+                  localStorage.setItem("ai_diag", next ? "1" : "0");
+                  toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
+                }}
+                className="mt-2 inline-flex w-fit items-center rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted/40"
+              >
+                診斷模式：{diag ? "開啟" : "關閉"}
+              </button>
             </DialogHeader>
 
             {loading ? (
