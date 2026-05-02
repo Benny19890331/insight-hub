@@ -218,6 +218,16 @@ ${insightsBlock}
       }))
       .filter((s) => s.tone && s.script);
 
+    const requiredTones = ["親切寒暄", "專業邀約", "好友直球"];
+    const byTone = new Map(scripts.map((s) => [s.tone, s.script]));
+    scripts = requiredTones.map((tone, idx) => ({
+      tone,
+      script:
+        byTone.get(tone) ||
+        scripts[idx]?.script ||
+        `（${tone}）AI 尚未產生內容，請按重新生成。`,
+    }));
+
     if (scripts.length === 0) {
       const fallback = rawContent || JSON.stringify(aiResult);
       scripts = [
