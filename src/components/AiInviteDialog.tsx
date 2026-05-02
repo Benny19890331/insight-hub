@@ -4,6 +4,7 @@ import { Contact } from "@/data/contacts";
 import { Copy, Sparkles, Loader2, RefreshCw, MessageSquareQuote } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
+import { supabase } from "@/integrations/supabase/client";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -30,8 +31,6 @@ interface AiInviteDialogProps {
   insights?: ContactInsights | null;
 }
 
-const AI_INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-invite`;
-
 export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInviteDialogProps) {
   const { themeIndex } = useTheme();
   const [loading, setLoading] = useState(false);
@@ -47,27 +46,22 @@ export function AiInviteDialog({ open, onOpenChange, contact, insights }: AiInvi
     setScripts([]);
 
     try {
-      const resp = await fetch(AI_INVITE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ contact, insights: insights || null }),
-        signal: controller.signal,
+      const { data, error } = await supabase.functions.invoke("ai-invite", {
+        body: { contact, insights: insights || null },
       });
 
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: "AI 生成失敗" }));
-        toast.error(err.error || "AI 生成失敗");
+      if (controller.signal.aborted) return;
+
+      if (error) {
+        toast.error(error.message || "AI 生成失敗");
         return;
       }
 
-      const data = await resp.json();
       if (data?.error) {
-        toast.error(data.error);
+        toast.error(data.error || "AI 生成失敗");
         return;
       }
+
       const nextScripts = Array.isArray(data?.scripts) ? data.scripts : [];
       setScripts(nextScripts);
       if (nextScripts.length === 0) {
