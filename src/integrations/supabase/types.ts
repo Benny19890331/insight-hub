@@ -93,7 +93,7 @@ export type Database = {
           last_contact_date: string
           member_id: string | null
           name: string
-          next_follow_up_date: string
+          next_follow_up_date: string | null
           next_follow_up_note: string | null
           next_follow_up_time: string | null
           nickname: string | null
@@ -118,7 +118,7 @@ export type Database = {
           last_contact_date?: string
           member_id?: string | null
           name: string
-          next_follow_up_date?: string
+          next_follow_up_date?: string | null
           next_follow_up_note?: string | null
           next_follow_up_time?: string | null
           nickname?: string | null
@@ -143,7 +143,7 @@ export type Database = {
           last_contact_date?: string
           member_id?: string | null
           name?: string
-          next_follow_up_date?: string
+          next_follow_up_date?: string | null
           next_follow_up_note?: string | null
           next_follow_up_time?: string | null
           nickname?: string | null
