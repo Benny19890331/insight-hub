@@ -11,6 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const DIAG_ENABLED = Deno.env.get("AI_DIAGNOSTIC") === "true";
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Missing auth");
 
@@ -23,7 +24,8 @@ serve(async (req) => {
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) throw new Error("Unauthorized");
 
-    const { contact_id } = await req.json();
+    const { contact_id, debug } = await req.json();
+    const diag = DIAG_ENABLED || debug === true;
     if (!contact_id) throw new Error("Missing contact_id");
 
     // Fetch contact & interactions in parallel
@@ -132,6 +134,9 @@ serve(async (req) => {
     }
 
     const aiResult = await response.json();
+    if (diag) {
+      console.log("[AI_DIAG][contact-insights] raw aiResult:", JSON.stringify(aiResult));
+    }
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) throw new Error("No tool call in AI response");
 
@@ -139,9 +144,17 @@ serve(async (req) => {
 
     // Sanitize summary: normalize escaped newlines, drop empty bullets/headers, and strip trailing junk
     if (typeof insights.summary === "string") {
-      insights.summary = insights.summary
-        .replace(/\\r\\n/g, "\n")
-        .replace(/\\n/g, "\n")
+      const rawSummary = insights.summary;
+      let normalizedSummary = insights.summary;
+      for (let i = 0; i < 3; i += 1) {
+        normalizedSummary = normalizedSummary
+          .replace(/\r\n/g, "\n")
+          .replace(/\\u000a/gi, "\n")
+          .replace(/[\\＼／/]+\s*r[\\＼／/]+\s*n/gi, "\n")
+          .replace(/[\\＼／/]+\s*n/gi, "\n");
+      }
+
+      insights.summary = normalizedSummary
         .replace(/(?:\n[•\-\*]\s*)+$/g, "")
         .trim()
         .split(/\r?\n/)
@@ -165,6 +178,10 @@ serve(async (req) => {
         .replace(/(?:\\n|\n)[•\-\*\s]*$/g, "")
         .replace(/[\s•\-\*]+$/g, "")
         .trim();
+      if (diag) {
+        console.log("[AI_DIAG][contact-insights] summary before:", rawSummary);
+        console.log("[AI_DIAG][contact-insights] summary after:", insights.summary);
+      }
     }
 
     // Upsert into contact_insights (invite_scripts now lives in ai-invite, store empty array)

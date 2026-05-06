@@ -17,9 +17,17 @@ interface Props {
 
 // Strict cleaner: normalize escaped newlines, then drop empty/punctuation/header-only/no-data lines
 function cleanSummary(raw: string): string[] {
-  return (raw || "")
-    .replace(/\\r\\n/g, "\n")
-    .replace(/\\n/g, "\n")
+  let unescaped = (raw || "");
+  // Aggressively normalize model artifacts like "\n", "\\n", "\\\\n", etc.
+  for (let i = 0; i < 3; i += 1) {
+    unescaped = unescaped
+      .replace(/\r\n/g, "\n")
+      .replace(/\\u000a/gi, "\n")
+      .replace(/[\\＼／/]+\s*r[\\＼／/]+\s*n/gi, "\n")
+      .replace(/[\\＼／/]+\s*n/gi, "\n");
+  }
+
+  return unescaped
     .replace(/(?:\n[•\-\*]\s*)+$/g, "")
     .trim()
     .split(/\r?\n+/)
@@ -39,6 +47,13 @@ export function AiInsightsPanel({ contact }: Props) {
   const [insights, setInsights] = useState<Insights | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingStored, setLoadingStored] = useState(true);
+  const [diag, setDiag] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDiag(localStorage.getItem("ai_diag") === "1");
+    }
+  }, []);
 
   useEffect(() => {
     setLoadingStored(true);
@@ -60,8 +75,9 @@ export function AiInsightsPanel({ contact }: Props) {
   const generate = async () => {
     setLoading(true);
     try {
+      const debug = diag;
       const { data, error } = await supabase.functions.invoke("contact-insights", {
-        body: { contact_id: contact.id },
+        body: { contact_id: contact.id, debug },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -89,6 +105,17 @@ export function AiInsightsPanel({ contact }: Props) {
 
   return (
     <div className="space-y-3">
+      <button
+        onClick={() => {
+          const next = !diag;
+          setDiag(next);
+          localStorage.setItem("ai_diag", next ? "1" : "0");
+          toast.success(`診斷模式已${next ? "開啟" : "關閉"}`);
+        }}
+        className="w-full text-xs rounded-md border px-3 py-1.5 text-muted-foreground hover:bg-white/5"
+      >
+        診斷模式：{diag ? "開啟" : "關閉"}
+      </button>
       {!insights && !loading && (
         <button
           onClick={generate}
