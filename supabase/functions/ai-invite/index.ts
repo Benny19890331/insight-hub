@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,12 +13,24 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const DIAG_ENABLED = Deno.env.get("AI_DIAGNOSTIC") === "true";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authHeader = req.headers.get("Authorization");
+    const supabase = createClient(supabaseUrl, supabaseKey, authHeader
+      ? { global: { headers: { Authorization: authHeader } } }
+      : undefined);
+    let userId: string | null = null;
+    if (authHeader) {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id ?? null;
     }
 
-    const { contact, insights } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const { contact, insights, debug } = await req.json();
+    const diag = DIAG_ENABLED || debug === true;
     if (!contact) {
       return new Response(JSON.stringify({ error: "Missing contact data" }), {
         status: 400,
@@ -139,29 +152,131 @@ ${insightsBlock}
 
     if (!response.ok) {
       if (response.status === 429) {
+        const cachedResp = await tryReturnCachedScripts("AI 請求過於頻繁");
+        if (cachedResp) return cachedResp;
         return new Response(JSON.stringify({ error: "AI 請求過於頻繁，請稍後再試" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
+        const cachedResp = await tryReturnCachedScripts("AI 額度不足");
+        if (cachedResp) return cachedResp;
         return new Response(JSON.stringify({ error: "AI 額度不足，請至設定頁面加值" }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const text = await response.text();
       console.error("AI gateway error:", response.status, text);
+      const cachedResp = await tryReturnCachedScripts(`AI gateway error ${response.status}`);
+      if (cachedResp) return cachedResp;
       return new Response(JSON.stringify({ error: "AI 生成失敗，請稍後再試" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiResult = await response.json();
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("No tool call in AI response");
-    const parsed = JSON.parse(toolCall.function.arguments);
-    const scripts = Array.isArray(parsed.scripts) ? parsed.scripts : [];
+    if (diag) {
+      console.log("[AI_DIAG][ai-invite] raw aiResult:", JSON.stringify(aiResult));
+    }
+    const message = aiResult.choices?.[0]?.message;
+    const toolCall = message?.tool_calls?.[0];
+    let scripts: Array<{ tone: string; script: string }> = [];
+    const rawContent = Array.isArray(message?.content)
+      ? message.content.map((p: any) => (typeof p?.text === "string" ? p.text : "")).join("\n")
+      : (typeof message?.content === "string" ? message.content : "");
 
-    return new Response(JSON.stringify({ scripts }), {
+    if (toolCall?.function?.arguments) {
+      const parsed = JSON.parse(toolCall.function.arguments);
+      scripts = Array.isArray(parsed?.scripts) ? parsed.scripts : [];
+    }
+
+    // Fallback: sometimes model returns JSON in content instead of tool call.
+    if (scripts.length === 0 && rawContent) {
+      const content = rawContent.trim();
+      try {
+        const parsed = JSON.parse(content);
+        scripts = Array.isArray(parsed?.scripts) ? parsed.scripts : [];
+      } catch {
+        const chunks = content
+          .split(/\n{2,}/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+        scripts = chunks.slice(0, 3).map((script: string, idx: number) => ({
+          tone: ["親切寒暄", "專業邀約", "好友直球"][idx] || `版本${idx + 1}`,
+          script,
+        }));
+      }
+    }
+
+    scripts = scripts
+      .map((s) => ({
+        tone: String(s?.tone || "").trim(),
+        script: String(s?.script || "")
+          .replace(/\\\\\\\\r\\\\\\\\n/g, "\n")
+          .replace(/\\\\\\\\n/g, "\n")
+          .replace(/\\\\r\\\\n/g, "\n")
+          .replace(/\\\\n/g, "\n")
+          .replace(/\\r\\n/g, "\n")
+          .replace(/\\n/g, "\n")
+          .trim(),
+      }))
+      .filter((s) => s.tone && s.script);
+
+    const requiredTones = ["親切寒暄", "專業邀約", "好友直球"];
+    const byTone = new Map(scripts.map((s) => [s.tone, s.script]));
+    scripts = requiredTones.map((tone, idx) => ({
+      tone,
+      script:
+        byTone.get(tone) ||
+        scripts[idx]?.script ||
+        `（${tone}）AI 尚未產生內容，請按重新生成。`,
+    }));
+
+    if (scripts.length === 0) {
+      const fallback = rawContent || JSON.stringify(aiResult);
+      scripts = [
+        { tone: "親切寒暄", script: fallback.slice(0, 280).trim() || "（AI 暫無回應，請重新生成）" },
+        { tone: "專業邀約", script: "（AI 回覆格式異常，請按重新生成）" },
+        { tone: "好友直球", script: "（若持續發生，請聯絡管理員檢查 ai-invite 函式日誌）" },
+      ];
+      console.error("ai-invite: empty parsed scripts, fallback used", aiResult);
+    }
+
+    if (diag) {
+      console.log("[AI_DIAG][ai-invite] parsed scripts:", JSON.stringify(scripts));
+    }
+
+    if (contact?.id && scripts.length > 0 && userId) {
+      const { error: upsertErr } = await supabase
+        .from("contact_insights")
+        .upsert(
+          {
+            contact_id: contact.id,
+            user_id: userId,
+            invite_scripts: scripts,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "contact_id" }
+        );
+      if (upsertErr) console.error("Failed to save invite_scripts:", upsertErr);
+    }
+
+    const legacyScript = scripts.map((s) => `【${s.tone}】\n${s.script}`).join("\n\n");
+
+    return new Response(JSON.stringify({
+      scripts,
+      script: legacyScript,
+      invite_scripts: scripts,
+      text: legacyScript,
+      content: legacyScript,
+      draft: legacyScript,
+      result: legacyScript,
+      message: legacyScript,
+      output: legacyScript,
+      generated_text: legacyScript,
+      data: legacyScript,
+      payload: { scripts, script: legacyScript },
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
@@ -172,3 +287,32 @@ ${insightsBlock}
     );
   }
 });
+    async function tryReturnCachedScripts(reason: string) {
+      if (!contact?.id || !userId) return null;
+      const { data } = await supabase
+        .from("contact_insights")
+        .select("invite_scripts")
+        .eq("contact_id", contact.id)
+        .maybeSingle();
+      const cached = Array.isArray((data as any)?.invite_scripts) ? (data as any).invite_scripts : [];
+      if (cached.length === 0) return null;
+      const legacyScript = cached.map((s: any) => `【${s.tone || "邀約"}】\n${s.script || ""}`).join("\n\n");
+      console.warn("ai-invite cached fallback:", reason);
+      return new Response(JSON.stringify({
+        scripts: cached,
+        script: legacyScript,
+        invite_scripts: cached,
+        text: legacyScript,
+        content: legacyScript,
+        draft: legacyScript,
+        result: legacyScript,
+        message: legacyScript,
+        output: legacyScript,
+        generated_text: legacyScript,
+        data: legacyScript,
+        payload: { scripts: cached, script: legacyScript },
+        fallback_reason: reason,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
