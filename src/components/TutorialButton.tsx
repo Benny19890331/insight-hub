@@ -57,42 +57,21 @@ export function TutorialButton() {
   const isLight = themeIndex <= 1 || themeIndex === 6;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const HIDE_DELAY = 3 * 60 * 1000;
-  const STORAGE_KEY = "tutorial-button-hide-deadline";
 
-  const scheduleHide = useCallback((deadline: number) => {
+  const resetTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    const remaining = deadline - Date.now();
-
-    if (remaining <= 0) {
-      setVisible(false);
-      return;
-    }
-
     setVisible(true);
-    timerRef.current = setTimeout(() => setVisible(false), remaining);
-  }, []);
-
-  const startHideTimer = useCallback(() => {
-    const deadline = Date.now() + HIDE_DELAY;
-    sessionStorage.setItem(STORAGE_KEY, String(deadline));
-    scheduleHide(deadline);
-  }, [HIDE_DELAY, STORAGE_KEY, scheduleHide]);
+    timerRef.current = setTimeout(() => setVisible(false), HIDE_DELAY);
+  }, [HIDE_DELAY]);
 
   useEffect(() => {
-    const savedDeadline = Number(sessionStorage.getItem(STORAGE_KEY));
-
-    if (Number.isFinite(savedDeadline) && savedDeadline > 0) {
-      scheduleHide(savedDeadline);
-    } else {
-      startHideTimer();
-    }
-
+    resetTimer();
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [scheduleHide, startHideTimer]);
+  }, [resetTimer]);
 
   const handleClick = () => {
     setOpen(true);
-    startHideTimer();
+    resetTimer();
   };
 
   return (
