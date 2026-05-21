@@ -317,8 +317,8 @@ const ThemeContext = createContext<ThemeContextType>({
   fontSizeClass: "font-scale-base",
 });
 
-// Light themes (pink, violet) need special CSS variable overrides
-const LIGHT_THEME_INDICES = [0, 1];
+// Light themes (pink, violet, light) need special CSS variable overrides
+const LIGHT_THEME_INDICES = [0, 1, 6];
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeIndex, setThemeIndex] = useState(() => {
@@ -336,9 +336,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const isLight = LIGHT_THEME_INDICES.includes(themeIndex);
 
     if (isLight) {
-      root.setAttribute("data-theme", themeIndex === 0 ? "pink" : "violet");
-
       if (themeIndex === 0) {
+        root.setAttribute("data-theme", "pink");
         root.style.setProperty("--foreground", "330 30% 15%");
         root.style.setProperty("--card-foreground", "330 30% 15%");
         root.style.setProperty("--popover-foreground", "330 30% 15%");
@@ -351,7 +350,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.style.setProperty("--card", "330 50% 95%");
         root.style.setProperty("--muted", "330 40% 90%");
         root.style.setProperty("--border", "330 30% 80%");
-      } else {
+      } else if (themeIndex === 1) {
+        root.setAttribute("data-theme", "violet");
         root.style.setProperty("--foreground", "220 70% 18%");
         root.style.setProperty("--card-foreground", "220 70% 18%");
         root.style.setProperty("--popover-foreground", "220 70% 18%");
@@ -364,6 +364,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.style.setProperty("--card", "0 0% 100%");
         root.style.setProperty("--muted", "270 28% 88%");
         root.style.setProperty("--border", "270 25% 78%");
+      } else if (themeIndex === 6) {
+        root.setAttribute("data-theme", "light");
+        root.style.setProperty("--foreground", "0 0% 10%");
+        root.style.setProperty("--card-foreground", "0 0% 10%");
+        root.style.setProperty("--popover-foreground", "0 0% 10%");
+        root.style.setProperty("--muted-foreground", "0 0% 35%");
+        root.style.setProperty("--accent-foreground", "0 0% 15%");
+        root.style.setProperty("--secondary-foreground", "0 0% 25%");
+        root.style.setProperty("--background", "0 0% 97%");
+        root.style.setProperty("--popover", "0 0% 100%");
+        root.style.setProperty("--accent", "0 0% 90%");
+        root.style.setProperty("--card", "0 0% 100%");
+        root.style.setProperty("--muted", "0 0% 93%");
+        root.style.setProperty("--border", "0 0% 85%");
       }
     } else {
       root.removeAttribute("data-theme");
