@@ -4,6 +4,7 @@ import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
 import { FunnelStats } from "@/components/FunnelStats";
+import { BirthdayBanner } from "@/components/BirthdayBanner";
 import { useTheme } from "@/hooks/useTheme";
 
 interface ContactListProps {
