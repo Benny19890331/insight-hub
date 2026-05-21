@@ -4,6 +4,7 @@ import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
 import { FunnelStats } from "@/components/FunnelStats";
+import { BirthdayBanner } from "@/components/BirthdayBanner";
 import { useTheme } from "@/hooks/useTheme";
 
 interface ContactListProps {
@@ -109,6 +110,8 @@ export function ContactList({
   return (
     <div className="flex flex-col h-full">
       <FunnelStats contacts={contacts} />
+      <BirthdayBanner contacts={contacts} onSelect={onSelect} />
+
 
       {/* Search & Filters */}
       <div className="px-4 pb-3 space-y-2">
