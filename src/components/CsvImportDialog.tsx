@@ -425,6 +425,8 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
             </div>
           </div>
         )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
