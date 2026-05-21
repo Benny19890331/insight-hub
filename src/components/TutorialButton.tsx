@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { HelpCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTheme } from "@/hooks/useTheme";
@@ -53,14 +53,32 @@ const steps = [
 export function TutorialButton() {
   const { theme: t, themeIndex } = useTheme();
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
   const isLight = themeIndex <= 1 || themeIndex === 6;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startHideTimer = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setVisible(true);
+    timerRef.current = setTimeout(() => setVisible(false), 3 * 60 * 1000);
+  }, []);
+
+  useEffect(() => {
+    startHideTimer();
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [startHideTimer]);
+
+  const handleClick = () => {
+    setOpen(true);
+    startHideTimer();
+  };
 
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={handleClick}
         aria-label="使用教學"
-        className={`fixed bottom-5 right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg backdrop-blur-sm transition-all hover:scale-105 active:scale-95 ${t.btnOutline}`}
+        className={`fixed bottom-5 right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg backdrop-blur-sm transition-all hover:scale-105 active:scale-95 ${t.btnOutline} ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
         style={{ background: "hsl(var(--background) / 0.85)" }}
       >
         <HelpCircle className={`h-6 w-6 ${t.accent}`} />
