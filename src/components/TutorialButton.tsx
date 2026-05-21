@@ -1,7 +1,16 @@
 import { useState } from "react";
-import { HelpCircle, X } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTheme } from "@/hooks/useTheme";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgBlack = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAwMDAiLz48L3N2Zz4=";
+const bgWhite = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=";
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom, bgBlack, bgWhite];
 
 const steps = [
   {
@@ -42,8 +51,9 @@ const steps = [
 ];
 
 export function TutorialButton() {
-  const { theme: t } = useTheme();
+  const { theme: t, themeIndex } = useTheme();
   const [open, setOpen] = useState(false);
+  const isLight = themeIndex <= 1 || themeIndex === 6;
 
   return (
     <>
@@ -57,34 +67,45 @@ export function TutorialButton() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md max-h-[85dvh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg flex items-center gap-2">
-              <HelpCircle className="h-5 w-5" />
-              使用教學
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-1">
-            <p className="text-sm text-muted-foreground">
-              歡迎使用 RICH 系統！以下是常用功能的快速說明：
-            </p>
-            {steps.map((s, i) => (
-              <div key={i} className="flex gap-3 rounded-lg border border-border/60 p-3 bg-card/40">
-                <span className="text-2xl shrink-0">{s.icon}</span>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold mb-0.5">
-                    {i + 1}. {s.title}
+        <DialogContent
+          className="max-w-md overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1"
+          style={{ maxHeight: "96dvh" }}
+        >
+          <div className="relative overflow-hidden rounded-lg h-full">
+            <div className="absolute inset-0 overflow-hidden">
+              <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+              <div className={`absolute inset-0 ${isLight ? '' : 'bg-black/60'}`} />
+            </div>
+            <div className="relative z-10 p-6 pt-10 pb-8 overflow-y-auto overscroll-contain" style={{ maxHeight: "96dvh", WebkitOverflowScrolling: "touch" }}>
+              <DialogHeader>
+                <DialogTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <HelpCircle className="h-5 w-5" />
+                  使用教學
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 pt-2">
+                <p className="text-sm text-foreground/80">
+                  歡迎使用 RICH 系統！以下是常用功能的快速說明：
+                </p>
+                {steps.map((s, i) => (
+                  <div key={i} className="flex gap-3 rounded-lg border border-border/60 p-3 bg-card/60 backdrop-blur-sm">
+                    <span className="text-2xl shrink-0">{s.icon}</span>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold mb-0.5 text-foreground">
+                        {i + 1}. {s.title}
+                      </div>
+                      <p className="text-xs text-foreground/75 leading-relaxed">{s.desc}</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
-                </div>
+                ))}
+                <button
+                  onClick={() => setOpen(false)}
+                  className={`w-full mt-2 rounded-lg border-2 py-2.5 text-sm font-medium transition-colors ${t.btnOutline}`}
+                >
+                  我知道了
+                </button>
               </div>
-            ))}
-            <button
-              onClick={() => setOpen(false)}
-              className="w-full mt-2 rounded-lg border border-border py-2.5 text-sm font-medium hover:bg-accent transition-colors"
-            >
-              我知道了
-            </button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

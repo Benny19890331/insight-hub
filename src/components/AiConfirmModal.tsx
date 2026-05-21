@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Check, Sparkles, Pencil } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgBlack = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAwMDAiLz48L3N2Zz4=";
+const bgWhite = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=";
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom, bgBlack, bgWhite];
 
 interface AiConfirmModalProps {
   open: boolean;
@@ -74,6 +84,8 @@ function formatValue(key: string, value: any): string {
 }
 
 export function AiConfirmModal({ open, onOpenChange, data, mode, onConfirm }: AiConfirmModalProps) {
+  const { themeIndex } = useTheme();
+  const isLight = themeIndex <= 1 || themeIndex === 6;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editedData, setEditedData] = useState<Record<string, any>>({});
   const [animationDone, setAnimationDone] = useState(false);
@@ -117,72 +129,82 @@ export function AiConfirmModal({ open, onOpenChange, data, mode, onConfirm }: Ai
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card/80 backdrop-blur-xl border border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.3),0_0_80px_-20px_hsl(var(--primary)/0.15)] max-w-md max-h-[85vh] overflow-y-auto rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-foreground flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI 解析確認
-          </DialogTitle>
-          <DialogDescription>
-            請確認以下資料，可直接點擊欄位修改
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="max-w-md overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1"
+        style={{ maxHeight: "96dvh" }}
+      >
+        <div className="relative overflow-hidden rounded-2xl h-full">
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className={`absolute inset-0 ${isLight ? '' : 'bg-black/60'}`} />
+          </div>
+          <div className="relative z-10 p-6 pt-10 pb-6 overflow-y-auto overscroll-contain" style={{ maxHeight: "96dvh", WebkitOverflowScrolling: "touch" }}>
+            <DialogHeader>
+              <DialogTitle className="text-foreground flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                AI 解析確認
+              </DialogTitle>
+              <DialogDescription>
+                請確認以下資料，可直接點擊欄位修改
+              </DialogDescription>
+            </DialogHeader>
 
-        <div className="space-y-2 pt-2">
-          {fields.map(([key, value], i) => {
-            const label = FIELD_LABELS[key] || key;
-            const displayVal = formatValue(key, value);
-            const isEditing = editingField === key;
+            <div className="space-y-2 pt-2">
+              {fields.map(([key, value], i) => {
+                const label = FIELD_LABELS[key] || key;
+                const displayVal = formatValue(key, value);
+                const isEditing = editingField === key;
 
-            return (
-              <div
-                key={key}
-                className="group flex items-start gap-3 rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5 hover:border-primary/30 hover:bg-muted/40 transition-all cursor-pointer"
-                style={{ animationDelay: `${i * 80}ms` }}
-                onClick={() => !isEditing && setEditingField(key)}
+                return (
+                  <div
+                    key={key}
+                    className="group flex items-start gap-3 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm px-3 py-2.5 hover:border-primary/40 hover:bg-card/80 transition-all cursor-pointer"
+                    style={{ animationDelay: `${i * 80}ms` }}
+                    onClick={() => !isEditing && setEditingField(key)}
+                  >
+                    <span className="text-xs text-foreground/70 min-w-[4.5rem] pt-0.5 shrink-0">
+                      {label}
+                    </span>
+                    <div className="flex-1 text-sm text-foreground min-w-0">
+                      {isEditing ? (
+                        <input
+                          autoFocus
+                          defaultValue={Array.isArray(value) ? value.join("、") : String(value || "")}
+                          onBlur={(e) => handleFieldEdit(key, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleFieldEdit(key, (e.target as HTMLInputElement).value);
+                          }}
+                          className="w-full bg-background/80 border border-primary/40 rounded-md px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <TypewriterText text={displayVal} onDone={handleFieldDone} />
+                      )}
+                    </div>
+                    {!isEditing && (
+                      <Pencil className="h-3 w-3 text-foreground/60 opacity-0 group-hover:opacity-80 transition-opacity shrink-0 mt-1" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 pb-2">
+              <button
+                onClick={() => onOpenChange(false)}
+                className="rounded-lg border border-border bg-card/60 backdrop-blur-sm px-4 py-2 text-sm text-foreground hover:bg-card/80 transition-colors"
               >
-                <span className="text-xs text-muted-foreground min-w-[4.5rem] pt-0.5 shrink-0">
-                  {label}
-                </span>
-                <div className="flex-1 text-sm text-foreground min-w-0">
-                  {isEditing ? (
-                    <input
-                      autoFocus
-                      defaultValue={Array.isArray(value) ? value.join("、") : String(value || "")}
-                      onBlur={(e) => handleFieldEdit(key, e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleFieldEdit(key, (e.target as HTMLInputElement).value);
-                      }}
-                      className="w-full bg-muted/50 border border-primary/40 rounded-md px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <TypewriterText text={displayVal} onDone={handleFieldDone} />
-                  )}
-                </div>
-                {!isEditing && (
-                  <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-60 transition-opacity shrink-0 mt-1" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-2 pt-3 pb-2">
-          <button
-            onClick={() => onOpenChange(false)}
-            className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
-          >
-            取消
-          </button>
-          <button
-            onClick={() => onConfirm(editedData)}
-            className="neon-btn-cyan flex items-center gap-1.5"
-          >
-            <Check className="h-3.5 w-3.5" />
-            正式建檔
-          </button>
+                取消
+              </button>
+              <button
+                onClick={() => onConfirm(editedData)}
+                className="neon-btn-cyan flex items-center gap-1.5"
+              >
+                <Check className="h-3.5 w-3.5" />
+                正式建檔
+              </button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

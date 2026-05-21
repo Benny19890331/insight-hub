@@ -4,6 +4,15 @@ import { Contact, HeatLevel } from "@/data/contacts";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Upload, FileText, AlertTriangle, CheckCircle2 } from "lucide-react";
+import bgGirl from "@/assets/bg-girl.jpg";
+import bgYouth from "@/assets/bg-youth.jpg";
+import bgPrime from "@/assets/bg-prime.jpg";
+import bgViolet from "@/assets/bg-violet.jpg";
+import bgWisdom from "@/assets/bg-wisdom.jpg";
+
+const bgBlack = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAwMDAiLz48L3N2Zz4=";
+const bgWhite = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=";
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom, bgBlack, bgWhite];
 
 interface CsvImportDialogProps {
   open: boolean;
@@ -310,11 +319,20 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className={`max-w-lg w-[calc(100vw-2rem)] overflow-hidden max-h-[85vh] overflow-y-auto p-4 sm:p-6 ${isLightTheme ? 'bg-pink-50/95 border-pink-200/50 backdrop-blur-xl' : 'bg-card border-border'}`}>
-        <DialogHeader>
-          <DialogTitle className={isLightTheme ? 'text-pink-900' : 'text-foreground'}>{"匯入 CSV"}</DialogTitle>
-          <DialogDescription className={isLightTheme ? 'text-pink-700/70' : ''}>{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="max-w-lg w-[calc(100vw-2rem)] overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1"
+        style={{ maxHeight: "96dvh" }}
+      >
+        <div className="relative overflow-hidden rounded-lg h-full">
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
+            <div className={`absolute inset-0 ${isLightTheme ? '' : 'bg-black/60'}`} />
+          </div>
+          <div className="relative z-10 p-4 sm:p-6 pt-10 pb-8 overflow-y-auto overscroll-contain" style={{ maxHeight: "96dvh", WebkitOverflowScrolling: "touch" }}>
+            <DialogHeader>
+              <DialogTitle className="text-foreground">{"匯入 CSV"}</DialogTitle>
+              <DialogDescription className="text-foreground/75">{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
+            </DialogHeader>
 
         {!preview ? (
           <div className="space-y-4 pt-2">
@@ -407,6 +425,8 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
             </div>
           </div>
         )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
