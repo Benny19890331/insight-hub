@@ -247,18 +247,54 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden">
         {bgImages.map((img, i) => (
           <div key={i} className="absolute inset-0 transition-opacity duration-700 overflow-hidden" style={{ opacity: i === themeIndex ? 1 : 0 }}>
             <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
-            <div className={`absolute inset-0 ${themes[i].authOverlay.replace('bg-gradient-to-b', 'bg-gradient-to-b')}`} />
-            <div className="absolute inset-0 bg-black/50" />
+            <div className={`absolute inset-0 ${themes[i].authOverlay}`} />
+            <div className="absolute inset-0 bg-black/40" />
           </div>
         ))}
-        <Loader2 className={`h-8 w-8 animate-spin ${t.accent} relative z-10`} />
+        <div className="relative z-10 flex flex-col h-screen">
+          {/* Header skeleton */}
+          <div className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 ${t.headerBg} ${t.headerBorder}`}>
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-16 rounded-lg" />
+              <Skeleton className="h-8 w-20 rounded-lg" />
+            </div>
+          </div>
+          {/* List skeleton */}
+          <div className="flex-1 overflow-hidden flex">
+            <div className={`w-full md:w-80 lg:w-96 border-r ${t.cardBorder} p-3 space-y-3`}>
+              <Skeleton className="h-10 w-full rounded-lg" />
+              <div className="grid grid-cols-2 gap-2">
+                <Skeleton className="h-9 rounded-lg" />
+                <Skeleton className="h-9 rounded-lg" />
+              </div>
+              <div className="space-y-2 pt-1">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-2 py-2.5">
+                    <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-3.5 w-2/3" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="flex flex-col h-screen overflow-hidden relative">
