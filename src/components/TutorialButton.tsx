@@ -76,9 +76,9 @@ export function TutorialButton() {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={handleClick}
         aria-label="使用教學"
-        className={`fixed bottom-5 right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg backdrop-blur-sm transition-all hover:scale-105 active:scale-95 ${t.btnOutline}`}
+        className={`fixed bottom-5 right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg backdrop-blur-sm transition-all hover:scale-105 active:scale-95 ${t.btnOutline} ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
         style={{ background: "hsl(var(--background) / 0.85)" }}
       >
         <HelpCircle className={`h-6 w-6 ${t.accent}`} />
