@@ -53,7 +53,25 @@ const steps = [
 export function TutorialButton() {
   const { theme: t, themeIndex } = useTheme();
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
   const isLight = themeIndex <= 1 || themeIndex === 6;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startHideTimer = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setVisible(true);
+    timerRef.current = setTimeout(() => setVisible(false), 3 * 60 * 1000);
+  }, []);
+
+  useEffect(() => {
+    startHideTimer();
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [startHideTimer]);
+
+  const handleClick = () => {
+    setOpen(true);
+    startHideTimer();
+  };
 
   return (
     <>
