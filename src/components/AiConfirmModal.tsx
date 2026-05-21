@@ -84,6 +84,8 @@ function formatValue(key: string, value: any): string {
 }
 
 export function AiConfirmModal({ open, onOpenChange, data, mode, onConfirm }: AiConfirmModalProps) {
+  const { themeIndex } = useTheme();
+  const isLight = themeIndex <= 1 || themeIndex === 6;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editedData, setEditedData] = useState<Record<string, any>>({});
   const [animationDone, setAnimationDone] = useState(false);
