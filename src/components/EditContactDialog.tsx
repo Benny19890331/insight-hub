@@ -12,7 +12,10 @@ import bgPrime from "@/assets/bg-prime.jpg";
 import bgViolet from "@/assets/bg-violet.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
+const bgBlack = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAwMDAiLz48L3N2Zz4=";
+const bgWhite = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=";
+
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom, bgBlack, bgWhite];
 
 interface EditContactDialogProps {
   open: boolean;
@@ -138,7 +141,9 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     ? "w-full rounded-lg border border-pink-300/50 bg-white/60 px-3 py-2.5 text-sm text-pink-900 focus:outline-none focus:ring-1 focus:ring-pink-400/50"
     : themeIndex === 1
       ? "w-full rounded-lg border border-purple-300/70 bg-white/75 px-3 py-2.5 text-sm text-blue-950 focus:outline-none focus:ring-1 focus:ring-yellow-300/60 placeholder:text-blue-700/60"
-      : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
+      : themeIndex === 6
+        ? "w-full rounded-lg border border-gray-300/70 bg-white/80 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400/50"
+        : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,7 +152,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
-            <div className={`absolute inset-0 ${themeIndex <= 1 ? '' : 'bg-black/60'}`} />
+            <div className={`absolute inset-0 ${themeIndex <= 1 || themeIndex === 6 ? '' : 'bg-black/60'}`} />
           </div>
           <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>

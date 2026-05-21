@@ -306,7 +306,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
     }
   };
 
-  const isLightTheme = themeIndex === 0 || themeIndex === 1;
+  const isLightTheme = themeIndex === 0 || themeIndex === 1 || themeIndex === 6;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>

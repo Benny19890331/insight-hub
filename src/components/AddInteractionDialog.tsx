@@ -11,7 +11,10 @@ import bgPrime from "@/assets/bg-prime.jpg";
 import bgViolet from "@/assets/bg-violet.jpg";
 import bgWisdom from "@/assets/bg-wisdom.jpg";
 
-const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
+const bgBlack = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAwMDAiLz48L3N2Zz4=";
+const bgWhite = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=";
+
+const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom, bgBlack, bgWhite];
 
 interface AddInteractionDialogProps {
   open: boolean;
@@ -54,7 +57,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
-            <div className={`absolute inset-0 ${themeIndex <= 1 ? '' : 'bg-black/60'}`} />
+            <div className={`absolute inset-0 ${themeIndex <= 1 || themeIndex === 6 ? '' : 'bg-black/60'}`} />
           </div>
           <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
             <DialogHeader>
@@ -78,7 +81,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${themeIndex === 0 ? 'border-pink-300/50 bg-white/60 text-pink-900 focus:ring-pink-400/50' : themeIndex === 1 ? 'border-purple-300/70 bg-white/75 text-blue-950 focus:ring-yellow-300/60' : 'border-border bg-muted/50 text-foreground focus:ring-primary/50'}`}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${themeIndex === 0 ? 'border-pink-300/50 bg-white/60 text-pink-900 focus:ring-pink-400/50' : themeIndex === 1 ? 'border-purple-300/70 bg-white/75 text-blue-950 focus:ring-yellow-300/60' : themeIndex === 6 ? 'border-gray-300/70 bg-white/80 text-gray-900 focus:ring-gray-400/50' : 'border-border bg-muted/50 text-foreground focus:ring-primary/50'}`}
                 />
               </div>
               <div>
@@ -89,7 +92,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                   contacts={contacts}
                   placeholder="例如：一起喝咖啡，聊到健康話題⋯ 輸入 @ 可提及名單人物"
                   rows={3}
-                  className={`rounded-lg ${themeIndex === 0 ? 'bg-white/60' : themeIndex === 1 ? 'bg-white/75 text-blue-950' : 'bg-muted/50'}`}
+                  className={`rounded-lg ${themeIndex === 0 ? 'bg-white/60' : themeIndex === 1 ? 'bg-white/75 text-blue-950' : themeIndex === 6 ? 'bg-white/80 text-gray-900' : 'bg-muted/50'}`}
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
