@@ -94,14 +94,14 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: '96dvh' }} onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[calc(env(safe-area-inset-top)+2dvh)] [&>button]:!top-[calc(env(safe-area-inset-top)+0.5rem)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))' }} onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
             <div className={`absolute inset-0 ${themeIndex <= 1 || themeIndex === 6 ? '' : 'bg-black/60'}`} />
           </div>
-          <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: '96dvh', WebkitOverflowScrolling: 'touch' }}>
+          <div className="relative z-10 p-6 pt-10 pb-20 overflow-y-auto overscroll-contain" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))', WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="text-foreground">新增聯絡人</DialogTitle>
           <DialogDescription>手動新增或用 AI 語音一鍵建檔</DialogDescription>
