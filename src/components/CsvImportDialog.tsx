@@ -320,15 +320,15 @@ export function CsvImportDialog({ open, onOpenChange, onImport, existingContacts
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
       <DialogContent
-        className="max-w-lg w-[calc(100vw-2rem)] overflow-hidden p-0 border-0 bg-transparent !top-[2dvh] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1"
-        style={{ maxHeight: "96dvh" }}
+        className="max-w-lg w-[calc(100vw-2rem)] overflow-hidden p-0 border-0 bg-transparent !top-[calc(env(safe-area-inset-top)+2dvh)] [&>button]:!top-[calc(env(safe-area-inset-top)+0.5rem)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1"
+        style={{ maxHeight: "calc(96dvh - env(safe-area-inset-top))" }}
       >
         <div className="relative overflow-hidden rounded-lg h-full">
           <div className="absolute inset-0 overflow-hidden">
             <img src={bgImages[themeIndex]} alt="" className="absolute inset-0 w-full h-full object-cover bg-animate-drift" />
             <div className={`absolute inset-0 ${isLightTheme ? '' : 'bg-black/60'}`} />
           </div>
-          <div className="relative z-10 p-4 sm:p-6 pt-10 pb-8 overflow-y-auto overscroll-contain" style={{ maxHeight: "96dvh", WebkitOverflowScrolling: "touch" }}>
+          <div className="relative z-10 p-4 sm:p-6 pt-10 pb-8 overflow-y-auto overscroll-contain" style={{ maxHeight: "calc(96dvh - env(safe-area-inset-top))", WebkitOverflowScrolling: "touch" }}>
             <DialogHeader>
               <DialogTitle className="text-foreground">{"匯入 CSV"}</DialogTitle>
               <DialogDescription className="text-foreground/75">{"上傳 CSV 檔案，系統將自動解析並加入名單"}</DialogDescription>
