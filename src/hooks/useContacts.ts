@@ -51,6 +51,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     statuses: db.statuses ?? [],
     heat: (db.heat as HeatLevel) ?? "cold",
     notes: db.notes,
+    taboos: (db as any).taboos ?? "",
     lastContactDate: db.last_contact_date,
     nextFollowUpDate: db.next_follow_up_date ?? undefined,
     nextFollowUpNote: db.next_follow_up_note ?? undefined,
