@@ -79,6 +79,7 @@ function contactToDbPayload(c: Contact) {
     statuses: c.statuses,
     heat: c.heat,
     notes: c.notes,
+    taboos: c.taboos ?? "",
     last_contact_date: c.lastContactDate,
     next_follow_up_date: c.nextFollowUpDate || null,
     next_follow_up_note: c.nextFollowUpNote || null,
