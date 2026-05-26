@@ -75,6 +75,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       gender,
       heat,
       notes: notes.trim(),
+      taboos: taboos.trim() || undefined,
       lastContactDate: today,
       nextFollowUpDate: today,
       interactions: [],
