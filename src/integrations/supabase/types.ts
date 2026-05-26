@@ -103,6 +103,7 @@ export type Database = {
           referrer_name: string | null
           region: string
           statuses: string[]
+          taboos: string
           user_id: string
         }
         Insert: {
@@ -128,6 +129,7 @@ export type Database = {
           referrer_name?: string | null
           region?: string
           statuses?: string[]
+          taboos?: string
           user_id: string
         }
         Update: {
@@ -153,6 +155,7 @@ export type Database = {
           referrer_name?: string | null
           region?: string
           statuses?: string[]
+          taboos?: string
           user_id?: string
         }
         Relationships: [
