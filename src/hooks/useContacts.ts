@@ -15,6 +15,7 @@ interface DbContact {
   statuses: string[];
   heat: string;
   notes: string;
+  taboos: string | null;
   last_contact_date: string;
   next_follow_up_date: string | null;
   next_follow_up_note: string | null;
