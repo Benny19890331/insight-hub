@@ -38,6 +38,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [heat, setHeat] = useState<HeatLevel>("cold");
   const [gender, setGender] = useState<Gender>("");
   const [notes, setNotes] = useState("");
+  const [taboos, setTaboos] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [contactMethod, setContactMethod] = useState("");
   const [referrerId, setReferrerId] = useState("");
