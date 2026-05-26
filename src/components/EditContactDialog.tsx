@@ -59,6 +59,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setSelectedStatuses(contact.statuses ?? []);
     setHeat(contact.heat);
     setNotes(contact.notes);
+    setTaboos(contact.taboos ?? "");
     setSelectedTags(contact.productTags ?? []);
     setContactMethod(contact.contactMethod ?? "");
     setAvatarUrl(contact.avatarUrl ?? "");
