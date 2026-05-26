@@ -277,6 +277,13 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
               className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none" />
           </div>
 
+          {/* Taboos */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">忌諱事物</label>
+            <textarea value={taboos} onChange={e => setTaboos(e.target.value)} rows={2} placeholder="此人不喜歡或忌諱的話題、食物、行為⋯"
+              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none" />
+          </div>
+
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => { reset(); onOpenChange(false); }} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">取消</button>
