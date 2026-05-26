@@ -51,6 +51,7 @@ export interface Contact {
   statuses: string[];
   heat: HeatLevel;
   notes: string;
+  taboos?: string;
   lastContactDate: string;
   nextFollowUpDate?: string;
   nextFollowUpNote?: string;

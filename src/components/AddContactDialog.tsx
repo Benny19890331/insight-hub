@@ -38,6 +38,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [heat, setHeat] = useState<HeatLevel>("cold");
   const [gender, setGender] = useState<Gender>("");
   const [notes, setNotes] = useState("");
+  const [taboos, setTaboos] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [contactMethod, setContactMethod] = useState("");
   const [referrerId, setReferrerId] = useState("");
@@ -57,7 +58,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   const reset = () => {
     setName(""); setNickname(""); setRegion(""); setBackground("");
-    setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes("");
+    setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes(""); setTaboos("");
     setSelectedTags([]); setContactMethod(""); setReferrerId("");
     setBirthday(""); setBirthdayReminder("none"); setReferrerSearch("");
   };
@@ -74,6 +75,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       gender,
       heat,
       notes: notes.trim(),
+      taboos: taboos.trim() || undefined,
       lastContactDate: today,
       nextFollowUpDate: today,
       interactions: [],
@@ -272,6 +274,13 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">特殊註記</label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="備註⋯"
+              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none" />
+          </div>
+
+          {/* Taboos */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">忌諱事物</label>
+            <textarea value={taboos} onChange={e => setTaboos(e.target.value)} rows={2} placeholder="此人不喜歡或忌諱的話題、食物、行為⋯"
               className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none" />
           </div>
 

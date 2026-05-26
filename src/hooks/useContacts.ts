@@ -15,6 +15,7 @@ interface DbContact {
   statuses: string[];
   heat: string;
   notes: string;
+  taboos: string | null;
   last_contact_date: string;
   next_follow_up_date: string | null;
   next_follow_up_note: string | null;
@@ -50,6 +51,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     statuses: db.statuses ?? [],
     heat: (db.heat as HeatLevel) ?? "cold",
     notes: db.notes,
+    taboos: (db as any).taboos ?? "",
     lastContactDate: db.last_contact_date,
     nextFollowUpDate: db.next_follow_up_date ?? undefined,
     nextFollowUpNote: db.next_follow_up_note ?? undefined,
@@ -77,6 +79,7 @@ function contactToDbPayload(c: Contact) {
     statuses: c.statuses,
     heat: c.heat,
     notes: c.notes,
+    taboos: c.taboos ?? "",
     last_contact_date: c.lastContactDate,
     next_follow_up_date: c.nextFollowUpDate || null,
     next_follow_up_note: c.nextFollowUpNote || null,

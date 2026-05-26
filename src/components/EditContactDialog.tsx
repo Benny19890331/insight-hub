@@ -37,6 +37,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []);
   const [heat, setHeat] = useState<HeatLevel>(contact.heat);
   const [notes, setNotes] = useState(contact.notes);
+  const [taboos, setTaboos] = useState(contact.taboos ?? "");
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.productTags ?? []);
   const [contactMethod, setContactMethod] = useState(contact.contactMethod ?? "");
   const [avatarUrl, setAvatarUrl] = useState(contact.avatarUrl ?? "");
@@ -58,6 +59,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setSelectedStatuses(contact.statuses ?? []);
     setHeat(contact.heat);
     setNotes(contact.notes);
+    setTaboos(contact.taboos ?? "");
     setSelectedTags(contact.productTags ?? []);
     setContactMethod(contact.contactMethod ?? "");
     setAvatarUrl(contact.avatarUrl ?? "");
@@ -124,6 +126,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       gender,
       heat,
       notes,
+      taboos: taboos || undefined,
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
@@ -346,6 +349,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           </Field>
 
           <Field label="特殊註記"><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className={`${fieldClass} resize-none`} /></Field>
+
+          <Field label="忌諱事物"><textarea value={taboos} onChange={(e) => setTaboos(e.target.value)} rows={2} placeholder="此人不喜歡或忌諱的話題、食物、行為⋯" className={`${fieldClass} resize-none`} /></Field>
 
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors cursor-pointer">

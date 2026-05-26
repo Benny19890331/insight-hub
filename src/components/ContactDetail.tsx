@@ -441,6 +441,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         </div>
 
         <DetailRow icon={StickyNote} label="特殊註記" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.notes}</DetailRow>
+        {contact.taboos && (
+          <DetailRow icon={StickyNote} label="忌諱事物" iconBoxClass={iconBoxClass} iconClass={iconClass} labelClass={labelClass}>{contact.taboos}</DetailRow>
+        )}
       </div>
 
       <div className="h-px bg-border" />
