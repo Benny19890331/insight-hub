@@ -37,6 +37,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(contact.statuses ?? []);
   const [heat, setHeat] = useState<HeatLevel>(contact.heat);
   const [notes, setNotes] = useState(contact.notes);
+  const [taboos, setTaboos] = useState(contact.taboos ?? "");
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.productTags ?? []);
   const [contactMethod, setContactMethod] = useState(contact.contactMethod ?? "");
   const [avatarUrl, setAvatarUrl] = useState(contact.avatarUrl ?? "");
