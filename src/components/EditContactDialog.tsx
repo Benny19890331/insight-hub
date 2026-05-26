@@ -126,6 +126,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       gender,
       heat,
       notes,
+      taboos: taboos || undefined,
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
