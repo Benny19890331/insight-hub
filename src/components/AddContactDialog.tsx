@@ -47,7 +47,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>("none");
   const [referrerSearch, setReferrerSearch] = useState("");
   const [showReferrerList, setShowReferrerList] = useState(false);
-  const [referrerRef] = [useRef<HTMLDivElement>(null)];
+  const referrerRef = useRef<HTMLDivElement>(null);
   const [pasteOpen, setPasteOpen] = useState(false);
 
   const filteredReferrers = useMemo(() => {
