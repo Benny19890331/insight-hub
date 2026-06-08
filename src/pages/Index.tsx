@@ -391,80 +391,43 @@ const Index = () => {
             <UserPlus className="h-4 w-4" />
             <span className="hidden sm:inline">新增</span>
           </button>
-          {isMobile ? (
-            <>
+          <DropdownMenu open={toolsOpen} onOpenChange={setToolsOpen}>
+            <DropdownMenuTrigger asChild>
               <button
-                onClick={() => setToolsOpen(true)}
                 className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
                 style={secondaryBtnStyle}
               >
                 <Wrench className="h-4 w-4" />
                 <span className="hidden sm:inline">工具</span>
               </button>
-              <Dialog open={toolsOpen} onOpenChange={setToolsOpen}>
-                <DialogContent
-                  className="w-[calc(100vw-1.5rem)] max-w-xs overflow-hidden border p-0 !left-auto !right-3 !top-[calc(env(safe-area-inset-top,0px)+0.5rem)] !translate-x-0 !translate-y-0 rounded-2xl bg-card/95 shadow-2xl backdrop-blur-xl [&>button]:hidden"
-                  style={{ maxHeight: "calc(100dvh - env(safe-area-inset-top, 0px) - 1rem)" }}
-                >
-                  <div className="p-2">
-                    <button onClick={handleOpenCsvImport} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base transition-colors hover:bg-accent/60">
-                      <Download className="h-5 w-5" /> 匯入 CSV
-                    </button>
-                    <button onClick={handleCsvExport} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base transition-colors hover:bg-accent/60">
-                      <Upload className="h-5 w-5" /> 匯出 CSV
-                    </button>
-                    <button onClick={handleOpenReports} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base transition-colors hover:bg-accent/60">
-                      <BarChart3 className="h-5 w-5" /> 數據報表
-                    </button>
-                    <button onClick={handleOpenTrash} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base transition-colors hover:bg-accent/60">
-                      <Trash2 className="h-5 w-5" /> 資源回收筒
-                    </button>
-                    <button onClick={handleConfirmSignOut} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base text-red-500 transition-colors hover:bg-red-500/10">
-                      <LogOut className="h-5 w-5" /> 登出
-                    </button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
-                  style={secondaryBtnStyle}
-                >
-                  <Wrench className="h-4 w-4" />
-                  <span className="hidden sm:inline">工具</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                side="bottom"
-                sideOffset={8}
-                avoidCollisions={false}
-                className="bg-card border-border overflow-y-auto"
-                style={{
-                  maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 88px)',
-                }}
-              >
-                <DropdownMenuItem onClick={handleOpenCsvImport} className="gap-2 cursor-pointer">
-                  <Download className="h-4 w-4" /> 匯入 CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer">
-                  <Upload className="h-4 w-4" /> 匯出 CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleOpenReports} className="gap-2 cursor-pointer">
-                  <BarChart3 className="h-4 w-4" /> 數據報表
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleOpenTrash} className="gap-2 cursor-pointer">
-                  <Trash2 className="h-4 w-4" /> 資源回收筒
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleConfirmSignOut} className="gap-2 cursor-pointer text-red-500 focus:text-red-500">
-                  <LogOut className="h-4 w-4" /> 登出
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              side="bottom"
+              sideOffset={8}
+              avoidCollisions={false}
+              className="bg-card border-border overflow-y-auto min-w-[12rem]"
+              style={{
+                maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 88px)',
+              }}
+            >
+              <DropdownMenuItem onClick={handleOpenCsvImport} className="gap-2 cursor-pointer py-3 text-base">
+                <Download className="h-4 w-4" /> 匯入 CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer py-3 text-base">
+                <Upload className="h-4 w-4" /> 匯出 CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleOpenReports} className="gap-2 cursor-pointer py-3 text-base">
+                <BarChart3 className="h-4 w-4" /> 數據報表
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleOpenTrash} className="gap-2 cursor-pointer py-3 text-base">
+                <Trash2 className="h-4 w-4" /> 資源回收筒
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleConfirmSignOut} className="gap-2 cursor-pointer py-3 text-base text-red-500 focus:text-red-500">
+                <LogOut className="h-4 w-4" /> 登出
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
