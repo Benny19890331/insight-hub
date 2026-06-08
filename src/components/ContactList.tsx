@@ -313,8 +313,16 @@ export function ContactList({
                     )}
                   </div>
                 </div>
-                <p className={`text-xs mt-0.5 truncate ${t.mutedText}`}>
-                  {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
+                <p className={`text-xs mt-0.5 truncate ${t.mutedText} flex items-center gap-1.5`}>
+                  <span className="truncate">
+                    {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
+                  </span>
+                  <span className={`shrink-0 ${cold.days > 30 ? "text-orange-500 font-medium" : ""}`}>
+                    · {contact.lastContactDate ? `${cold.days}天未聯絡` : "未聯絡"}
+                  </span>
+                  {overdue && (
+                    <span className="shrink-0 text-amber-500 font-semibold">· ⚠️ 到期</span>
+                  )}
                 </p>
                 {/* Product tags for disambiguation */}
                 {hasDuplicate && (contact.productTags ?? []).length > 0 && (
