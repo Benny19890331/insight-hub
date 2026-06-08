@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getDomainKnowledge } from "../_shared/domain-knowledge.ts";
+import { getDomainKnowledgeIfRelevant } from "../_shared/domain-knowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,7 +42,14 @@ serve(async (req) => {
       loyal: "忠實（老客戶、已多次購買、可發展為經銷夥伴）",
     };
 
-    const DOMAIN_KNOWLEDGE = await getDomainKnowledge();
+    // 省 token：依聯絡人欄位是否提到產品/直銷術語才注入完整知識
+    const probeText = [
+      contact.name, contact.nickname, contact.background, contact.notes,
+      Array.isArray(contact.products) ? contact.products.join(" ") : contact.products,
+      Array.isArray(contact.tags) ? contact.tags.join(" ") : "",
+      Array.isArray(insights) ? insights.map((i: any) => i?.summary ?? "").join(" ") : "",
+    ].filter(Boolean).join(" ");
+    const DOMAIN_KNOWLEDGE = await getDomainKnowledgeIfRelevant(probeText);
     const systemPrompt = `${DOMAIN_KNOWLEDGE}
 
 你是一位善於人際互動的文案高手。請為「${honorific}」生成 **三段不同語氣** 的邀約訊息草稿，方便領袖依場合直接複製傳訊息。
