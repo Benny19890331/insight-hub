@@ -267,18 +267,23 @@ export function ContactList({
 
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
-        {filtered.map((contact) => {
+        {sorted.map((contact) => {
           const hasDuplicate = (nameCounts.get(contact.name) ?? 0) > 1;
+          const cold = getColdness(contact.lastContactDate);
+          const overdue = isDueOrOverdue(contact.nextFollowUpDate);
           return (
           <button
             key={contact.id}
             onClick={() => onSelect(contact)}
-            className={`w-full text-left rounded-lg px-4 py-3 transition-all duration-150 border ${
+            className={`relative w-full text-left rounded-lg pl-5 pr-4 py-3 transition-all duration-150 border overflow-hidden ${
               selectedId === contact.id
                 ? `${t.selectedCard} ${t.selectedBorder} ${t.selectedGlow}`
                 : `${t.cardHover} border-transparent`
             }`}
           >
+            {/* Coldness color bar */}
+            <span className={`absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r ${cold.color}`} aria-hidden />
+
             <div className="flex items-center gap-3">
               {/* Avatar */}
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${t.accentBg} ${t.accentBorder} border ${t.accent}`}>
