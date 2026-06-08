@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap, ArrowDownUp, Trash2, BarChart3, Wrench } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, Trash2, BarChart3, Wrench } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { generateSeedContacts } from "@/data/seedContacts";
 import { Contact, HeatLevel } from "@/data/contacts";
@@ -11,10 +11,9 @@ import { AddContactDialog } from "@/components/AddContactDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts } from "@/hooks/useContacts";
 import { useTheme, ThemeSwitcher, FontSizeSwitcher, themes } from "@/hooks/useTheme";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { TutorialButton } from "@/components/TutorialButton";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgViolet from "@/assets/bg-violet.jpg";
@@ -75,12 +74,19 @@ const Index = () => {
   const [csvOpen, setCsvOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const [swipeHint, setSwipeHint] = useState(false);
-  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    setIsStandalone(standalone);
+  }, []);
 
   const handleInfinityTap = useCallback(() => {
     if (!isAdmin) return;
@@ -391,43 +397,90 @@ const Index = () => {
             <UserPlus className="h-4 w-4" />
             <span className="hidden sm:inline">新增</span>
           </button>
-          <DropdownMenu open={toolsOpen} onOpenChange={setToolsOpen}>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
-                style={secondaryBtnStyle}
+          {isStandalone ? (
+            <Sheet open={toolsOpen} onOpenChange={setToolsOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
+                  style={secondaryBtnStyle}
+                >
+                  <Wrench className="h-4 w-4" />
+                  <span className="hidden sm:inline">工具</span>
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[min(20rem,88vw)] max-w-none border-border bg-card/95 p-0 text-foreground backdrop-blur-md"
               >
-                <Wrench className="h-4 w-4" />
-                <span className="hidden sm:inline">工具</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              side="bottom"
-              sideOffset={8}
-              avoidCollisions={false}
-              className="bg-card border-border overflow-y-auto min-w-[12rem]"
-              style={{
-                maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 88px)',
-              }}
-            >
-              <DropdownMenuItem onClick={handleOpenCsvImport} className="gap-2 cursor-pointer py-3 text-base">
-                <Download className="h-4 w-4" /> 匯入 CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer py-3 text-base">
-                <Upload className="h-4 w-4" /> 匯出 CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleOpenReports} className="gap-2 cursor-pointer py-3 text-base">
-                <BarChart3 className="h-4 w-4" /> 數據報表
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleOpenTrash} className="gap-2 cursor-pointer py-3 text-base">
-                <Trash2 className="h-4 w-4" /> 資源回收筒
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleConfirmSignOut} className="gap-2 cursor-pointer py-3 text-base text-red-500 focus:text-red-500">
-                <LogOut className="h-4 w-4" /> 登出
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <div
+                  className="flex h-full flex-col"
+                  style={{
+                    paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+                    paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+                  }}
+                >
+                  <div className="border-b border-border px-4 pb-3 pr-14">
+                    <SheetTitle className="text-base font-semibold">工具</SheetTitle>
+                  </div>
+                  <div className="flex-1 space-y-1 overflow-y-auto px-2 py-3 overscroll-contain">
+                    <button onClick={handleOpenCsvImport} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-base transition-colors hover:bg-accent/60 focus:bg-accent/60">
+                      <Download className="h-4 w-4 shrink-0" /> 匯入 CSV
+                    </button>
+                    <button onClick={handleCsvExport} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-base transition-colors hover:bg-accent/60 focus:bg-accent/60">
+                      <Upload className="h-4 w-4 shrink-0" /> 匯出 CSV
+                    </button>
+                    <button onClick={handleOpenReports} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-base transition-colors hover:bg-accent/60 focus:bg-accent/60">
+                      <BarChart3 className="h-4 w-4 shrink-0" /> 數據報表
+                    </button>
+                    <button onClick={handleOpenTrash} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-base transition-colors hover:bg-accent/60 focus:bg-accent/60">
+                      <Trash2 className="h-4 w-4 shrink-0" /> 資源回收筒
+                    </button>
+                    <button onClick={handleConfirmSignOut} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-base text-red-500 transition-colors hover:bg-accent/60 focus:bg-accent/60">
+                      <LogOut className="h-4 w-4 shrink-0" /> 登出
+                    </button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <DropdownMenu open={toolsOpen} onOpenChange={setToolsOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
+                  style={secondaryBtnStyle}
+                >
+                  <Wrench className="h-4 w-4" />
+                  <span className="hidden sm:inline">工具</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                side="bottom"
+                sideOffset={8}
+                avoidCollisions={false}
+                className="bg-card border-border overflow-y-auto min-w-[12rem]"
+                style={{
+                  maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 88px)',
+                }}
+              >
+                <DropdownMenuItem onClick={handleOpenCsvImport} className="gap-2 cursor-pointer py-3 text-base">
+                  <Download className="h-4 w-4" /> 匯入 CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer py-3 text-base">
+                  <Upload className="h-4 w-4" /> 匯出 CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleOpenReports} className="gap-2 cursor-pointer py-3 text-base">
+                  <BarChart3 className="h-4 w-4" /> 數據報表
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleOpenTrash} className="gap-2 cursor-pointer py-3 text-base">
+                  <Trash2 className="h-4 w-4" /> 資源回收筒
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleConfirmSignOut} className="gap-2 cursor-pointer py-3 text-base text-red-500 focus:text-red-500">
+                  <LogOut className="h-4 w-4" /> 登出
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </header>
 
