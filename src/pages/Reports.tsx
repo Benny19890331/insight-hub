@@ -144,9 +144,27 @@ export default function Reports() {
     );
   }
 
+  // Theme-aware chart styling using design tokens so text never blends with bg
+  const axisTickStyle = { fontSize: 11, fill: "hsl(var(--foreground))" };
+  const axisTickStyleSm = { fontSize: 12, fill: "hsl(var(--foreground))" };
+  const gridStroke = "hsl(var(--border))";
+  const tooltipStyleThemed: React.CSSProperties = {
+    background: "hsl(var(--popover))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: 8,
+    fontSize: 12,
+    color: "hsl(var(--popover-foreground))",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+  };
+  const tooltipItemStyle = { color: "hsl(var(--popover-foreground))" };
+  const tooltipLabelStyle = { color: "hsl(var(--popover-foreground))", fontWeight: 600 };
+  const cursorFill = "hsl(var(--foreground) / 0.08)";
+  const legendStyle = { fontSize: 12, color: "hsl(var(--foreground))" };
+
   return (
     <div className={`min-h-screen ${t.headerBg} ${t.authCardText}`}>
       <header className={`flex items-center gap-3 border-b px-4 md:px-6 h-14 ${t.headerBorder}`}>
+
         <button
           onClick={() => navigate("/")}
           className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${t.btnOutline}`}
