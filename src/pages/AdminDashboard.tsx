@@ -245,7 +245,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 text-xs">
+            <div className="grid grid-cols-3 gap-2 text-xs">
               <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
                 <div className={t.authSubtext}>有效</div>
                 <div className={`text-base font-semibold ${t.authCardText}`}>{activeCount}</div>
@@ -258,11 +258,8 @@ export default function AdminDashboard() {
                 <div className={t.authSubtext}>已停權</div>
                 <div className={`text-base font-semibold ${t.authCardText}`}>{bannedCount}</div>
               </div>
-              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
-                <div className={t.authSubtext}>名單總數</div>
-                <div className={`text-base font-semibold ${t.authCardText}`}>{totalContacts}</div>
-              </div>
             </div>
+
 
             {/* 管理員工具入口 */}
             <button
