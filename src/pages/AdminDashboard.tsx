@@ -163,14 +163,38 @@ export default function AdminDashboard() {
   };
 
   const filteredUsers = users.filter((u) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
-  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const match = (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    if (activityFilter !== "all" && activeLevel(u).label !== activityFilter) return false;
+    if (roleFilter === "admin" && !u.isAdmin) return false;
+    if (roleFilter === "user" && u.isAdmin) return false;
+    if (roleFilter === "banned" && !u.isBanned) return false;
+    if (contactFilter !== "all") {
+      const c = u.contactCount;
+      if (contactFilter === "0" && c !== 0) return false;
+      if (contactFilter === "1-10" && (c < 1 || c > 10)) return false;
+      if (contactFilter === "11-50" && (c < 11 || c > 50)) return false;
+      if (contactFilter === "51+" && c < 51) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "oldest": return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "lastSignIn": return new Date(b.lastSignIn ?? 0).getTime() - new Date(a.lastSignIn ?? 0).getTime();
+      case "contactDesc": return b.contactCount - a.contactCount;
+      case "contactAsc": return a.contactCount - b.contactCount;
+      case "name": return (a.displayName || "").localeCompare(b.displayName || "", "zh-TW");
+      default: return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+  });
 
   const adminCount = users.filter((u) => u.isAdmin).length;
   const bannedCount = users.filter((u) => u.isBanned).length;
   const activeCount = users.length - bannedCount;
+  const totalContacts = users.reduce((sum, u) => sum + u.contactCount, 0);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
