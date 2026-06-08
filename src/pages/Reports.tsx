@@ -146,12 +146,12 @@ function computeStats(contacts: Contact[]) {
     return c.nextFollowUpDate >= todayStr && c.nextFollowUpDate <= in7DaysStr;
   }).length;
 
-  // 本月壽星
+  // 本月壽星（依生日日期排序）
   const monthMM = String(now.getMonth() + 1).padStart(2, "0");
-  const birthdayThisMonth = contacts.filter((c) => {
-    if (!c.birthday) return false;
-    return c.birthday.slice(5, 7) === monthMM;
-  }).length;
+  const birthdayList = contacts
+    .filter((c) => c.birthday && c.birthday.slice(5, 7) === monthMM)
+    .map((c) => ({ id: c.id, name: c.name, day: parseInt(c.birthday!.slice(8, 10), 10) }))
+    .sort((a, b) => a.day - b.day);
 
   // 平均互動次數
   const totalInteractions = contacts.reduce((sum, c) => sum + (c.interactions?.length ?? 0), 0);
@@ -162,7 +162,7 @@ function computeStats(contacts: Contact[]) {
     newThisMonth,
     interactionsThisMonth,
     followUpDue,
-    birthdayThisMonth,
+    birthdayList,
     avgInteractions,
     heatData,
     trendData,
