@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Search, X, UserCircle } from "lucide-react";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { PasteCardDiagnosticsDialog } from "@/components/PasteCardDiagnosticsDialog";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -47,6 +48,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [referrerSearch, setReferrerSearch] = useState("");
   const [showReferrerList, setShowReferrerList] = useState(false);
   const referrerRef = useRef<HTMLDivElement>(null);
+  const [pasteOpen, setPasteOpen] = useState(false);
 
   const filteredReferrers = useMemo(() => {
     if (!referrerSearch) return contacts.slice(0, 10);
@@ -129,7 +131,24 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
                 if (data.notes) setNotes(data.notes);
               }}
             />
+            <button
+              type="button"
+              onClick={() => setPasteOpen(true)}
+              className="ml-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              📇 貼上名片診斷
+            </button>
           </div>
+          <PasteCardDiagnosticsDialog
+            open={pasteOpen}
+            onOpenChange={setPasteOpen}
+            onParsed={(d) => {
+              if (d.name) setName(d.name);
+              if (d.background) setBackground(prev => prev ? `${prev}｜${d.background}` : d.background!);
+              if (d.notes) setNotes(prev => prev ? `${prev}\n\n${d.notes}` : d.notes);
+              if (d.heat) setHeat(d.heat);
+            }}
+          />
           {/* Name + Nickname */}
           <div className="grid grid-cols-2 gap-3">
             <div>
