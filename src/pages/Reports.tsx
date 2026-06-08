@@ -251,7 +251,7 @@ export default function Reports() {
                   key={b.id}
                   onClick={() => navigate(`/?contact=${encodeURIComponent(b.id)}`)}
                   className={`group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all hover:scale-105 active:scale-95 ${t.btnOutline}`}
-                  title={`生日 ${monthMMLabel()}/${String(b.day).padStart(2, "0")}`}
+                  title={`生日 ${new Date().getMonth() + 1}/${String(b.day).padStart(2, "0")}`}
                 >
                   <span className="text-xs opacity-70 font-mono">{String(b.day).padStart(2, "0")}日</span>
                   <span className="font-medium">{b.name}</span>
