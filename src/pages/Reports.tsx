@@ -227,13 +227,15 @@ export default function Reports() {
 
       <main className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
         {/* KPI cards */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <section className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <KpiCard icon={<Users className="h-5 w-5" />} label="名單總數" value={stats.total} t={t} />
-          <KpiCard icon={<Flame className="h-5 w-5" />} label="熱+忠實" value={stats.hotLoyal} t={t}
-            sub={stats.total ? `${Math.round((stats.hotLoyal / stats.total) * 100)}%` : "—"} />
           <KpiCard icon={<UserPlus className="h-5 w-5" />} label="本月新增" value={stats.newThisMonth} t={t} />
-          <KpiCard icon={<MessageSquare className="h-5 w-5" />} label="本月互動" value={stats.interactionsThisMonth} t={t} />
+          <KpiCard icon={<MessageSquare className="h-5 w-5" />} label="本月互動" value={stats.interactionsThisMonth} t={t}
+            sub={stats.total ? `平均 ${stats.avgInteractions} 次/人` : undefined} />
+          <KpiCard icon={<Bell className="h-5 w-5" />} label="7天內待追蹤" value={stats.followUpDue} t={t} />
+          <KpiCard icon={<Cake className="h-5 w-5" />} label="本月壽星" value={stats.birthdayThisMonth} t={t} />
         </section>
+
 
         {/* Heat + Coldness */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
