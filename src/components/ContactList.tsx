@@ -137,21 +137,7 @@ export function ContactList({
       <FunnelStats contacts={contacts} />
       <BirthdayBanner contacts={contacts} onSelect={onSelect} />
 
-      {/* Today / overdue follow-ups banner */}
-      {dueToday.length > 0 && (
-        <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
-          <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-          <span className={`flex-1 ${t.textColor}`}>
-            今日/逾期跟進 <b className="text-amber-500">{dueToday.length}</b> 位
-          </span>
-          <button
-            onClick={() => { setSortMode("due"); onSelect(dueToday[0]); }}
-            className="text-amber-500 font-semibold hover:underline"
-          >
-            立即查看 →
-          </button>
-        </div>
-      )}
+
 
       {/* Search & Filters */}
       <div className="px-4 pb-3 space-y-2">
