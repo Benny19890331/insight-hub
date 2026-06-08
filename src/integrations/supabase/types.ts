@@ -91,6 +91,7 @@ export type Database = {
           gender: string | null
           heat: string
           id: string
+          interest: string
           last_contact_date: string
           member_id: string | null
           name: string
@@ -118,6 +119,7 @@ export type Database = {
           gender?: string | null
           heat?: string
           id?: string
+          interest?: string
           last_contact_date?: string
           member_id?: string | null
           name: string
@@ -145,6 +147,7 @@ export type Database = {
           gender?: string | null
           heat?: string
           id?: string
+          interest?: string
           last_contact_date?: string
           member_id?: string | null
           name?: string
