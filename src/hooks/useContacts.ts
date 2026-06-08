@@ -12,6 +12,7 @@ interface DbContact {
   member_id: string | null;
   region: string;
   background: string;
+  interest: string | null;
   statuses: string[];
   heat: string;
   notes: string;
@@ -48,6 +49,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     memberId: db.member_id ?? undefined,
     region: db.region,
     background: db.background,
+    interest: (db as any).interest ?? undefined,
     statuses: db.statuses ?? [],
     heat: (db.heat as HeatLevel) ?? "cold",
     notes: db.notes,
@@ -76,6 +78,7 @@ function contactToDbPayload(c: Contact) {
     member_id: c.memberId || null,
     region: c.region,
     background: c.background,
+    interest: c.interest ?? "",
     statuses: c.statuses,
     heat: c.heat,
     notes: c.notes,

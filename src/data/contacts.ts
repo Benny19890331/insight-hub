@@ -48,6 +48,7 @@ export interface Contact {
   gender?: Gender;
   region: string;
   background: string;
+  interest?: string;
   statuses: string[];
   heat: HeatLevel;
   notes: string;
