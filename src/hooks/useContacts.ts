@@ -138,7 +138,7 @@ export function useContacts() {
     try {
       const [allContacts, allInteractions, allInsights] = await Promise.all([
         fetchPaginated<DbContact>(
-          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).range(from, to) as any,
+          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
           MAX_CONTACTS
         ),
         fetchPaginated<DbInteraction>(
