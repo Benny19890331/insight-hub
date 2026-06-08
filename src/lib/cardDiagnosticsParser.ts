@@ -49,6 +49,24 @@ export function parseCardDiagnostics(raw: string): CardDiagnostics {
   return { name, interest, state, type, answers, practice, heatGuess, needsAI };
 }
 
+// 將第一/第二人稱（原診斷是寫給當事人看的）轉成第三人稱，方便顧問做筆記
+function toThirdPerson(text: string, name?: string): string {
+  const subject = name?.trim() || "對方";
+  return text
+    .replace(/你其實不是/g, `${subject}其實不是`)
+    .replace(/你是在/g, `${subject}是在`)
+    .replace(/你想要/g, `${subject}想要`)
+    .replace(/你的/g, `${subject}的`)
+    .replace(/你會/g, `${subject}會`)
+    .replace(/你最/g, `${subject}最`)
+    .replace(/你/g, subject)
+    .replace(/我想/g, `${subject}想`)
+    .replace(/我要/g, `${subject}要`)
+    .replace(/我現在/g, `${subject}現在`)
+    .replace(/我自己/g, `${subject}自己`)
+    .replace(/我/g, subject);
+}
+
 export function buildNotesFromDiagnostics(
   d: CardDiagnostics,
   aiSummary?: string
@@ -57,15 +75,15 @@ export function buildNotesFromDiagnostics(
   const header: string[] = [];
   if (d.type) header.push(`🧬 ${d.type}`);
   if (header.length) lines.push(header.join("｜"));
-  if (d.state) lines.push(`🧠 狀態：${d.state}`);
+  if (d.state) lines.push(`🧠 狀態：${toThirdPerson(d.state, d.name)}`);
   if (aiSummary) {
     lines.push("");
     lines.push("【AI 人格摘要】");
-    lines.push(aiSummary);
+    lines.push(toThirdPerson(aiSummary, d.name));
   }
   if (d.practice) {
     lines.push("");
-    lines.push(`🌿 切入建議：${d.practice}`);
+    lines.push(`🌿 切入建議：${toThirdPerson(d.practice, d.name)}`);
   }
   return lines.join("\n");
 }
