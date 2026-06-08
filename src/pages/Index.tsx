@@ -320,8 +320,11 @@ const Index = () => {
           <div className={`absolute inset-0 ${i <= 1 ? 'bg-black/5' : 'bg-black/50'}`} />
         </div>
       ))}
-      <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>
-        <div className="flex items-center gap-2.5">
+      <header
+        className={`flex items-center justify-between border-b px-3 md:px-6 min-h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
+        <div className="flex min-w-0 items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center shrink-0 cursor-pointer" onClick={handleInfinityTap}>
             <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5, filter: `drop-shadow(0 0 4px ${t.titleGlow})` }} />
             <svg width="0" height="0">
@@ -343,17 +346,17 @@ const Index = () => {
               </defs>
             </svg>
           </div>
-          <h1 className="text-sm font-semibold tracking-tight">
+          <h1 className="min-w-0 text-sm font-semibold tracking-tight leading-tight">
             <span style={{ color: t.titleColor, textShadow: `0 0 8px ${t.titleGlow}` }}>RICH系統</span>
-            <span className={`ml-1.5 font-normal inline ${t.mutedText}`}>名單管理</span>
+            <span className={`ml-1 font-normal inline sm:ml-1.5 ${t.mutedText}`}>名單管理</span>
           </h1>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeSwitcher />
-          <FontSizeSwitcher />
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <ThemeSwitcher className="shrink-0" />
+          <FontSizeSwitcher className="shrink-0" />
           <button
             onClick={() => setAddContactOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
+            className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
             style={primaryBtnStyle}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.hoverBg; }}
             onMouseLeave={(e) => { (e.target as HTMLElement).style.background = t.btnPrimary.bg; }}
@@ -364,7 +367,7 @@ const Index = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer sm:gap-1.5 sm:px-3.5"
                 style={secondaryBtnStyle}
               >
                 <Wrench className="h-4 w-4" />
@@ -378,7 +381,7 @@ const Index = () => {
               avoidCollisions={false}
               className="bg-card border-border overflow-y-auto"
               style={{
-                maxHeight: 'calc(100dvh - 80px - env(safe-area-inset-top))',
+                maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 88px)',
               }}
             >
               <DropdownMenuItem onClick={() => setCsvOpen(true)} className="gap-2 cursor-pointer">
