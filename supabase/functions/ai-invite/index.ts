@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { DOMAIN_KNOWLEDGE } from "../_shared/domain-knowledge.ts";
+import { getDomainKnowledge } from "../_shared/domain-knowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,6 +42,7 @@ serve(async (req) => {
       loyal: "忠實（老客戶、已多次購買、可發展為經銷夥伴）",
     };
 
+    const DOMAIN_KNOWLEDGE = await getDomainKnowledge();
     const systemPrompt = `${DOMAIN_KNOWLEDGE}
 
 你是一位善於人際互動的文案高手。請為「${honorific}」生成 **三段不同語氣** 的邀約訊息草稿，方便領袖依場合直接複製傳訊息。

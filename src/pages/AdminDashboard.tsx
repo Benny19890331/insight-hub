@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCanonicalAppUrl } from "@/lib/app-url";
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2, RefreshCw, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -263,6 +263,20 @@ export default function AdminDashboard() {
                 <div className={`text-base font-semibold ${t.authCardText}`}>{totalContacts}</div>
               </div>
             </div>
+
+            {/* 管理員工具入口 */}
+            <button
+              onClick={() => navigate("/admin/domain-knowledge")}
+              className={`w-full rounded-lg border px-3 py-2.5 text-xs inline-flex items-center justify-between gap-2 cursor-pointer ${t.authCard} ${t.authCardText} hover:opacity-90`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <BookOpen className="h-3.5 w-3.5" />
+                領域知識庫（AI 專有名詞 / 專業背景）
+              </span>
+              <span className={t.authSubtext}>編輯 →</span>
+            </button>
+
+
 
             {/* Search bar */}
             <div className="flex gap-2">

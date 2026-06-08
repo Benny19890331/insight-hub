@@ -171,6 +171,27 @@ export type Database = {
           },
         ]
       }
+      domain_knowledge: {
+        Row: {
+          content: string
+          id: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content: string
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       interactions: {
         Row: {
           contact_id: string

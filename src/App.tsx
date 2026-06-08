@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import Trash from "./pages/Trash";
 import Reports from "./pages/Reports";
+import DomainKnowledge from "./pages/DomainKnowledge";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/auth" element={<AuthRoute />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/domain-knowledge" element={<ProtectedRoute><DomainKnowledge /></ProtectedRoute>} />
               <Route path="/trash" element={<ProtectedRoute><Trash /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
               <Route path="/reset-password" element={<ResetPassword />} />
