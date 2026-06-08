@@ -112,6 +112,15 @@ export function BirthdayBanner({ contacts, onSelect }: BirthdayBannerProps) {
             還有 {upcoming.length - 3} 位…
           </button>
         )}
+        {expanded && (
+          <button
+            onClick={() => setExpanded(false)}
+            className={`w-full flex items-center justify-center gap-1 text-[11px] py-1.5 mt-1 rounded-md border ${t.cardBorder} ${t.mutedText} ${t.cardHover}`}
+          >
+            <ChevronUp className="h-3 w-3" />
+            收起
+          </button>
+        )}
       </div>
     </div>
   );

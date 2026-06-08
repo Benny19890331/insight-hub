@@ -112,14 +112,16 @@ export function ContactList({
     return matchesSearch && matchesHeat && matchesProduct;
   }), [contacts, searchQuery, heatFilter, productFilter]);
 
-  // LINE-style sort: most recent interaction floats to top
+  // LINE-style sort: most recently modified floats to top.
+  // Use updatedAt (touched on any contact change or new interaction) and fall back to lastContactDate.
   const sorted = useMemo(() => {
     const ts = (s?: string) => {
       if (!s) return 0;
       const t = new Date(s).getTime();
       return isNaN(t) ? 0 : t;
     };
-    return [...filtered].sort((a, b) => ts(b.lastContactDate) - ts(a.lastContactDate));
+    const key = (c: Contact) => Math.max(ts(c.updatedAt), ts(c.lastContactDate));
+    return [...filtered].sort((a, b) => key(b) - key(a));
   }, [filtered]);
 
 
