@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap, ArrowDownUp } from "lucide-react";
+import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap, ArrowDownUp, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { generateSeedContacts } from "@/data/seedContacts";
 import { Contact, HeatLevel } from "@/data/contacts";
@@ -362,6 +362,9 @@ const Index = () => {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer">
                 <Upload className="h-4 w-4" /> 匯出 CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/trash")} className="gap-2 cursor-pointer">
+                <Trash2 className="h-4 w-4" /> 資源回收筒
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

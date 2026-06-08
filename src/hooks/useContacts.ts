@@ -138,7 +138,7 @@ export function useContacts() {
     try {
       const [allContacts, allInteractions, allInsights] = await Promise.all([
         fetchPaginated<DbContact>(
-          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).range(from, to) as any,
+          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
           MAX_CONTACTS
         ),
         fetchPaginated<DbInteraction>(
@@ -196,10 +196,49 @@ export function useContacts() {
 
   const deleteContact = useCallback(async (id: string) => {
     if (!user) return;
-    const { error } = await supabase.from("contacts").delete().eq("id", id).eq("user_id", user.id);
+    // Soft delete: mark deleted_at instead of hard delete (30-day recovery window)
+    const { error } = await supabase.from("contacts")
+      .update({ deleted_at: new Date().toISOString() } as any)
+      .eq("id", id).eq("user_id", user.id);
     if (error) { toast.error("刪除失敗"); return; }
+    toast.success("已移至回收筒（30 天內可還原）");
     await fetchContacts();
   }, [user, fetchContacts]);
+
+  const fetchTrash = useCallback(async (): Promise<Contact[]> => {
+    if (!user) return [];
+    const { data, error } = await supabase.from("contacts")
+      .select("*").eq("user_id", user.id).not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) { toast.error("讀取回收筒失敗"); return []; }
+    return (data ?? []).map((c: any) => dbToContact(c as DbContact, new Map(), new Map()));
+  }, [user]);
+
+  const restoreContact = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("contacts")
+      .update({ deleted_at: null } as any)
+      .eq("id", id).eq("user_id", user.id);
+    if (error) { toast.error("還原失敗"); return; }
+    toast.success("已還原");
+    await fetchContacts();
+  }, [user, fetchContacts]);
+
+  const permanentlyDeleteContact = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("contacts").delete().eq("id", id).eq("user_id", user.id);
+    if (error) { toast.error("永久刪除失敗"); return; }
+    toast.success("已永久刪除");
+  }, [user]);
+
+  const emptyTrash = useCallback(async () => {
+    if (!user) return;
+    const { error } = await supabase.from("contacts").delete()
+      .eq("user_id", user.id).not("deleted_at", "is", null);
+    if (error) { toast.error("清空失敗"); return; }
+    toast.success("回收筒已清空");
+  }, [user]);
+
 
   const addInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
@@ -438,5 +477,5 @@ export function useContacts() {
     return { merged: idsToDelete.length };
   }, [user, fetchContacts]);
 
-  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts, refetch: fetchContacts };
+  return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts, refetch: fetchContacts, fetchTrash, restoreContact, permanentlyDeleteContact, emptyTrash };
 }
