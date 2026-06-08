@@ -56,7 +56,6 @@ export function buildNotesFromDiagnostics(
   const lines: string[] = [];
   const header: string[] = [];
   if (d.type) header.push(`🧬 ${d.type}`);
-  if (d.interest) header.push(`🎯 ${d.interest}`);
   if (header.length) lines.push(header.join("｜"));
   if (d.state) lines.push(`🧠 狀態：${d.state}`);
   if (aiSummary) {
