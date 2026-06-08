@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { DOMAIN_KNOWLEDGE } from "../_shared/domain-knowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,7 +24,10 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const systemPrompt = mode === "interaction"
-      ? `你是一個專業的客戶關係管理資料解析助理。請從使用者的語音文字中，精準擷取互動紀錄資訊。
+      ? `${DOMAIN_KNOWLEDGE}
+
+你是一個專業的客戶關係管理資料解析助理。請從使用者的語音文字中，精準擷取互動紀錄資訊。
+若文字中出現任何產品名稱或其近音字，請依照上方字典還原為正確名稱，並完整寫入 summary。
 嚴格只回傳 JSON 格式，不要包含任何 markdown 標記或額外文字。
 JSON 必須包含以下欄位：
 - date (YYYY-MM-DD 格式，若使用者說「今天」就用今天日期，若說「昨天」就用昨天日期，若無法判斷則用今天日期)
@@ -37,7 +41,9 @@ JSON 必須包含以下欄位：
 範例輸出：{"date":"2026-03-08","summary":"在咖啡廳見面，聊到健康保健話題，對識霸有興趣"}
 
 今天的日期是 ${new Date().toISOString().split("T")[0]}。`
-      : `你是一個專業的客戶關係管理資料解析助理。請從使用者的語音文字中，精準擷取客戶資訊。
+      : `${DOMAIN_KNOWLEDGE}
+
+你是一個專業的客戶關係管理資料解析助理。請從使用者的語音文字中，精準擷取客戶資訊。
 嚴格只回傳 JSON 格式，不要包含任何 markdown 標記或額外文字。
 JSON 必須包含以下欄位：
 - name (姓名字串，若無法判斷則留空字串)
