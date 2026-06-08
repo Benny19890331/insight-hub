@@ -112,50 +112,16 @@ export function ContactList({
     return matchesSearch && matchesHeat && matchesProduct;
   }), [contacts, searchQuery, heatFilter, productFilter]);
 
-  // Apply smart sort
+  // LINE-style sort: most recent interaction floats to top
   const sorted = useMemo(() => {
-    const arr = [...filtered];
     const ts = (s?: string) => {
       if (!s) return 0;
       const t = new Date(s).getTime();
       return isNaN(t) ? 0 : t;
     };
-    switch (sortMode) {
-      case "followup": // 久未聯絡優先（最舊在上，從未聯絡的視為最舊）
-        arr.sort((a, b) => {
-          const ta = ts(a.lastContactDate) || 0;
-          const tb = ts(b.lastContactDate) || 0;
-          return ta - tb;
-        });
-        break;
-      case "recent": // 最近互動在上
-        arr.sort((a, b) => ts(b.lastContactDate) - ts(a.lastContactDate));
-        break;
-      case "due": // 跟進日到期/逾期在上，無設定的沉底
-        arr.sort((a, b) => {
-          const ta = ts(a.nextFollowUpDate);
-          const tb = ts(b.nextFollowUpDate);
-          if (!ta && !tb) return 0;
-          if (!ta) return 1;
-          if (!tb) return -1;
-          return ta - tb;
-        });
-        break;
-      case "heat":
-        arr.sort((a, b) => heatRank[a.heat] - heatRank[b.heat]);
-        break;
-      case "name":
-        arr.sort((a, b) => a.name.localeCompare(b.name, "zh-Hant"));
-        break;
-    }
-    return arr;
-  }, [filtered, sortMode]);
+    return [...filtered].sort((a, b) => ts(b.lastContactDate) - ts(a.lastContactDate));
+  }, [filtered]);
 
-  // Today / overdue follow-ups
-  const dueToday = useMemo(
-    () => contacts.filter((c) => isDueOrOverdue(c.nextFollowUpDate)),
-    [contacts]
-  );
 
   // Pre-compute name counts for hasDuplicate check (O(n) instead of O(n²))
   const nameCounts = useMemo(() => {
