@@ -68,6 +68,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     interactions: interactions.map((i) => ({ id: i.id, date: i.date, summary: i.summary })),
     productTags: db.product_tags ?? [],
     insightTags: insightTagsMap.get(db.id) ?? [],
+    updatedAt: (db as any).updated_at ?? undefined,
   };
 }
 
