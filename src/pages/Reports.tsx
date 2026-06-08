@@ -272,17 +272,9 @@ export default function Reports() {
   );
 }
 
-const tooltipStyle: React.CSSProperties = {
-  background: "rgba(15,23,42,0.92)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: 8,
-  fontSize: 12,
-  color: "#fff",
-};
-
 function KpiCard({ icon, label, value, sub, t }: { icon: React.ReactNode; label: string; value: number; sub?: string; t: any }) {
   return (
-    <div className={`rounded-xl border p-3 ${t.cardBorder}`} style={{ background: "rgba(255,255,255,0.04)" }}>
+    <div className={`rounded-xl border p-3 ${t.cardBg} ${t.cardBorder}`}>
       <div className={`flex items-center gap-1.5 text-xs ${t.mutedText}`}>
         {icon}<span>{label}</span>
       </div>
@@ -296,7 +288,7 @@ function KpiCard({ icon, label, value, sub, t }: { icon: React.ReactNode; label:
 
 function ChartCard({ title, children, t }: { title: string; children: React.ReactNode; t: any }) {
   return (
-    <div className={`rounded-xl border p-4 ${t.cardBorder}`} style={{ background: "rgba(255,255,255,0.04)" }}>
+    <div className={`rounded-xl border p-4 ${t.cardBg} ${t.cardBorder}`}>
       <h2 className="text-sm font-semibold mb-2" style={{ color: t.titleColor }}>{title}</h2>
       {children}
     </div>
