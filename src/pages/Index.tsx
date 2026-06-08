@@ -363,6 +363,9 @@ const Index = () => {
               <DropdownMenuItem onClick={handleCsvExport} className="gap-2 cursor-pointer">
                 <Upload className="h-4 w-4" /> 匯出 CSV
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/trash")} className="gap-2 cursor-pointer">
+                <Trash2 className="h-4 w-4" /> 資源回收筒
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <button onClick={signOut} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${t.btnOutline}`} title="登出">
