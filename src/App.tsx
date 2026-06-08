@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
+import Trash from "./pages/Trash";
 
 const queryClient = new QueryClient();
 
