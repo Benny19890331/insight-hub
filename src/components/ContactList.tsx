@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Search, Filter, Package, Merge, Loader2, ArrowUpDown, AlertCircle } from "lucide-react";
+import { Search, Filter, Package, Merge, Loader2 } from "lucide-react";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
@@ -7,38 +7,19 @@ import { FunnelStats } from "@/components/FunnelStats";
 import { BirthdayBanner } from "@/components/BirthdayBanner";
 import { useTheme } from "@/hooks/useTheme";
 
-type SortMode = "followup" | "recent" | "due" | "heat" | "name";
-
-const sortOptions: { value: SortMode; label: string }[] = [
-  { value: "followup", label: "🔥 待跟進優先" },
-  { value: "recent", label: "⏰ 最近互動" },
-  { value: "due", label: "🎯 跟進日到期" },
-  { value: "heat", label: "💎 依熱度" },
-  { value: "name", label: "🔤 依姓名" },
-];
-
-// Days since last contact → color tier
-function getColdness(lastContactDate: string): { days: number; color: string } {
-  if (!lastContactDate) return { days: 9999, color: "bg-red-500" };
+// Days since last contact → label + Tailwind text color class
+function getColdness(lastContactDate: string): { label: string; color: string } {
+  if (!lastContactDate) return { label: "未聯絡", color: "text-red-500" };
   const last = new Date(lastContactDate).getTime();
-  if (isNaN(last)) return { days: 9999, color: "bg-red-500" };
+  if (isNaN(last)) return { label: "未聯絡", color: "text-red-500" };
   const days = Math.floor((Date.now() - last) / 86400000);
-  if (days <= 7) return { days, color: "bg-emerald-500" };
-  if (days <= 30) return { days, color: "bg-yellow-500" };
-  if (days <= 60) return { days, color: "bg-orange-500" };
-  return { days, color: "bg-red-500" };
+  const label = days <= 0 ? "今日聯絡" : `${days}天未聯絡`;
+  if (days <= 7) return { label, color: "text-emerald-500" };
+  if (days <= 30) return { label, color: "text-yellow-500" };
+  if (days <= 60) return { label, color: "text-orange-500" };
+  return { label, color: "text-red-500" };
 }
 
-function isDueOrOverdue(dateStr?: string): boolean {
-  if (!dateStr) return false;
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return false;
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
-  return d.getTime() <= end.getTime();
-}
-
-const heatRank: Record<HeatLevel, number> = { loyal: 0, hot: 1, warm: 2, cold: 3 };
 
 interface ContactListProps {
   contacts: Contact[];
