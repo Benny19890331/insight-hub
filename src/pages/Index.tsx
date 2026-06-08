@@ -352,8 +352,8 @@ const Index = () => {
                 className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer"
                 style={secondaryBtnStyle}
               >
-                <ArrowDownUp className="h-4 w-4" />
-                <span className="hidden sm:inline">匯入/出</span>
+                <Wrench className="h-4 w-4" />
+                <span className="hidden sm:inline">工具</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-card border-border">
