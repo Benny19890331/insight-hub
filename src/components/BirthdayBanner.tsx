@@ -16,7 +16,6 @@ interface BirthdayInfo {
 
 function parseBirthday(b?: string): { month: number; day: number } | null {
   if (!b) return null;
-  // Accept YYYY-MM-DD or MM-DD
   const m = b.match(/(\d{1,2})-(\d{1,2})$/);
   if (!m) return null;
   const month = parseInt(m[1], 10);
@@ -61,20 +60,19 @@ export function BirthdayBanner({ contacts, onSelect }: BirthdayBannerProps) {
   if (upcoming.length === 0) return null;
 
   const todayCount = upcoming.filter((u) => u.daysUntil === 0).length;
-  const display = expanded ? upcoming : upcoming.slice(0, 3);
 
   return (
     <div className={`mx-3 mt-2 mb-2 rounded-xl border ${t.cardBorder} ${t.accentBg} overflow-hidden`}>
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 hover:opacity-90 transition-opacity"
+        className="w-full flex items-center justify-between px-3 py-2.5 hover:opacity-90 transition-opacity"
       >
         <div className="flex items-center gap-2">
           <Cake className={`h-4 w-4 ${t.accent}`} />
-          <span className={`text-xs font-semibold ${t.textColor}`}>
+          <span className={`text-sm font-semibold ${t.textColor}`}>
             生日提醒
           </span>
-          <span className={`text-[11px] ${t.mutedText}`}>
+          <span className={`text-xs ${t.mutedText}`}>
             {todayCount > 0 ? `今天 ${todayCount} 位 · ` : ""}30 天內 {upcoming.length} 位
           </span>
         </div>
@@ -84,44 +82,29 @@ export function BirthdayBanner({ contacts, onSelect }: BirthdayBannerProps) {
           <ChevronDown className={`h-4 w-4 ${t.mutedText}`} />
         )}
       </button>
-      <div className="px-2 pb-2 space-y-1">
-        {display.map((b) => {
-          const isToday = b.daysUntil === 0;
-          const isSoon = b.daysUntil <= 7;
-          return (
-            <button
-              key={b.contact.id}
-              onClick={() => onSelect(b.contact)}
-              className={`w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors ${t.cardHover}`}
-            >
-              <span className="text-base shrink-0">{isToday ? "🎉" : "🎂"}</span>
-              <span className={`text-sm font-medium truncate flex-1 ${t.textColor}`}>
-                {b.contact.name}
-              </span>
-              <span className={`text-[11px] shrink-0 ${isToday ? "text-red-500 font-bold" : isSoon ? t.accent : t.mutedText}`}>
-                {isToday ? "今天！" : b.daysUntil === 1 ? "明天" : `${b.monthDay} · ${b.daysUntil}天`}
-              </span>
-            </button>
-          );
-        })}
-        {!expanded && upcoming.length > 3 && (
-          <button
-            onClick={() => setExpanded(true)}
-            className={`w-full text-[11px] py-1 ${t.mutedText} hover:underline`}
-          >
-            還有 {upcoming.length - 3} 位…
-          </button>
-        )}
-        {expanded && (
-          <button
-            onClick={() => setExpanded(false)}
-            className={`w-full flex items-center justify-center gap-1 text-[11px] py-1.5 mt-1 rounded-md border ${t.cardBorder} ${t.mutedText} ${t.cardHover}`}
-          >
-            <ChevronUp className="h-3 w-3" />
-            收起
-          </button>
-        )}
-      </div>
+      {expanded && (
+        <div className="px-2 pb-2 space-y-1">
+          {upcoming.map((b) => {
+            const isToday = b.daysUntil === 0;
+            const isSoon = b.daysUntil <= 7;
+            return (
+              <button
+                key={b.contact.id}
+                onClick={() => onSelect(b.contact)}
+                className={`w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors ${t.cardHover}`}
+              >
+                <span className="text-base shrink-0">{isToday ? "🎉" : "🎂"}</span>
+                <span className={`text-sm font-medium truncate flex-1 ${t.textColor}`}>
+                  {b.contact.name}
+                </span>
+                <span className={`text-[11px] shrink-0 ${isToday ? "text-red-500 font-bold" : isSoon ? t.accent : t.mutedText}`}>
+                  {isToday ? "今天！" : b.daysUntil === 1 ? "明天" : `${b.monthDay} · ${b.daysUntil}天`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
