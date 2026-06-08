@@ -337,7 +337,7 @@ export function ContactList({
           </button>
           );
         })}
-        {filtered.length === 0 && (
+        {sorted.length === 0 && (
           <p className={`text-center text-sm py-8 ${t.mutedText}`}>
             找不到符合的聯絡人
           </p>
