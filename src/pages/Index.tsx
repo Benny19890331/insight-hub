@@ -184,6 +184,28 @@ const Index = () => {
     await addContact(contact);
   }, [addContact]);
 
+  const handleOpenCsvImport = useCallback(() => {
+    setToolsOpen(false);
+    setCsvOpen(true);
+  }, []);
+
+  const handleOpenReports = useCallback(() => {
+    setToolsOpen(false);
+    navigate("/reports");
+  }, [navigate]);
+
+  const handleOpenTrash = useCallback(() => {
+    setToolsOpen(false);
+    navigate("/trash");
+  }, [navigate]);
+
+  const handleConfirmSignOut = useCallback(() => {
+    setToolsOpen(false);
+    if (window.confirm("確定要登出嗎？")) {
+      signOut();
+    }
+  }, [signOut]);
+
   const handleUpdateContact = useCallback(async (updated: Contact) => {
     await updateContact(updated);
   }, [updateContact]);
