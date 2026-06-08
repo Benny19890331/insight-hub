@@ -375,11 +375,10 @@ const Index = () => {
               align="end"
               side="bottom"
               sideOffset={8}
-              collisionPadding={{ top: 16, right: 12, bottom: 12, left: 12 }}
-              className="bg-card border-border"
+              avoidCollisions={false}
+              className="bg-card border-border overflow-y-auto"
               style={{
-                marginTop: 'calc(env(safe-area-inset-top) + 4px)',
-                maxHeight: 'calc(100dvh - env(safe-area-inset-top) - 24px)',
+                maxHeight: 'calc(100dvh - 80px - env(safe-area-inset-top))',
               }}
             >
               <DropdownMenuItem onClick={() => setCsvOpen(true)} className="gap-2 cursor-pointer">
