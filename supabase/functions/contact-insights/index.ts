@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { DOMAIN_KNOWLEDGE } from "../_shared/domain-knowledge.ts";
+import { getDomainKnowledge } from "../_shared/domain-knowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,6 +53,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const contactName = contact.nickname || contact.name;
+    const DOMAIN_KNOWLEDGE = await getDomainKnowledge();
     const systemPrompt = `${DOMAIN_KNOWLEDGE}
 
 你是一位頂尖的人脈經營顧問，擅長從有限資料中萃取關鍵洞察。這份分析報告是給「領袖」快速了解「${contactName}」這個人，必須一眼看懂、條列清楚。
