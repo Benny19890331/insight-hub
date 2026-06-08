@@ -33,10 +33,12 @@ function lastNMonths(n: number): string[] {
 
 function computeStats(contacts: Contact[]) {
   const total = contacts.length;
-  const hotLoyal = contacts.filter((c) => c.heat === "hot" || c.heat === "loyal").length;
 
   const now = new Date();
+  const today = now.getTime();
   const thisMonth = monthKey(now);
+  const todayStr = now.toISOString().slice(0, 10);
+  const in7DaysStr = new Date(today + 7 * 86400000).toISOString().slice(0, 10);
 
   // Heat distribution
   const heatCounts: Record<HeatLevel, number> = { loyal: 0, hot: 0, warm: 0, cold: 0 };
@@ -47,14 +49,13 @@ function computeStats(contacts: Contact[]) {
     .filter((k) => heatCounts[k] > 0)
     .map((k) => ({ name: HEAT_META[k].label, value: heatCounts[k], color: HEAT_META[k].color }));
 
-  // 6-month trends — new contacts by lastContactDate fallback to created (we use lastContactDate as proxy)
+  // 6-month trends
   const months = lastNMonths(6);
   const interactionByMonth: Record<string, number> = Object.fromEntries(months.map((m) => [m, 0]));
   const newByMonth: Record<string, number> = Object.fromEntries(months.map((m) => [m, 0]));
 
   let interactionsThisMonth = 0;
   contacts.forEach((c) => {
-    // Treat earliest interaction (or lastContactDate) as "first met" proxy
     const firstDate = c.interactions.length
       ? c.interactions.reduce((min, i) => (i.date < min ? i.date : min), c.interactions[0].date)
       : c.lastContactDate;
@@ -102,11 +103,10 @@ function computeStats(contacts: Contact[]) {
     .slice(0, 8)
     .map(([name, value]) => ({ name, value }));
 
-  // Coldness funnel: days since last contact buckets
-  const today = Date.now();
-  const buckets = { "≤7天": 0, "8–30天": 0, "31–60天": 0, ">60天": 0, "從未聯絡": 0 };
+  // Coldness funnel (excluding "從未聯絡")
+  const buckets: Record<string, number> = { "≤7天": 0, "8–30天": 0, "31–60天": 0, ">60天": 0 };
   contacts.forEach((c) => {
-    if (!c.lastContactDate) { buckets["從未聯絡"]++; return; }
+    if (!c.lastContactDate) return;
     const days = Math.floor((today - new Date(c.lastContactDate).getTime()) / 86400000);
     if (days <= 7) buckets["≤7天"]++;
     else if (days <= 30) buckets["8–30天"]++;
@@ -115,18 +115,65 @@ function computeStats(contacts: Contact[]) {
   });
   const coldnessData = Object.entries(buckets).map(([name, value]) => ({ name, value }));
 
+  // Status distribution
+  const statusCounts: Record<string, number> = {};
+  contacts.forEach((c) => {
+    (c.statuses ?? []).forEach((s) => {
+      const tag = (s || "").trim();
+      if (!tag) return;
+      statusCounts[tag] = (statusCounts[tag] ?? 0) + 1;
+    });
+  });
+  const statusData = Object.entries(statusCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({ name, value }));
+
+  // Top referrers (誰最會介紹)
+  const referrerCounts: Record<string, number> = {};
+  contacts.forEach((c) => {
+    const name = (c.referrerName || "").trim();
+    if (!name) return;
+    referrerCounts[name] = (referrerCounts[name] ?? 0) + 1;
+  });
+  const referrerData = Object.entries(referrerCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, value]) => ({ name, value }));
+
+  // 待追蹤(7天內) — 有 nextFollowUpDate 且在今天到+7天之間
+  const followUpDue = contacts.filter((c) => {
+    if (!c.nextFollowUpDate) return false;
+    return c.nextFollowUpDate >= todayStr && c.nextFollowUpDate <= in7DaysStr;
+  }).length;
+
+  // 本月壽星
+  const monthMM = String(now.getMonth() + 1).padStart(2, "0");
+  const birthdayThisMonth = contacts.filter((c) => {
+    if (!c.birthday) return false;
+    return c.birthday.slice(5, 7) === monthMM;
+  }).length;
+
+  // 平均互動次數
+  const totalInteractions = contacts.reduce((sum, c) => sum + (c.interactions?.length ?? 0), 0);
+  const avgInteractions = total ? +(totalInteractions / total).toFixed(1) : 0;
+
   return {
     total,
-    hotLoyal,
     newThisMonth,
     interactionsThisMonth,
+    followUpDue,
+    birthdayThisMonth,
+    avgInteractions,
     heatData,
     trendData,
     regionData,
     productData,
     coldnessData,
+    statusData,
+    referrerData,
   };
 }
+
 
 const COLDNESS_COLORS = ["#10b981", "#fbbf24", "#fb923c", "#ef4444", "#94a3b8"];
 
