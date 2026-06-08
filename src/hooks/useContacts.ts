@@ -244,6 +244,18 @@ export function useContacts() {
   }, [user]);
 
 
+  // Recompute contact.last_contact_date from its interactions and bump updated_at
+  const syncContactAfterInteractionChange = useCallback(async (contactId: string) => {
+    if (!user) return;
+    const { data } = await supabase.from("interactions")
+      .select("date").eq("contact_id", contactId).eq("user_id", user.id)
+      .order("date", { ascending: false }).limit(1);
+    const latest = data && data.length > 0 ? data[0].date : new Date().toISOString().slice(0, 10);
+    await supabase.from("contacts")
+      .update({ last_contact_date: latest, updated_at: new Date().toISOString() } as any)
+      .eq("id", contactId).eq("user_id", user.id);
+  }, [user]);
+
   const addInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
     const { error } = await supabase.from("interactions").insert({
@@ -251,9 +263,9 @@ export function useContacts() {
       date: interaction.date, summary: interaction.summary,
     });
     if (error) { toast.error("新增互動失敗"); return; }
-    await supabase.from("contacts").update({ last_contact_date: interaction.date }).eq("id", contactId).eq("user_id", user.id);
+    await syncContactAfterInteractionChange(contactId);
     await fetchContacts();
-  }, [user, fetchContacts]);
+  }, [user, fetchContacts, syncContactAfterInteractionChange]);
 
   const updateInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user || !interaction.id) return;
@@ -261,8 +273,9 @@ export function useContacts() {
       date: interaction.date, summary: interaction.summary,
     }).eq("id", interaction.id).eq("user_id", user.id);
     if (error) { toast.error("更新互動失敗"); return; }
+    await syncContactAfterInteractionChange(contactId);
     await fetchContacts();
-  }, [user, fetchContacts]);
+  }, [user, fetchContacts, syncContactAfterInteractionChange]);
 
   const deleteInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
@@ -276,8 +289,10 @@ export function useContacts() {
         await supabase.from("interactions").delete().eq("id", data[0].id);
       }
     }
+    await syncContactAfterInteractionChange(contactId);
     await fetchContacts();
-  }, [user, fetchContacts]);
+  }, [user, fetchContacts, syncContactAfterInteractionChange]);
+
 
   const importContacts = useCallback(async (imported: Contact[]) => {
     if (!user) return;
