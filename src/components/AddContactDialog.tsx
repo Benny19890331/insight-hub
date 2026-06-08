@@ -190,7 +190,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
           {/* Interest */}
           <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">興趣</label>
+            <label className="text-xs text-muted-foreground mb-1.5 block">興趣 / 專長</label>
             <input value={interest} onChange={e => setInterest(e.target.value)} placeholder="例：團隊經營／複製系統" className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
           </div>
 
