@@ -11,8 +11,10 @@ import { AddContactDialog } from "@/components/AddContactDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts } from "@/hooks/useContacts";
 import { useTheme, ThemeSwitcher, FontSizeSwitcher, themes } from "@/hooks/useTheme";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { TutorialButton } from "@/components/TutorialButton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgViolet from "@/assets/bg-violet.jpg";
@@ -72,11 +74,13 @@ const Index = () => {
   const [showDetail, setShowDetail] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const [swipeHint, setSwipeHint] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleInfinityTap = useCallback(() => {
     if (!isAdmin) return;
