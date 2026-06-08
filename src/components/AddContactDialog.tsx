@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Search, X, UserCircle } from "lucide-react";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { PasteCardDiagnosticsDialog } from "@/components/PasteCardDiagnosticsDialog";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
