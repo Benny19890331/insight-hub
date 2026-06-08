@@ -51,7 +51,6 @@ export function ContactList({
 }: ContactListProps) {
   const { theme: t } = useTheme();
   const [deduping, setDeduping] = useState(false);
-  const [sortMode, setSortMode] = useState<SortMode>("followup");
 
   // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
   const getBaseMemberId = useCallback((mid?: string) => {
