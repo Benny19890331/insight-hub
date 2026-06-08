@@ -284,6 +284,38 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            {/* Filter dropdowns */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value as typeof activityFilter)} className={`${fieldClass} cursor-pointer`}>
+                <option value="all">活躍度：全部</option>
+                <option value="高活躍">高活躍 (≤2天)</option>
+                <option value="中活躍">中活躍 (≤7天)</option>
+                <option value="低活躍">低活躍 (≤30天)</option>
+                <option value="沉睡">沉睡 (&gt;30天)</option>
+              </select>
+              <select value={contactFilter} onChange={(e) => setContactFilter(e.target.value as typeof contactFilter)} className={`${fieldClass} cursor-pointer`}>
+                <option value="all">名單數：全部</option>
+                <option value="0">無名單 (0)</option>
+                <option value="1-10">少量 (1-10)</option>
+                <option value="11-50">中量 (11-50)</option>
+                <option value="51+">大量 (51+)</option>
+              </select>
+              <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)} className={`${fieldClass} cursor-pointer`}>
+                <option value="all">身份：全部</option>
+                <option value="admin">僅管理員</option>
+                <option value="user">僅一般使用者</option>
+                <option value="banned">僅已停權</option>
+              </select>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} className={`${fieldClass} cursor-pointer`}>
+                <option value="newest">排序：最新註冊</option>
+                <option value="oldest">最舊註冊</option>
+                <option value="lastSignIn">最近登入</option>
+                <option value="contactDesc">名單數 ↓</option>
+                <option value="contactAsc">名單數 ↑</option>
+                <option value="name">姓名</option>
+              </select>
+            </div>
+
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: t.titleColor }} />
