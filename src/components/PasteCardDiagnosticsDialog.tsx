@@ -24,7 +24,7 @@ export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Pro
   const [loading, setLoading] = useState(false);
 
   const handleParse = async () => {
-    if (!raw.trim()) { toast.error("請貼上名片診斷內容"); return; }
+    if (!raw.trim()) { toast.error("請貼上數位名片診斷結果內容"); return; }
     setLoading(true);
     try {
       const local = parseCardDiagnostics(raw);
@@ -61,7 +61,7 @@ export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Pro
       const background = local.interest ? `興趣：${local.interest}` : undefined;
 
       onParsed({ name, background, notes, heat });
-      toast.success("已帶入名片診斷結果，可再調整");
+      toast.success("已帶入數位名片診斷結果，可再調整");
       setRaw("");
       onOpenChange(false);
     } finally {
@@ -73,7 +73,7 @@ export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Pro
     <Dialog open={open} onOpenChange={(v) => { if (!v) setRaw(""); onOpenChange(v); }}>
       <DialogContent className="max-w-lg !top-[calc(env(safe-area-inset-top)+2dvh)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%]" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))' }}>
         <DialogHeader>
-          <DialogTitle>📇 貼上名片診斷結果</DialogTitle>
+          <DialogTitle>📇 數位名片診斷結果</DialogTitle>
           <DialogDescription>把名片系統輸出的完整文字貼上，AI 會自動拆解填入欄位</DialogDescription>
         </DialogHeader>
         <textarea

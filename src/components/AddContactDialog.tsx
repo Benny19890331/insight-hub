@@ -136,7 +136,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
               onClick={() => setPasteOpen(true)}
               className="ml-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
             >
-              📇 貼上名片診斷
+              📇 數位名片診斷結果
             </button>
           </div>
           <PasteCardDiagnosticsDialog
