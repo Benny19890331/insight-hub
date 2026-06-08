@@ -106,6 +106,7 @@ export type Database = {
           region: string
           statuses: string[]
           taboos: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -134,6 +135,7 @@ export type Database = {
           region?: string
           statuses?: string[]
           taboos?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -162,6 +164,7 @@ export type Database = {
           region?: string
           statuses?: string[]
           taboos?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
