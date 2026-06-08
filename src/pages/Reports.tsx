@@ -196,8 +196,8 @@ export default function Reports() {
                   <Pie data={stats.heatData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={45} paddingAngle={2}>
                     {stats.heatData.map((d, i) => <Cell key={i} fill={d.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                  <Legend wrapperStyle={legendStyle} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -206,10 +206,10 @@ export default function Reports() {
           <ChartCard title="聯絡冷度分佈" t={t}>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={stats.coldnessData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="name" tick={axisTickStyle} />
+                <YAxis tick={axisTickStyle} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: cursorFill }} />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                   {stats.coldnessData.map((_, i) => <Cell key={i} fill={COLDNESS_COLORS[i]} />)}
                 </Bar>
@@ -222,11 +222,11 @@ export default function Reports() {
         <ChartCard title="近 6 個月：新增名單 vs 互動次數" t={t}>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={stats.trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+              <XAxis dataKey="month" tick={axisTickStyleSm} />
+              <YAxis tick={axisTickStyle} allowDecimals={false} />
+              <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: cursorFill }} />
+              <Legend wrapperStyle={legendStyle} />
               <Bar dataKey="新增" fill="#34d399" radius={[6, 6, 0, 0]} />
               <Bar dataKey="互動" fill="#60a5fa" radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -239,10 +239,10 @@ export default function Reports() {
             {stats.regionData.length === 0 ? <Empty /> : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={stats.regionData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={70} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                  <XAxis type="number" tick={axisTickStyle} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={axisTickStyleSm} width={70} />
+                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: cursorFill }} />
                   <Bar dataKey="value" fill="#a78bfa" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -253,10 +253,10 @@ export default function Reports() {
             {stats.productData.length === 0 ? <Empty /> : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={stats.productData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={70} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                  <XAxis type="number" tick={axisTickStyle} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={axisTickStyleSm} width={70} />
+                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: cursorFill }} />
                   <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
