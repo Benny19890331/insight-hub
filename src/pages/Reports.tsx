@@ -314,6 +314,37 @@ export default function Reports() {
           </ChartCard>
         </section>
 
+        {/* Status + Referrers */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ChartCard title="名單狀態分佈" t={t}>
+            {stats.statusData.length === 0 ? <Empty /> : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={stats.statusData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                  <XAxis type="number" tick={axisTickStyle} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={axisTickStyleSm} width={70} />
+                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: cursorFill }} />
+                  <Bar dataKey="value" fill="#22d3ee" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+
+          <ChartCard title="推薦人 Top 6（誰最會介紹）" t={t}>
+            {stats.referrerData.length === 0 ? <Empty /> : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={stats.referrerData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                  <XAxis type="number" tick={axisTickStyle} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={axisTickStyleSm} width={80} />
+                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: cursorFill }} />
+                  <Bar dataKey="value" fill="#f472b6" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </section>
+
         <p className={`text-xs text-center ${t.mutedText} pb-8`}>
           所有數據即時計算自您的名單與互動紀錄
         </p>
