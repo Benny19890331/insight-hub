@@ -369,11 +369,18 @@ const Index = () => {
               <DropdownMenuItem onClick={() => navigate("/trash")} className="gap-2 cursor-pointer">
                 <Trash2 className="h-4 w-4" /> 資源回收筒
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (window.confirm("確定要登出嗎？")) {
+                    signOut();
+                  }
+                }}
+                className="gap-2 cursor-pointer text-red-500 focus:text-red-500"
+              >
+                <LogOut className="h-4 w-4" /> 登出
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <button onClick={signOut} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${t.btnOutline}`} title="登出">
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
       </header>
 
