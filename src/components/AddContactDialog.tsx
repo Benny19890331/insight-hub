@@ -35,6 +35,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [nickname, setNickname] = useState("");
   const [region, setRegion] = useState("");
   const [background, setBackground] = useState("");
+  const [interest, setInterest] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [heat, setHeat] = useState<HeatLevel>("cold");
   const [gender, setGender] = useState<Gender>("");
@@ -59,7 +60,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const selectedReferrer = referrerId === "self" ? { id: "self", name: userName } : contacts.find(c => c.id === referrerId);
 
   const reset = () => {
-    setName(""); setNickname(""); setRegion(""); setBackground("");
+    setName(""); setNickname(""); setRegion(""); setBackground(""); setInterest("");
     setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes(""); setTaboos("");
     setSelectedTags([]); setContactMethod(""); setReferrerId("");
     setBirthday(""); setBirthdayReminder("none"); setReferrerSearch("");
@@ -73,6 +74,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       nickname: nickname.trim() || undefined,
       region: region.trim() || "未填寫",
       background: background.trim() || "未填寫",
+      interest: interest.trim() || undefined,
       statuses: selectedStatuses,
       gender,
       heat,
@@ -144,7 +146,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
             onOpenChange={setPasteOpen}
             onParsed={(d) => {
               if (d.name) setName(d.name);
-              if (d.background) setBackground(prev => prev ? `${prev}｜${d.background}` : d.background!);
+              if (d.interest) setInterest(prev => prev ? `${prev}｜${d.interest}` : d.interest!);
               if (d.notes) setNotes(prev => prev ? `${prev}\n\n${d.notes}` : d.notes);
               if (d.heat) setHeat(d.heat);
             }}
@@ -184,6 +186,12 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
               <label className="text-xs text-muted-foreground mb-1.5 block">背景 / 職業</label>
               <input value={background} onChange={e => setBackground(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
             </div>
+          </div>
+
+          {/* Interest */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">興趣</label>
+            <input value={interest} onChange={e => setInterest(e.target.value)} placeholder="例：團隊經營／複製系統" className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
           </div>
 
           {/* Contact Method */}

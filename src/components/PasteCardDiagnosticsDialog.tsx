@@ -8,7 +8,7 @@ import type { HeatLevel } from "@/data/contacts";
 
 export interface ParsedCardResult {
   name?: string;
-  background?: string;
+  interest?: string;
   notes: string;
   heat: HeatLevel;
 }
@@ -58,9 +58,9 @@ export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Pro
 
       const merged = { ...local, name, type, state };
       const notes = buildNotesFromDiagnostics(merged, aiSummary);
-      const background = local.interest ? `興趣：${local.interest}` : undefined;
+      const interest = local.interest;
 
-      onParsed({ name, background, notes, heat });
+      onParsed({ name, interest, notes, heat });
       toast.success("已帶入數位名片診斷結果，可再調整");
       setRaw("");
       onOpenChange(false);
