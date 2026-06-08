@@ -44,6 +44,10 @@ export default function AdminDashboard() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activityFilter, setActivityFilter] = useState<"all" | "高活躍" | "中活躍" | "低活躍" | "沉睡">("all");
+  const [contactFilter, setContactFilter] = useState<"all" | "0" | "1-10" | "11-50" | "51+">("all");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user" | "banned">("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "lastSignIn" | "contactDesc" | "contactAsc" | "name">("newest");
   const appBaseUrl = getCanonicalAppUrl();
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -159,14 +163,38 @@ export default function AdminDashboard() {
   };
 
   const filteredUsers = users.filter((u) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
-  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const match = (u.displayName || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.memberCode || "").toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    if (activityFilter !== "all" && activeLevel(u).label !== activityFilter) return false;
+    if (roleFilter === "admin" && !u.isAdmin) return false;
+    if (roleFilter === "user" && u.isAdmin) return false;
+    if (roleFilter === "banned" && !u.isBanned) return false;
+    if (contactFilter !== "all") {
+      const c = u.contactCount;
+      if (contactFilter === "0" && c !== 0) return false;
+      if (contactFilter === "1-10" && (c < 1 || c > 10)) return false;
+      if (contactFilter === "11-50" && (c < 11 || c > 50)) return false;
+      if (contactFilter === "51+" && c < 51) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "oldest": return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "lastSignIn": return new Date(b.lastSignIn ?? 0).getTime() - new Date(a.lastSignIn ?? 0).getTime();
+      case "contactDesc": return b.contactCount - a.contactCount;
+      case "contactAsc": return a.contactCount - b.contactCount;
+      case "name": return (a.displayName || "").localeCompare(b.displayName || "", "zh-TW");
+      default: return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+  });
 
   const adminCount = users.filter((u) => u.isAdmin).length;
   const bannedCount = users.filter((u) => u.isBanned).length;
   const activeCount = users.length - bannedCount;
+  const totalContacts = users.reduce((sum, u) => sum + u.contactCount, 0);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
@@ -217,9 +245,9 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-4 gap-2 text-xs">
               <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
-                <div className={t.authSubtext}>有效使用者</div>
+                <div className={t.authSubtext}>有效</div>
                 <div className={`text-base font-semibold ${t.authCardText}`}>{activeCount}</div>
               </div>
               <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
@@ -229,6 +257,10 @@ export default function AdminDashboard() {
               <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
                 <div className={t.authSubtext}>已停權</div>
                 <div className={`text-base font-semibold ${t.authCardText}`}>{bannedCount}</div>
+              </div>
+              <div className={`rounded-lg border px-3 py-2 ${t.authCard}`}>
+                <div className={t.authSubtext}>名單總數</div>
+                <div className={`text-base font-semibold ${t.authCardText}`}>{totalContacts}</div>
               </div>
             </div>
 
@@ -250,6 +282,38 @@ export default function AdminDashboard() {
               >
                 {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} 重新整理
               </button>
+            </div>
+
+            {/* Filter dropdowns */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value as typeof activityFilter)} className={`${fieldClass} cursor-pointer`}>
+                <option value="all">活躍度：全部</option>
+                <option value="高活躍">高活躍 (≤2天)</option>
+                <option value="中活躍">中活躍 (≤7天)</option>
+                <option value="低活躍">低活躍 (≤30天)</option>
+                <option value="沉睡">沉睡 (&gt;30天)</option>
+              </select>
+              <select value={contactFilter} onChange={(e) => setContactFilter(e.target.value as typeof contactFilter)} className={`${fieldClass} cursor-pointer`}>
+                <option value="all">名單數：全部</option>
+                <option value="0">無名單 (0)</option>
+                <option value="1-10">少量 (1-10)</option>
+                <option value="11-50">中量 (11-50)</option>
+                <option value="51+">大量 (51+)</option>
+              </select>
+              <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)} className={`${fieldClass} cursor-pointer`}>
+                <option value="all">身份：全部</option>
+                <option value="admin">僅管理員</option>
+                <option value="user">僅一般使用者</option>
+                <option value="banned">僅已停權</option>
+              </select>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} className={`${fieldClass} cursor-pointer`}>
+                <option value="newest">排序：最新註冊</option>
+                <option value="oldest">最舊註冊</option>
+                <option value="lastSignIn">最近登入</option>
+                <option value="contactDesc">名單數 ↓</option>
+                <option value="contactAsc">名單數 ↑</option>
+                <option value="name">姓名</option>
+              </select>
             </div>
 
             {loading ? (
