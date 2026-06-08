@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.sync_contact_last_contact_date() FROM PUBLIC, anon, authenticated;
