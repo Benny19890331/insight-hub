@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Flame, UserPlus, MessageSquare, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, Bell, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
 import { useContacts } from "@/hooks/useContacts";
 import { useTheme } from "@/hooks/useTheme";
 import { Contact, HeatLevel } from "@/data/contacts";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid } from "recharts";
+
 
 const HEAT_META: Record<HeatLevel, { label: string; color: string }> = {
   loyal: { label: "💎 忠實", color: "#a78bfa" },
