@@ -320,7 +320,7 @@ const Index = () => {
           <div className={`absolute inset-0 ${i <= 1 ? 'bg-black/5' : 'bg-black/50'}`} />
         </div>
       ))}
-      <header className={`flex items-center justify-between border-b px-4 md:px-6 min-h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`} style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className={`flex items-center justify-between border-b px-4 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}>
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center shrink-0 cursor-pointer" onClick={handleInfinityTap}>
             <Infinity className="h-6 w-6" style={{ stroke: 'url(#metalGrad)', strokeWidth: 2.5, filter: `drop-shadow(0 0 4px ${t.titleGlow})` }} />
@@ -371,7 +371,7 @@ const Index = () => {
                 <span className="hidden sm:inline">工具</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-card border-border">
+            <DropdownMenuContent align="end" className="bg-card border-border" style={{ marginTop: 'env(safe-area-inset-top)' }}>
               <DropdownMenuItem onClick={() => setCsvOpen(true)} className="gap-2 cursor-pointer">
                 <Download className="h-4 w-4" /> 匯入 CSV
               </DropdownMenuItem>
