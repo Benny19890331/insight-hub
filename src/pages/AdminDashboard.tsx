@@ -44,6 +44,10 @@ export default function AdminDashboard() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activityFilter, setActivityFilter] = useState<"all" | "高活躍" | "中活躍" | "低活躍" | "沉睡">("all");
+  const [contactFilter, setContactFilter] = useState<"all" | "0" | "1-10" | "11-50" | "51+">("all");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user" | "banned">("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "lastSignIn" | "contactDesc" | "contactAsc" | "name">("newest");
   const appBaseUrl = getCanonicalAppUrl();
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
