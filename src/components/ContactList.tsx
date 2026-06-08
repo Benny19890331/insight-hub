@@ -191,6 +191,21 @@ export function ContactList({
       <FunnelStats contacts={contacts} />
       <BirthdayBanner contacts={contacts} onSelect={onSelect} />
 
+      {/* Today / overdue follow-ups banner */}
+      {dueToday.length > 0 && (
+        <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+          <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+          <span className={`flex-1 ${t.textColor}`}>
+            今日/逾期跟進 <b className="text-amber-500">{dueToday.length}</b> 位
+          </span>
+          <button
+            onClick={() => { setSortMode("due"); onSelect(dueToday[0]); }}
+            className="text-amber-500 font-semibold hover:underline"
+          >
+            立即查看 →
+          </button>
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="px-4 pb-3 space-y-2">
@@ -233,7 +248,22 @@ export function ContactList({
             <div className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs ${t.mutedText}`}>▼</div>
           </div>
         </div>
+        {/* Smart sort selector */}
+        <div className="relative">
+          <ArrowUpDown className={`absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none ${t.mutedText}`} />
+          <select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as SortMode)}
+            className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
+          >
+            {sortOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <div className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs ${t.mutedText}`}>▼</div>
+        </div>
       </div>
+
 
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
