@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { DOMAIN_KNOWLEDGE } from "../_shared/domain-knowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,7 +42,9 @@ serve(async (req) => {
       loyal: "忠實（老客戶、已多次購買、可發展為經銷夥伴）",
     };
 
-    const systemPrompt = `你是一位善於人際互動的文案高手。請為「${honorific}」生成 **三段不同語氣** 的邀約訊息草稿，方便領袖依場合直接複製傳訊息。
+    const systemPrompt = `${DOMAIN_KNOWLEDGE}
+
+你是一位善於人際互動的文案高手。請為「${honorific}」生成 **三段不同語氣** 的邀約訊息草稿，方便領袖依場合直接複製傳訊息。
 
 每段訊息要求：
 - 自然口語、有溫度，像真正朋友傳訊息，不要罐頭感
