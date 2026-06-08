@@ -371,7 +371,7 @@ const Index = () => {
                 <span className="hidden sm:inline">工具</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-card border-border">
+            <DropdownMenuContent align="end" className="bg-card border-border" style={{ marginTop: 'env(safe-area-inset-top)' }}>
               <DropdownMenuItem onClick={() => setCsvOpen(true)} className="gap-2 cursor-pointer">
                 <Download className="h-4 w-4" /> 匯入 CSV
               </DropdownMenuItem>
