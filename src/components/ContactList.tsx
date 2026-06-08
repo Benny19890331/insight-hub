@@ -1,11 +1,44 @@
 import { useMemo } from "react";
-import { Search, Filter, Package, Merge, Loader2 } from "lucide-react";
+import { Search, Filter, Package, Merge, Loader2, ArrowUpDown, AlertCircle } from "lucide-react";
 import { Contact, HeatLevel, heatOptions, productOptions } from "@/data/contacts";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getStatusColor } from "@/data/statusColors";
 import { FunnelStats } from "@/components/FunnelStats";
 import { BirthdayBanner } from "@/components/BirthdayBanner";
 import { useTheme } from "@/hooks/useTheme";
+
+type SortMode = "followup" | "recent" | "due" | "heat" | "name";
+
+const sortOptions: { value: SortMode; label: string }[] = [
+  { value: "followup", label: "🔥 待跟進優先" },
+  { value: "recent", label: "⏰ 最近互動" },
+  { value: "due", label: "🎯 跟進日到期" },
+  { value: "heat", label: "💎 依熱度" },
+  { value: "name", label: "🔤 依姓名" },
+];
+
+// Days since last contact → color tier
+function getColdness(lastContactDate: string): { days: number; color: string } {
+  if (!lastContactDate) return { days: 9999, color: "bg-red-500" };
+  const last = new Date(lastContactDate).getTime();
+  if (isNaN(last)) return { days: 9999, color: "bg-red-500" };
+  const days = Math.floor((Date.now() - last) / 86400000);
+  if (days <= 7) return { days, color: "bg-emerald-500" };
+  if (days <= 30) return { days, color: "bg-yellow-500" };
+  if (days <= 60) return { days, color: "bg-orange-500" };
+  return { days, color: "bg-red-500" };
+}
+
+function isDueOrOverdue(dateStr?: string): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false;
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  return d.getTime() <= end.getTime();
+}
+
+const heatRank: Record<HeatLevel, number> = { loyal: 0, hot: 1, warm: 2, cold: 3 };
 
 interface ContactListProps {
   contacts: Contact[];
@@ -37,6 +70,7 @@ export function ContactList({
 }: ContactListProps) {
   const { theme: t } = useTheme();
   const [deduping, setDeduping] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("followup");
 
   // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
   const getBaseMemberId = useCallback((mid?: string) => {
@@ -98,6 +132,51 @@ export function ContactList({
     return matchesSearch && matchesHeat && matchesProduct;
   }), [contacts, searchQuery, heatFilter, productFilter]);
 
+  // Apply smart sort
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    const ts = (s?: string) => {
+      if (!s) return 0;
+      const t = new Date(s).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+    switch (sortMode) {
+      case "followup": // 久未聯絡優先（最舊在上，從未聯絡的視為最舊）
+        arr.sort((a, b) => {
+          const ta = ts(a.lastContactDate) || 0;
+          const tb = ts(b.lastContactDate) || 0;
+          return ta - tb;
+        });
+        break;
+      case "recent": // 最近互動在上
+        arr.sort((a, b) => ts(b.lastContactDate) - ts(a.lastContactDate));
+        break;
+      case "due": // 跟進日到期/逾期在上，無設定的沉底
+        arr.sort((a, b) => {
+          const ta = ts(a.nextFollowUpDate);
+          const tb = ts(b.nextFollowUpDate);
+          if (!ta && !tb) return 0;
+          if (!ta) return 1;
+          if (!tb) return -1;
+          return ta - tb;
+        });
+        break;
+      case "heat":
+        arr.sort((a, b) => heatRank[a.heat] - heatRank[b.heat]);
+        break;
+      case "name":
+        arr.sort((a, b) => a.name.localeCompare(b.name, "zh-Hant"));
+        break;
+    }
+    return arr;
+  }, [filtered, sortMode]);
+
+  // Today / overdue follow-ups
+  const dueToday = useMemo(
+    () => contacts.filter((c) => isDueOrOverdue(c.nextFollowUpDate)),
+    [contacts]
+  );
+
   // Pre-compute name counts for hasDuplicate check (O(n) instead of O(n²))
   const nameCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -112,6 +191,21 @@ export function ContactList({
       <FunnelStats contacts={contacts} />
       <BirthdayBanner contacts={contacts} onSelect={onSelect} />
 
+      {/* Today / overdue follow-ups banner */}
+      {dueToday.length > 0 && (
+        <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+          <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+          <span className={`flex-1 ${t.textColor}`}>
+            今日/逾期跟進 <b className="text-amber-500">{dueToday.length}</b> 位
+          </span>
+          <button
+            onClick={() => { setSortMode("due"); onSelect(dueToday[0]); }}
+            className="text-amber-500 font-semibold hover:underline"
+          >
+            立即查看 →
+          </button>
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="px-4 pb-3 space-y-2">
@@ -154,22 +248,42 @@ export function ContactList({
             <div className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs ${t.mutedText}`}>▼</div>
           </div>
         </div>
+        {/* Smart sort selector */}
+        <div className="relative">
+          <ArrowUpDown className={`absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none ${t.mutedText}`} />
+          <select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as SortMode)}
+            className={`w-full appearance-none rounded-lg border py-2 pl-9 pr-6 text-sm transition-all cursor-pointer focus:outline-none focus:ring-1 ${t.inputBorder} ${t.inputBg} ${t.inputFocus} ${t.textColor}`}
+          >
+            {sortOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <div className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs ${t.mutedText}`}>▼</div>
+        </div>
       </div>
+
 
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
-        {filtered.map((contact) => {
+        {sorted.map((contact) => {
           const hasDuplicate = (nameCounts.get(contact.name) ?? 0) > 1;
+          const cold = getColdness(contact.lastContactDate);
+          const overdue = isDueOrOverdue(contact.nextFollowUpDate);
           return (
           <button
             key={contact.id}
             onClick={() => onSelect(contact)}
-            className={`w-full text-left rounded-lg px-4 py-3 transition-all duration-150 border ${
+            className={`relative w-full text-left rounded-lg pl-5 pr-4 py-3 transition-all duration-150 border overflow-hidden ${
               selectedId === contact.id
                 ? `${t.selectedCard} ${t.selectedBorder} ${t.selectedGlow}`
                 : `${t.cardHover} border-transparent`
             }`}
           >
+            {/* Coldness color bar */}
+            <span className={`absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r ${cold.color}`} aria-hidden />
+
             <div className="flex items-center gap-3">
               {/* Avatar */}
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${t.accentBg} ${t.accentBorder} border ${t.accent}`}>
@@ -199,8 +313,16 @@ export function ContactList({
                     )}
                   </div>
                 </div>
-                <p className={`text-xs mt-0.5 truncate ${t.mutedText}`}>
-                  {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
+                <p className={`text-xs mt-0.5 truncate ${t.mutedText} flex items-center gap-1.5`}>
+                  <span className="truncate">
+                    {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
+                  </span>
+                  <span className={`shrink-0 ${cold.days > 30 ? "text-orange-500 font-medium" : ""}`}>
+                    · {contact.lastContactDate ? `${cold.days}天未聯絡` : "未聯絡"}
+                  </span>
+                  {overdue && (
+                    <span className="shrink-0 text-amber-500 font-semibold">· ⚠️ 到期</span>
+                  )}
                 </p>
                 {/* Product tags for disambiguation */}
                 {hasDuplicate && (contact.productTags ?? []).length > 0 && (
@@ -215,7 +337,7 @@ export function ContactList({
           </button>
           );
         })}
-        {filtered.length === 0 && (
+        {sorted.length === 0 && (
           <p className={`text-center text-sm py-8 ${t.mutedText}`}>
             找不到符合的聯絡人
           </p>
