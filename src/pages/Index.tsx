@@ -103,6 +103,20 @@ const Index = () => {
     }
   }, [contacts]);
 
+  // Auto-open contact when navigated with ?contact=<id> (e.g., from Reports 本月壽星)
+  useEffect(() => {
+    const id = searchParams.get("contact");
+    if (!id || loading) return;
+    if (contacts.some((c) => c.id === id)) {
+      setSelectedContactId(id);
+      setShowDetail(true);
+    }
+    // Clear the param so refresh/back doesn't re-trigger
+    const next = new URLSearchParams(searchParams);
+    next.delete("contact");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, contacts, loading, setSearchParams]);
+
   const handleBack = useCallback(() => setShowDetail(false), []);
 
   const handleDetailTouchStart = useCallback((e: React.TouchEvent) => {
