@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Bell, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
 import { useContacts } from "@/hooks/useContacts";
 import { useTheme } from "@/hooks/useTheme";
 import { Contact, HeatLevel } from "@/data/contacts";
