@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Bell, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
 import { useContacts } from "@/hooks/useContacts";
 import { useTheme } from "@/hooks/useTheme";
 import { Contact, HeatLevel } from "@/data/contacts";
@@ -146,12 +146,12 @@ function computeStats(contacts: Contact[]) {
     return c.nextFollowUpDate >= todayStr && c.nextFollowUpDate <= in7DaysStr;
   }).length;
 
-  // 本月壽星
+  // 本月壽星（依生日日期排序）
   const monthMM = String(now.getMonth() + 1).padStart(2, "0");
-  const birthdayThisMonth = contacts.filter((c) => {
-    if (!c.birthday) return false;
-    return c.birthday.slice(5, 7) === monthMM;
-  }).length;
+  const birthdayList = contacts
+    .filter((c) => c.birthday && c.birthday.slice(5, 7) === monthMM)
+    .map((c) => ({ id: c.id, name: c.name, day: parseInt(c.birthday!.slice(8, 10), 10) }))
+    .sort((a, b) => a.day - b.day);
 
   // 平均互動次數
   const totalInteractions = contacts.reduce((sum, c) => sum + (c.interactions?.length ?? 0), 0);
@@ -162,7 +162,7 @@ function computeStats(contacts: Contact[]) {
     newThisMonth,
     interactionsThisMonth,
     followUpDue,
-    birthdayThisMonth,
+    birthdayList,
     avgInteractions,
     heatData,
     trendData,
@@ -226,15 +226,43 @@ export default function Reports() {
       </header>
 
       <main className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
-        {/* KPI cards */}
-        <section className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {/* KPI cards — 4 in a row on desktop, 2 cols on mobile */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <KpiCard icon={<Users className="h-5 w-5" />} label="名單總數" value={stats.total} t={t} />
           <KpiCard icon={<UserPlus className="h-5 w-5" />} label="本月新增" value={stats.newThisMonth} t={t} />
           <KpiCard icon={<MessageSquare className="h-5 w-5" />} label="本月互動" value={stats.interactionsThisMonth} t={t}
             sub={stats.total ? `平均 ${stats.avgInteractions} 次/人` : undefined} />
-          <KpiCard icon={<Bell className="h-5 w-5" />} label="7天內待追蹤" value={stats.followUpDue} t={t} />
-          <KpiCard icon={<Cake className="h-5 w-5" />} label="本月壽星" value={stats.birthdayThisMonth} t={t} />
+          <KpiCard icon={<Cake className="h-5 w-5" />} label="本月壽星" value={stats.birthdayList.length} t={t} />
         </section>
+
+        {/* 本月壽星名單 — 可點擊跳到該名單 */}
+        {stats.birthdayList.length > 0 && (
+          <section className={`rounded-xl border p-4 ${t.cardBg} ${t.cardBorder}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Cake className="h-4 w-4" style={{ color: t.titleColor }} />
+              <h2 className="text-sm font-semibold" style={{ color: t.titleColor }}>
+                本月壽星 ({stats.birthdayList.length})
+              </h2>
+              <span className={`text-xs ${t.mutedText}`}>點擊即可開啟名單</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {stats.birthdayList.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => navigate(`/?contact=${encodeURIComponent(b.id)}`)}
+                  className={`group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all hover:scale-105 active:scale-95 ${t.btnOutline}`}
+                  title={`生日 ${new Date().getMonth() + 1}/${String(b.day).padStart(2, "0")}`}
+                >
+                  <span className="text-xs opacity-70 font-mono">{String(b.day).padStart(2, "0")}日</span>
+                  <span className="font-medium">{b.name}</span>
+                  <span className="opacity-50 group-hover:opacity-100 transition-opacity">🎂</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+
 
 
         {/* Heat + Coldness */}

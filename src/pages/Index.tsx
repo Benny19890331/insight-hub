@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Upload, UserPlus, Download, Infinity, LogOut, Loader2, DatabaseZap, ArrowDownUp, Trash2, BarChart3, Wrench } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { generateSeedContacts } from "@/data/seedContacts";
@@ -25,6 +25,7 @@ const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom];
 const Index = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts } = useContacts();
   const { theme: t } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -101,6 +102,20 @@ const Index = () => {
       setShowDetail(true);
     }
   }, [contacts]);
+
+  // Auto-open contact when navigated with ?contact=<id> (e.g., from Reports 本月壽星)
+  useEffect(() => {
+    const id = searchParams.get("contact");
+    if (!id || loading) return;
+    if (contacts.some((c) => c.id === id)) {
+      setSelectedContactId(id);
+      setShowDetail(true);
+    }
+    // Clear the param so refresh/back doesn't re-trigger
+    const next = new URLSearchParams(searchParams);
+    next.delete("contact");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, contacts, loading, setSearchParams]);
 
   const handleBack = useCallback(() => setShowDetail(false), []);
 
