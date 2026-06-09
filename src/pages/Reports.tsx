@@ -207,6 +207,7 @@ export default function Reports() {
   const { contacts, loading } = useContacts();
 
   const stats = useMemo(() => computeStats(contacts), [contacts]);
+  const [activeHeatIndex, setActiveHeatIndex] = useState<number | undefined>(undefined);
 
   if (loading) {
     return (
