@@ -1,10 +1,34 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
 import { useContacts } from "@/hooks/useContacts";
 import { useTheme } from "@/hooks/useTheme";
 import { Contact, HeatLevel } from "@/data/contacts";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid, Sector } from "recharts";
+
+// Exploded/raised slice on hover — replaces the default blue rectangle cursor
+const renderActiveSlice = (props: any) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+  const RAD = Math.PI / 180;
+  const offset = 8;
+  const dx = Math.cos(-midAngle * RAD) * offset;
+  const dy = Math.sin(-midAngle * RAD) * offset;
+  return (
+    <g style={{ transition: "transform 200ms ease-out", filter: `drop-shadow(0 4px 10px ${fill}66)` }}>
+      <Sector
+        cx={cx + dx}
+        cy={cy + dy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        stroke={fill}
+        strokeWidth={1}
+      />
+    </g>
+  );
+};
 
 
 const HEAT_META: Record<HeatLevel, { label: string; color: string }> = {
