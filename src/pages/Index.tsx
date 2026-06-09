@@ -354,8 +354,7 @@ const Index = () => {
         </div>
       ))}
       <header
-        className={`flex items-center justify-between border-b px-3 md:px-6 min-h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className={`flex items-center justify-between border-b px-3 md:px-6 h-14 shrink-0 transition-colors duration-500 relative z-10 ${t.headerBg} ${t.headerBorder}`}
       >
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center shrink-0 cursor-pointer" onClick={handleInfinityTap}>
