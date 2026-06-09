@@ -296,10 +296,23 @@ export default function Reports() {
             {stats.heatData.length === 0 ? <Empty /> : (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
-                  <Pie data={stats.heatData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={45} paddingAngle={2}>
+                  <Pie
+                    data={stats.heatData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={45}
+                    paddingAngle={2}
+                    activeIndex={activeHeatIndex}
+                    activeShape={renderActiveSlice}
+                    onMouseEnter={(_, i) => setActiveHeatIndex(i)}
+                    onMouseLeave={() => setActiveHeatIndex(undefined)}
+                  >
                     {stats.heatData.map((d, i) => <Cell key={i} fill={d.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                  <Tooltip contentStyle={tooltipStyleThemed} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={false} />
                   <Legend wrapperStyle={legendStyle} />
                 </PieChart>
               </ResponsiveContainer>
