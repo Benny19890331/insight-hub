@@ -19,6 +19,8 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    logAiUsage(req.headers.get("Authorization"), "ai-invite").catch(() => {});
+
     const { contact, insights } = await req.json();
     if (!contact) {
       return new Response(JSON.stringify({ error: "Missing contact data" }), {
