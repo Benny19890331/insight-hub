@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCanonicalAppUrl } from "@/lib/app-url";
 import { useTheme, themes } from "@/hooks/useTheme";
