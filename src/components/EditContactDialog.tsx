@@ -378,7 +378,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <Field label="忌諱事物"><textarea value={taboos} onChange={(e) => setTaboos(e.target.value)} rows={2} placeholder="此人不喜歡或忌諱的話題、食物、行為⋯" className={`${fieldClass} resize-none`} /></Field>
 
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors cursor-pointer">
+            <button onClick={() => requestClose(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors cursor-pointer">
               取消
             </button>
             <button onClick={handleSave} className="neon-btn-amber">
