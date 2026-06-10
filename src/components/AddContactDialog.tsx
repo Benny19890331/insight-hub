@@ -98,8 +98,22 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
   const heatLabel: Record<string, string> = { cold: "🧊 冷", warm: "🌤 溫", hot: "🔥 熱", loyal: "💎 忠實" };
 
+  const isDirty =
+    !!name || !!nickname || !!region || !!background || !!interest ||
+    selectedStatuses.length > 0 || heat !== "cold" || !!gender ||
+    !!notes || !!taboos || selectedTags.length > 0 || !!contactMethod ||
+    !!referrerId || !!birthday || birthdayReminder !== "none";
+
+  const requestClose = (v: boolean) => {
+    if (!v && isDirty) {
+      if (!window.confirm("您有尚未儲存的內容，確定要離開嗎？")) return;
+    }
+    if (!v) reset();
+    onOpenChange(v);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
+    <Dialog open={open} onOpenChange={requestClose}>
       <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[calc(env(safe-area-inset-top)+2dvh)] [&>button]:!top-[calc(env(safe-area-inset-top)+0.5rem)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))' }} onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
