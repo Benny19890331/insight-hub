@@ -11,6 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    logAiUsage(req.headers.get("Authorization"), "card-parse").catch(() => {});
     const { raw, partial } = await req.json();
     if (!raw || typeof raw !== "string") {
       return new Response(JSON.stringify({ error: "請提供名片診斷原文" }), {
