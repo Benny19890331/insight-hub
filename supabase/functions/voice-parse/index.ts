@@ -11,6 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    logAiUsage(req.headers.get("Authorization"), "voice-parse").catch(() => {});
     const { text, mode } = await req.json();
     // mode: "contact" or "interaction"
 
