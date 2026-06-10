@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getCanonicalAppUrl } from "@/lib/app-url";
+
 import { useTheme, themes } from "@/hooks/useTheme";
 import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Sparkles, Trash2, RefreshCw, BookOpen } from "lucide-react";
 import { toast } from "sonner";
