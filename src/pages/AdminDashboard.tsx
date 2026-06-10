@@ -19,6 +19,8 @@ interface AdminUser {
   displayName: string;
   createdAt: string;
   lastSignIn: string | null;
+  lastActivity: string | null;
+  weeklyAiUsage: number;
   isBanned: boolean;
   isAdmin: boolean;
   contactCount: number;
@@ -27,7 +29,8 @@ interface AdminUser {
 
 
 const activeLevel = (u: AdminUser): { label: string; color: string } => {
-  const lastDays = u.lastSignIn ? Math.floor((Date.now() - new Date(u.lastSignIn).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+  const ref = u.lastActivity ?? u.lastSignIn;
+  const lastDays = ref ? Math.floor((Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60 * 24)) : 999;
   if (lastDays <= 2) return { label: "高活躍", color: "text-green-400 border-green-500/40 bg-green-500/10" };
   if (lastDays <= 7) return { label: "中活躍", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10" };
   if (lastDays <= 30) return { label: "低活躍", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" };
