@@ -357,7 +357,7 @@ export default function AdminDashboard() {
                       {u.memberCode && <div className={`text-xs ${t.authSubtext}`}>會員編號：{u.memberCode}</div>}
                       <div className={`text-xs ${t.authSubtext} flex flex-wrap items-center gap-x-2`}>
                         <span>註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}</span>
-                        {u.lastSignIn && <span>最後登入: {new Date(u.lastSignIn).toLocaleDateString("zh-TW")}</span>}
+                        {u.lastActivity && <span>最後活動: {new Date(u.lastActivity).toLocaleDateString("zh-TW")}</span>}
                         <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium ${activeLevel(u).color}`}>
                           {activeLevel(u).label}
                         </span>
@@ -367,17 +367,19 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="flex items-start justify-between gap-3">
-                      {/* Left: safe actions */}
+                      {/* Left: AI usage + actions */}
                       <div className="flex flex-col gap-2">
-                         <button
-                           onClick={() => sendResetPasswordEmail(u.id, u.email)}
-                           disabled={toggling === u.id}
-                           className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
-                           title="寄送重設密碼信"
+                         <div
+                           className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium ${
+                             u.weeklyAiUsage > 0
+                               ? "border-purple-500/40 bg-purple-500/10 text-purple-300"
+                               : "border-border text-muted-foreground bg-muted/20"
+                           }`}
+                           title="近 7 天 AI 功能使用次數（語音／名片／C單／邀約）"
                          >
-                           <Mail className="h-3 w-3" />
-                           寄送重設信
-                         </button>
+                           <Sparkles className="h-3 w-3" />
+                           週 AI 用量 {u.weeklyAiUsage}
+                         </div>
                          <button
                            onClick={() => toggleAdmin(u.id, !u.isAdmin)}
                            disabled={toggling === u.id}
