@@ -104,7 +104,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors">
+                <button onClick={() => requestClose(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors">
                   取消
                 </button>
                 <button onClick={handleSave} className="neon-btn-cyan">
