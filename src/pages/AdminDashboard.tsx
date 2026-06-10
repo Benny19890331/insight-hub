@@ -81,6 +81,19 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
+  // Auto-refresh user list every 30s when authenticated (避免活躍度顯示過舊)
+  useEffect(() => {
+    if (!authenticated) return;
+    const timer = setInterval(() => {
+      supabase.functions.invoke("admin-users", { body: { action: "list_users" } })
+        .then(({ data, error }) => {
+          if (!error && !data?.error && data?.users) setUsers(data.users);
+        })
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [authenticated]);
+
   const toggleBan = async (targetUserId: string, ban: boolean) => {
     setToggling(targetUserId);
     try {
