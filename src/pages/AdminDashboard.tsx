@@ -51,7 +51,7 @@ export default function AdminDashboard() {
   const [contactFilter, setContactFilter] = useState<"all" | "0" | "1-10" | "11-50" | "51+">("all");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user" | "banned">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "lastSignIn" | "contactDesc" | "contactAsc" | "name">("newest");
-  const appBaseUrl = getCanonicalAppUrl();
+  
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
