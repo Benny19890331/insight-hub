@@ -25,6 +25,8 @@ serve(async (req) => {
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) throw new Error("Unauthorized");
 
+    logAiUsage(authHeader, "contact-insights").catch(() => {});
+
     const { contact_id } = await req.json();
     if (!contact_id) throw new Error("Missing contact_id");
 
