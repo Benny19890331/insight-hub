@@ -327,7 +327,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={() => { reset(); onOpenChange(false); }} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">取消</button>
+            <button onClick={() => requestClose(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">取消</button>
             <button onClick={handleSave} className="neon-btn-cyan">新增聯絡人</button>
           </div>
         </div>
