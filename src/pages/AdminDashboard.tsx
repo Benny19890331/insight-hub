@@ -117,25 +117,7 @@ export default function AdminDashboard() {
     setToggling(null);
   };
 
-  const sendResetPasswordEmail = async (targetUserId: string, targetEmail: string) => {
-    setToggling(targetUserId);
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: {
-          action: "send_password_reset_email",
-          targetUserId,
-          targetEmail,
-          redirectTo: `${appBaseUrl}/auth`,
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("已寄送重設密碼信");
-    } catch (err: any) {
-      toast.error(err.message || "寄送失敗");
-    }
-    setToggling(null);
-  };
+  // (寄送重設密碼信功能已移除，改為觀察週 AI 用量)
 
   const deleteUser = async () => {
     if (!deleteTarget) return;
