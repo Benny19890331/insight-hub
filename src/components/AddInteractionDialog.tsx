@@ -50,8 +50,16 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
     toast.success("互動紀錄已新增");
   };
 
+  const isDirty = summary.trim().length > 0;
+  const requestClose = (v: boolean) => {
+    if (!v && isDirty) {
+      if (!window.confirm("互動內容尚未儲存，確定要離開嗎？")) return;
+    }
+    onOpenChange(v);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={requestClose}>
       <DialogContent className="max-w-md overflow-hidden p-0 border-0 bg-transparent !top-[calc(env(safe-area-inset-top)+2dvh)] [&>button]:!top-[calc(env(safe-area-inset-top)+0.5rem)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))' }} onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
@@ -96,7 +104,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors">
+                <button onClick={() => requestClose(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors">
                   取消
                 </button>
                 <button onClick={handleSave} className="neon-btn-cyan">

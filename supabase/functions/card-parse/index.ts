@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getDomainKnowledgeIfRelevant } from "../_shared/domain-knowledge.ts";
+import { logAiUsage } from "../_shared/log-ai-usage.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    logAiUsage(req.headers.get("Authorization"), "card-parse").catch(() => {});
     const { raw, partial } = await req.json();
     if (!raw || typeof raw !== "string") {
       return new Response(JSON.stringify({ error: "請提供名片診斷原文" }), {

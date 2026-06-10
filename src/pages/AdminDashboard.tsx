@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getCanonicalAppUrl } from "@/lib/app-url";
+
 import { useTheme, themes } from "@/hooks/useTheme";
-import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Mail, Trash2, RefreshCw, BookOpen } from "lucide-react";
+import { ArrowLeft, Shield, ShieldOff, Loader2, Users, Crown, Sparkles, Trash2, RefreshCw, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import bgGirl from "@/assets/bg-girl.jpg";
@@ -19,6 +19,8 @@ interface AdminUser {
   displayName: string;
   createdAt: string;
   lastSignIn: string | null;
+  lastActivity: string | null;
+  weeklyAiUsage: number;
   isBanned: boolean;
   isAdmin: boolean;
   contactCount: number;
@@ -27,7 +29,8 @@ interface AdminUser {
 
 
 const activeLevel = (u: AdminUser): { label: string; color: string } => {
-  const lastDays = u.lastSignIn ? Math.floor((Date.now() - new Date(u.lastSignIn).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+  const ref = u.lastActivity ?? u.lastSignIn;
+  const lastDays = ref ? Math.floor((Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60 * 24)) : 999;
   if (lastDays <= 2) return { label: "高活躍", color: "text-green-400 border-green-500/40 bg-green-500/10" };
   if (lastDays <= 7) return { label: "中活躍", color: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10" };
   if (lastDays <= 30) return { label: "低活躍", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" };
@@ -48,7 +51,7 @@ export default function AdminDashboard() {
   const [contactFilter, setContactFilter] = useState<"all" | "0" | "1-10" | "11-50" | "51+">("all");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user" | "banned">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "lastSignIn" | "contactDesc" | "contactAsc" | "name">("newest");
-  const appBaseUrl = getCanonicalAppUrl();
+  
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +80,19 @@ export default function AdminDashboard() {
     }
     setLoading(false);
   };
+
+  // Auto-refresh user list every 30s when authenticated (避免活躍度顯示過舊)
+  useEffect(() => {
+    if (!authenticated) return;
+    const timer = setInterval(() => {
+      supabase.functions.invoke("admin-users", { body: { action: "list_users" } })
+        .then(({ data, error }) => {
+          if (!error && !data?.error && data?.users) setUsers(data.users);
+        })
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [authenticated]);
 
   const toggleBan = async (targetUserId: string, ban: boolean) => {
     setToggling(targetUserId);
@@ -114,25 +130,7 @@ export default function AdminDashboard() {
     setToggling(null);
   };
 
-  const sendResetPasswordEmail = async (targetUserId: string, targetEmail: string) => {
-    setToggling(targetUserId);
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: {
-          action: "send_password_reset_email",
-          targetUserId,
-          targetEmail,
-          redirectTo: `${appBaseUrl}/auth`,
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("已寄送重設密碼信");
-    } catch (err: any) {
-      toast.error(err.message || "寄送失敗");
-    }
-    setToggling(null);
-  };
+  // (寄送重設密碼信功能已移除，改為觀察週 AI 用量)
 
   const deleteUser = async () => {
     if (!deleteTarget) return;
@@ -354,7 +352,7 @@ export default function AdminDashboard() {
                       {u.memberCode && <div className={`text-xs ${t.authSubtext}`}>會員編號：{u.memberCode}</div>}
                       <div className={`text-xs ${t.authSubtext} flex flex-wrap items-center gap-x-2`}>
                         <span>註冊: {new Date(u.createdAt).toLocaleDateString("zh-TW")}</span>
-                        {u.lastSignIn && <span>最後登入: {new Date(u.lastSignIn).toLocaleDateString("zh-TW")}</span>}
+                        {u.lastActivity && <span>最後活動: {new Date(u.lastActivity).toLocaleDateString("zh-TW")}</span>}
                         <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border font-medium ${activeLevel(u).color}`}>
                           {activeLevel(u).label}
                         </span>
@@ -364,17 +362,19 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="flex items-start justify-between gap-3">
-                      {/* Left: safe actions */}
+                      {/* Left: AI usage + actions */}
                       <div className="flex flex-col gap-2">
-                         <button
-                           onClick={() => sendResetPasswordEmail(u.id, u.email)}
-                           disabled={toggling === u.id}
-                           className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
-                           title="寄送重設密碼信"
+                         <div
+                           className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium ${
+                             u.weeklyAiUsage > 0
+                               ? "border-purple-500/40 bg-purple-500/10 text-purple-300"
+                               : "border-border text-muted-foreground bg-muted/20"
+                           }`}
+                           title="近 7 天 AI 功能使用次數（語音／名片／C單／邀約）"
                          >
-                           <Mail className="h-3 w-3" />
-                           寄送重設信
-                         </button>
+                           <Sparkles className="h-3 w-3" />
+                           週 AI 用量 {u.weeklyAiUsage}
+                         </div>
                          <button
                            onClick={() => toggleAdmin(u.id, !u.isAdmin)}
                            disabled={toggling === u.id}

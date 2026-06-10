@@ -117,14 +117,23 @@ Deno.serve(async (req) => {
         (adminRoles ?? []).map((r: any) => r.user_id),
       );
 
-      // ── Paginated contact & interaction counts ──
+      // ── Paginated contact & interaction counts + last-activity tracking ──
       const contactCountMap = new Map<string, number>();
       const interactionCountMap = new Map<string, number>();
+      const lastActivityMap = new Map<string, number>(); // user_id -> ms timestamp
 
-      const allContacts = await fetchAll<{ id: string; user_id: string }>(
+      const bumpActivity = (uid: string, ts: string | null | undefined) => {
+        if (!uid || !ts) return;
+        const t = new Date(ts).getTime();
+        if (Number.isNaN(t)) return;
+        const cur = lastActivityMap.get(uid) ?? 0;
+        if (t > cur) lastActivityMap.set(uid, t);
+      };
+
+      const allContacts = await fetchAll<{ id: string; user_id: string; updated_at: string | null }>(
         adminClient,
         "contacts",
-        "id, user_id",
+        "id, user_id, updated_at",
       );
 
       const contactOwnerMap = new Map<string, string>();
@@ -134,13 +143,15 @@ Deno.serve(async (req) => {
           c.user_id,
           (contactCountMap.get(c.user_id) ?? 0) + 1,
         );
+        bumpActivity(c.user_id, c.updated_at);
       }
 
       const allInteractions = await fetchAll<{
         id: string;
         user_id: string;
         contact_id: string;
-      }>(adminClient, "interactions", "id, user_id, contact_id");
+        date: string | null;
+      }>(adminClient, "interactions", "id, user_id, contact_id, date");
 
       for (const i of allInteractions) {
         const ownerByContact = i.contact_id
@@ -152,11 +163,26 @@ Deno.serve(async (req) => {
           owner,
           (interactionCountMap.get(owner) ?? 0) + 1,
         );
+        bumpActivity(owner, i.date);
+      }
+
+      // ── AI usage: last 7 days ──
+      const weekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const weeklyAiMap = new Map<string, number>();
+      const { data: aiLogs } = await adminClient
+        .from("ai_usage_logs")
+        .select("user_id, created_at")
+        .gte("created_at", weekAgoIso);
+      for (const a of (aiLogs ?? []) as Array<{ user_id: string; created_at: string }>) {
+        weeklyAiMap.set(a.user_id, (weeklyAiMap.get(a.user_id) ?? 0) + 1);
+        bumpActivity(a.user_id, a.created_at);
       }
 
       const result = users.map((u: any) => {
         const profile = profileMap.get(u.id);
         const memberCode = u.user_metadata?.member_code || profile?.member_code || null;
+        const signInMs = u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : 0;
+        const activityMs = Math.max(signInMs, lastActivityMap.get(u.id) ?? 0);
         return {
         id: u.id,
         email: u.email,
@@ -164,6 +190,8 @@ Deno.serve(async (req) => {
         memberCode,
         createdAt: u.created_at,
         lastSignIn: u.last_sign_in_at,
+        lastActivity: activityMs > 0 ? new Date(activityMs).toISOString() : null,
+        weeklyAiUsage: weeklyAiMap.get(u.id) ?? 0,
         isBanned: bannedSet.has(u.id),
         isAdmin: adminSet.has(u.id),
         contactCount: contactCountMap.get(u.id) ?? 0,

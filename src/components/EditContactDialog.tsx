@@ -148,8 +148,33 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
         ? "w-full rounded-lg border border-gray-300/70 bg-white/80 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-400/50"
         : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50";
 
+  const isDirty =
+    name !== contact.name ||
+    nickname !== (contact.nickname ?? "") ||
+    memberId !== (contact.memberId ?? "") ||
+    region !== contact.region ||
+    background !== contact.background ||
+    notes !== contact.notes ||
+    taboos !== (contact.taboos ?? "") ||
+    contactMethod !== (contact.contactMethod ?? "") ||
+    avatarUrl !== (contact.avatarUrl ?? "") ||
+    referrerId !== (contact.referrerId ?? "") ||
+    birthday !== (contact.birthday ?? "") ||
+    birthdayReminder !== (contact.birthdayReminder ?? "none") ||
+    gender !== (contact.gender ?? "") ||
+    heat !== contact.heat ||
+    JSON.stringify([...selectedStatuses].sort()) !== JSON.stringify([...(contact.statuses ?? [])].sort()) ||
+    JSON.stringify([...selectedTags].sort()) !== JSON.stringify([...(contact.productTags ?? [])].sort());
+
+  const requestClose = (v: boolean) => {
+    if (!v && isDirty) {
+      if (!window.confirm("您有尚未儲存的修改，確定要離開嗎？")) return;
+    }
+    onOpenChange(v);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={requestClose}>
       <DialogContent className="max-w-lg overflow-hidden p-0 border-0 bg-transparent !top-[calc(env(safe-area-inset-top)+2dvh)] [&>button]:!top-[calc(env(safe-area-inset-top)+0.5rem)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%] [&>button]:z-30 [&>button]:bg-black/50 [&>button]:rounded-full [&>button]:p-1" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))' }} onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="relative overflow-hidden rounded-lg h-full">
           {/* Background image */}
@@ -353,7 +378,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <Field label="忌諱事物"><textarea value={taboos} onChange={(e) => setTaboos(e.target.value)} rows={2} placeholder="此人不喜歡或忌諱的話題、食物、行為⋯" className={`${fieldClass} resize-none`} /></Field>
 
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={() => onOpenChange(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors cursor-pointer">
+            <button onClick={() => requestClose(false)} className="rounded-lg border border-border px-4 py-2 text-sm text-blue-900/80 hover:bg-muted/50 transition-colors cursor-pointer">
               取消
             </button>
             <button onClick={handleSave} className="neon-btn-amber">
