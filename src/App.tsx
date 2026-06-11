@@ -13,7 +13,6 @@ import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import Trash from "./pages/Trash";
 import Reports from "./pages/Reports";
-import Network from "./pages/Network";
 import DomainKnowledge from "./pages/DomainKnowledge";
 
 const queryClient = new QueryClient();
@@ -50,8 +49,7 @@ const App = () => (
               <Route path="/admin/domain-knowledge" element={<ProtectedRoute><DomainKnowledge /></ProtectedRoute>} />
               <Route path="/trash" element={<ProtectedRoute><Trash /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-              <Route path="/network" element={<ProtectedRoute><Network /></ProtectedRoute>} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+<Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

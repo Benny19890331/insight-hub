@@ -245,10 +245,6 @@ export default function Reports() {
         >
           <ArrowLeft className="h-4 w-4" /> 返回
         </button>
-          <button onClick={() => navigate("/network")}
-            className="inline-flex items-center gap-1 text-sm bg-primary/10 text-primary border border-primary/30 px-3 py-1.5 rounded-md hover:bg-primary/20 transition-colors">
-            🕸 人脈網絡圖
-          </button>
         <h1 className="text-base font-semibold tracking-tight" style={{ color: t.titleColor }}>
           數據報表總覽
         </h1>
