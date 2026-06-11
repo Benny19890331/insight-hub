@@ -187,16 +187,16 @@ export function useContacts() {
         }))
       );
     }
-    await fetchContacts();
-  }, [user, fetchContacts]);
+    setContacts(prev => [{ ...contact, updatedAt: new Date().toISOString() }, ...prev]);
+  }, [user]);
 
   const updateContact = useCallback(async (contact: Contact) => {
     if (!user) return;
     const { error } = await supabase.from("contacts").update(contactToDbPayload(contact))
       .eq("id", contact.id).eq("user_id", user.id);
     if (error) { toast.error("更新失敗"); return; }
-    await fetchContacts();
-  }, [user, fetchContacts]);
+    setContacts(prev => prev.map(c => c.id === contact.id ? { ...contact, updatedAt: new Date().toISOString() } : c));
+  }, [user]);
 
   const deleteContact = useCallback(async (id: string) => {
     if (!user) return;
@@ -206,8 +206,8 @@ export function useContacts() {
       .eq("id", id).eq("user_id", user.id);
     if (error) { toast.error("刪除失敗"); return; }
     toast.success("已移至回收筒（30 天內可還原）");
-    await fetchContacts();
-  }, [user, fetchContacts]);
+    setContacts(prev => prev.filter(c => c.id !== id));
+  }, [user]);
 
   const fetchTrash = useCallback(async (): Promise<Contact[]> => {
     if (!user) return [];
@@ -258,14 +258,21 @@ export function useContacts() {
 
   const addInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
-    const { error } = await supabase.from("interactions").insert({
+    const { data, error } = await supabase.from("interactions").insert({
       contact_id: contactId, user_id: user.id,
       date: interaction.date, summary: interaction.summary,
-    });
+    }).select("id").single();
     if (error) { toast.error("新增互動失敗"); return; }
-    await syncContactAfterInteractionChange(contactId);
-    await fetchContacts();
-  }, [user, fetchContacts, syncContactAfterInteractionChange]);
+    const newInteraction: Interaction = { ...interaction, id: data?.id };
+    const now = new Date().toISOString();
+    setContacts(prev => prev.map(c => {
+      if (c.id !== contactId) return c;
+      const updated = [newInteraction, ...c.interactions];
+      const newLastDate = updated.reduce((m, i) => i.date > m ? i.date : m, updated[0]?.date ?? c.lastContactDate);
+      return { ...c, interactions: updated, lastContactDate: newLastDate, updatedAt: now };
+    }));
+    syncContactAfterInteractionChange(contactId);
+  }, [user, syncContactAfterInteractionChange]);
 
   const updateInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user || !interaction.id) return;
@@ -273,9 +280,15 @@ export function useContacts() {
       date: interaction.date, summary: interaction.summary,
     }).eq("id", interaction.id).eq("user_id", user.id);
     if (error) { toast.error("更新互動失敗"); return; }
-    await syncContactAfterInteractionChange(contactId);
-    await fetchContacts();
-  }, [user, fetchContacts, syncContactAfterInteractionChange]);
+    const now = new Date().toISOString();
+    setContacts(prev => prev.map(c => {
+      if (c.id !== contactId) return c;
+      const updated = c.interactions.map(i => i.id === interaction.id ? interaction : i);
+      const newLastDate = updated.reduce((m, i) => i.date > m ? i.date : m, updated[0]?.date ?? c.lastContactDate);
+      return { ...c, interactions: updated, lastContactDate: newLastDate, updatedAt: now };
+    }));
+    syncContactAfterInteractionChange(contactId);
+  }, [user, syncContactAfterInteractionChange]);
 
   const deleteInteraction = useCallback(async (contactId: string, interaction: Interaction) => {
     if (!user) return;
@@ -289,9 +302,17 @@ export function useContacts() {
         await supabase.from("interactions").delete().eq("id", data[0].id);
       }
     }
-    await syncContactAfterInteractionChange(contactId);
-    await fetchContacts();
-  }, [user, fetchContacts, syncContactAfterInteractionChange]);
+    const now = new Date().toISOString();
+    setContacts(prev => prev.map(c => {
+      if (c.id !== contactId) return c;
+      const updated = c.interactions.filter(i =>
+        interaction.id ? i.id !== interaction.id : !(i.date === interaction.date && i.summary === interaction.summary)
+      );
+      const newLastDate = updated.length ? updated.reduce((m, i) => i.date > m ? i.date : m, updated[0].date) : c.lastContactDate;
+      return { ...c, interactions: updated, lastContactDate: newLastDate, updatedAt: now };
+    }));
+    syncContactAfterInteractionChange(contactId);
+  }, [user, syncContactAfterInteractionChange]);
 
 
   const importContacts = useCallback(async (imported: Contact[]) => {

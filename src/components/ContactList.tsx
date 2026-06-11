@@ -34,7 +34,8 @@ interface ContactListProps {
   onDeduplicate?: () => Promise<{ merged: number }>;
 }
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { toast } from "sonner";
 
 export function ContactList({
@@ -51,6 +52,7 @@ export function ContactList({
 }: ContactListProps) {
   const { theme: t } = useTheme();
   const [deduping, setDeduping] = useState(false);
+  const parentRef = useRef<HTMLDivElement>(null);
 
   // Helper: extract base member_id (e.g., "1410877" from "1410877-001")
   const getBaseMemberId = useCallback((mid?: string) => {
@@ -125,6 +127,13 @@ export function ContactList({
   }, [filtered]);
 
 
+  const virtualizer = useVirtualizer({
+    count: sorted.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+    overscan: 8,
+  });
+
   // Pre-compute name counts for hasDuplicate check (O(n) instead of O(n²))
   const nameCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -185,79 +194,82 @@ export function ContactList({
       </div>
 
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
-        {sorted.map((contact) => {
-          const hasDuplicate = (nameCounts.get(contact.name) ?? 0) > 1;
-          const cold = getColdness(contact.lastContactDate);
-          return (
-          <button
-            key={contact.id}
-            onClick={() => onSelect(contact)}
-            className={`w-full text-left rounded-lg px-4 py-3 transition-all duration-150 border ${
-              selectedId === contact.id
-                ? `${t.selectedCard} ${t.selectedBorder} ${t.selectedGlow}`
-                : `${t.cardHover} border-transparent`
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              {/* Avatar */}
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${t.accentBg} ${t.accentBorder} border ${t.accent}`}>
-                {contact.avatarUrl ? (
-                  <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
-                ) : (
-                  contact.name.charAt(0)
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`font-medium text-sm truncate ${t.textColor}`}>
-                    {contact.name}
-                    <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
-                  </span>
-                  <div className="flex gap-1 shrink-0">
-                    {(contact.statuses ?? []).slice(0, 2).map((s) => {
-                      const color = getStatusColor(s);
-                      return (
-                        <span key={s} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
-                          {s}
+      {/* List — virtual scroll: only renders ~15 items in DOM regardless of total count */}
+      <div ref={parentRef} className="flex-1 overflow-y-auto px-2 pb-2">
+        <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const contact = sorted[virtualItem.index];
+            const hasDuplicate = (nameCounts.get(contact.name) ?? 0) > 1;
+            const cold = getColdness(contact.lastContactDate);
+            return (
+              <div
+                key={contact.id}
+                style={{
+                  position: 'absolute', top: 0, left: 0, width: '100%',
+                  transform: `translateY(${virtualItem.start}px)`,
+                  paddingBottom: 4,
+                }}
+              >
+                <button
+                  onClick={() => onSelect(contact)}
+                  className={`w-full text-left rounded-lg px-4 py-3 transition-all duration-150 border ${
+                    selectedId === contact.id
+                      ? `${t.selectedCard} ${t.selectedBorder} ${t.selectedGlow}`
+                      : `${t.cardHover} border-transparent`
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${t.accentBg} ${t.accentBorder} border ${t.accent}`}>
+                      {contact.avatarUrl ? (
+                        <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
+                      ) : (
+                        contact.name.charAt(0)
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`font-medium text-sm truncate ${t.textColor}`}>
+                          {contact.name}
+                          <span className="ml-1 text-xs">{contact.heat === "loyal" ? "💎" : contact.heat === "hot" ? "🔥" : contact.heat === "warm" ? "🌤" : "🧊"}</span>
                         </span>
-                      );
-                    })}
-                    {(contact.statuses ?? []).length > 2 && (
-                      <span className={`text-[10px] ${t.mutedText}`}>+{(contact.statuses ?? []).length - 2}</span>
-                    )}
+                        <div className="flex gap-1 shrink-0">
+                          {(contact.statuses ?? []).slice(0, 2).map((s) => {
+                            const color = getStatusColor(s);
+                            return (
+                              <span key={s} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
+                                {s}
+                              </span>
+                            );
+                          })}
+                          {(contact.statuses ?? []).length > 2 && (
+                            <span className={`text-[10px] ${t.mutedText}`}>+{(contact.statuses ?? []).length - 2}</span>
+                          )}
+                        </div>
+                      </div>
+                      <p className={`text-xs mt-0.5 truncate ${t.mutedText} flex items-center gap-1.5`}>
+                        <span className="truncate">
+                          {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
+                        </span>
+                        <span className={`shrink-0 font-medium ${cold.color}`}>· {cold.label}</span>
+                      </p>
+                      {hasDuplicate && (contact.productTags ?? []).length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {(contact.productTags ?? []).slice(0, 2).map(tag => (
+                            <span key={tag} className={`text-[10px] px-1.5 py-0.5 rounded ${t.accentBg} ${t.accent}`}>{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <p className={`text-xs mt-0.5 truncate ${t.mutedText} flex items-center gap-1.5`}>
-                  <span className="truncate">
-                    {contact.region}{hasDuplicate && contact.background ? ` · ${contact.background}` : ""}
-                  </span>
-                  <span className={`shrink-0 font-medium ${cold.color}`}>
-                    · {cold.label}
-                  </span>
-                </p>
-
-                {/* Product tags for disambiguation */}
-                {hasDuplicate && (contact.productTags ?? []).length > 0 && (
-                  <div className="flex gap-1 mt-1">
-                    {(contact.productTags ?? []).slice(0, 2).map(tag => (
-                      <span key={tag} className={`text-[10px] px-1.5 py-0.5 rounded ${t.accentBg} ${t.accent}`}>{tag}</span>
-                    ))}
-                  </div>
-                )}
+                </button>
               </div>
-            </div>
-          </button>
-          );
-        })}
-        {sorted.length === 0 && (
-          <p className={`text-center text-sm py-8 ${t.mutedText}`}>
-            找不到符合的聯絡人
-          </p>
-        )}
+            );
+          })}
+        </div>
 
-        {/* Deduplicate button at bottom */}
+        {sorted.length === 0 && (
+          <p className={`text-center text-sm py-8 ${t.mutedText}`}>找不到符合的聯絡人</p>
+        )}
         {onDeduplicate && duplicateCount > 0 && (
           <div className="pt-4 pb-2 px-2">
             <button
