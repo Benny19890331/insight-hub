@@ -40,6 +40,14 @@ export const heatOptionsRaw: { value: HeatLevel; label: string }[] = [
   { value: "cold", label: "🧊 冷" },
 ];
 
+
+/** 取得本地時區（台灣）的今天日期 yyyy-mm-dd。
+ *  切勿使用 new Date().toISOString()：那是 UTC，台灣早上8點前會差一天。 */
+export const todayLocal = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 export interface Contact {
   id: string;
   name: string;

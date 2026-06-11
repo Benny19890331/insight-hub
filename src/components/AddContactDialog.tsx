@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions, Gender, genderOptions } from "@/data/contacts";
+import { Contact, HeatLevel, heatOptionsRaw, statusOptions, productOptions, BirthdayReminder, birthdayReminderOptions, Gender, genderOptions , todayLocal } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Search, X, UserCircle } from "lucide-react";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { PasteCardDiagnosticsDialog } from "@/components/PasteCardDiagnosticsDialog";
+import { BirthdayInput } from "@/components/BirthdayInput";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -30,7 +31,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const { user } = useAuth();
   const { themeIndex } = useTheme();
   const userName = user?.user_metadata?.display_name || user?.email || "本人";
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [region, setRegion] = useState("");
@@ -46,6 +47,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   const [referrerId, setReferrerId] = useState("");
   const [birthday, setBirthday] = useState("");
   const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>("none");
+  const [hasVoiceDraft, setHasVoiceDraft] = useState(false);
   const [referrerSearch, setReferrerSearch] = useState("");
   const [showReferrerList, setShowReferrerList] = useState(false);
   const referrerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     setName(""); setNickname(""); setRegion(""); setBackground(""); setInterest("");
     setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes(""); setTaboos("");
     setSelectedTags([]); setContactMethod(""); setReferrerId("");
-    setBirthday(""); setBirthdayReminder("none"); setReferrerSearch("");
+    setBirthday(""); setBirthdayReminder("none"); setReferrerSearch(""); setHasVoiceDraft(false);
   };
 
   const handleSave = () => {
@@ -102,7 +104,15 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     !!name || !!nickname || !!region || !!background || !!interest ||
     selectedStatuses.length > 0 || heat !== "cold" || !!gender ||
     !!notes || !!taboos || selectedTags.length > 0 || !!contactMethod ||
-    !!referrerId || !!birthday || birthdayReminder !== "none";
+    !!referrerId || !!birthday || birthdayReminder !== "none" || hasVoiceDraft;
+
+  // 視窗開啟且有未儲存內容時，關閉分頁/瀏覽器/重新整理會跳出系統確認
+  useEffect(() => {
+    if (!open || !isDirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [open, isDirty]);
 
   const requestClose = (v: boolean) => {
     if (!v && isDirty) {
@@ -131,6 +141,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <div className="flex justify-center py-2 border-b border-border/50 mb-2">
             <VoiceInputButton
               mode="contact"
+              onDraftChange={setHasVoiceDraft}
               onResult={(data: any) => {
                 if (data.name) setName(data.name);
                 if (data.nickname) setNickname(data.nickname);
@@ -150,9 +161,15 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
             <button
               type="button"
               onClick={() => setPasteOpen(true)}
-              className="ml-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              className="group ml-3 relative inline-flex items-center gap-2 rounded-full p-[1.5px] transition-transform duration-200 hover:scale-[1.04] active:scale-[0.98]"
+              style={{ background: "linear-gradient(120deg, #22d3ee, #818cf8, #e879f9, #22d3ee)", backgroundSize: "300% 300%", animation: "rainbow-bg 8s linear infinite" }}
             >
-              📇 數位名片診斷結果
+              <span className="inline-flex items-center gap-2 rounded-full bg-background/85 backdrop-blur-sm px-4 py-2 text-sm font-semibold text-foreground transition-colors group-hover:bg-background/70">
+                <span className="text-base leading-none">📇</span>
+                <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent whitespace-nowrap">
+                  數位名片診斷
+                </span>
+              </span>
             </button>
           </div>
           <PasteCardDiagnosticsDialog
@@ -264,12 +281,12 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">生日</label>
-              <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 h-[38px]" />
+              <BirthdayInput value={birthday} onChange={setBirthday} />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">生日提醒</label>
               <select value={birthdayReminder} onChange={e => setBirthdayReminder(e.target.value as BirthdayReminder)}
-                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer h-[38px]">
+                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer min-h-[38px]">
                 {birthdayReminderOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>

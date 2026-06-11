@@ -1,12 +1,15 @@
-import { useState, useRef, useCallback } from "react";
-import { Mic, Keyboard, Send } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Mic, Keyboard, Send, AudioLines, Square, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AiConfirmModal } from "@/components/AiConfirmModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceInputButtonProps {
   mode: "contact" | "interaction";
   onResult: (data: any) => void;
   className?: string;
+  /** 通知父層目前文字建檔框是否有未送出的草稿（用於離開確認） */
+  onDraftChange?: (hasDraft: boolean) => void;
 }
 
 const VOICE_PARSE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-parse`;
@@ -30,7 +33,7 @@ function SoundwaveAnimation() {
   );
 }
 
-export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputButtonProps) {
+export function VoiceInputButton({ mode, onResult, className = "", onDraftChange }: VoiceInputButtonProps) {
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -39,6 +42,73 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
   const [showTextInput, setShowTextInput] = useState(false);
   const [manualText, setManualText] = useState("");
   const recognitionRef = useRef<any>(null);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [recordSec, setRecordSec] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ===== 長錄音模式：整段錄音交給 AI 聽寫（支援台語、慢語速）=====
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "";
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const chunks: BlobPart[] = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((tr) => tr.stop());
+        if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+        setRecording(false);
+        const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
+        if (blob.size < 1000) { toast.error("沒有錄到聲音，請再試一次"); setRecordSec(0); return; }
+        setTranscribing(true);
+        try {
+          const base64 = await new Promise<string>((res, rej) => {
+            const r = new FileReader();
+            r.onload = () => res((r.result as string).split(",")[1]);
+            r.onerror = () => rej(new Error("讀取錄音失敗"));
+            r.readAsDataURL(blob);
+          });
+          const { data, error } = await supabase.functions.invoke("voice-transcribe", {
+            body: { audio: base64, mimeType: blob.type.split(";")[0] },
+          });
+          if (error || !data?.transcript) {
+            toast.error("聽寫失敗，請再試一次或改用文字輸入");
+            return;
+          }
+          setShowTextInput(true);
+          setManualText(data.transcript);
+          toast.success("聽寫完成！請確認文字內容再送出");
+        } finally {
+          setTranscribing(false);
+          setRecordSec(0);
+        }
+      };
+      rec.start();
+      mediaRecorderRef.current = rec;
+      setRecording(true);
+      setRecordSec(0);
+      recordTimerRef.current = setInterval(() => {
+        setRecordSec((sec) => {
+          if (sec + 1 >= 180) { stopRecording(); return sec; } // 最長 3 分鐘
+          return sec + 1;
+        });
+      }, 1000);
+    } catch {
+      toast.error("無法開啟麥克風，請確認已允許麥克風權限");
+    }
+  }, [stopRecording]);
+
+  // 草稿狀態回報給父層（打到一半關閉視窗時才能跳出提醒）
+  useEffect(() => {
+    onDraftChange?.(manualText.trim().length > 0);
+  }, [manualText, onDraftChange]);
 
   const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -199,11 +269,34 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
         >
           <Keyboard className="h-4 w-4" />
         </button>
+
+        {/* 長錄音模式:整段交給 AI 聽寫,支援台語與慢語速 */}
+        <button
+          type="button"
+          onClick={recording ? stopRecording : startRecording}
+          disabled={parsing || transcribing || listening}
+          className={`relative inline-flex items-center justify-center rounded-full w-10 h-10 border-2 transition-all duration-300 ${
+            recording
+              ? "bg-destructive/20 border-destructive shadow-[0_0_20px_hsl(var(--destructive)/0.4)] animate-pulse"
+              : transcribing
+              ? "bg-amber-500/15 border-amber-400/60"
+              : "bg-muted/40 border-border hover:border-amber-400/60 hover:bg-amber-500/10"
+          } disabled:opacity-40 disabled:cursor-not-allowed`}
+          title={recording ? "點擊結束錄音" : "長錄音聽寫（會說台語）"}
+        >
+          {transcribing ? (
+            <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+          ) : recording ? (
+            <Square className="h-4 w-4 text-destructive" />
+          ) : (
+            <AudioLines className="h-4 w-4 text-amber-400" />
+          )}
+        </button>
       </div>
 
       {/* Status text */}
       <span className="text-[10px] text-muted-foreground font-medium">
-        {listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 語意解析中..." : "🎙️ AI 語音建檔 ｜ ⌨️ 文字建檔"}
+        {recording ? `🔴 錄音中 ${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}（說完點 ⏹ 結束，慢慢講沒關係）` : transcribing ? "👂 AI 正在仔細聽寫，長錄音需要一點時間⋯" : listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 語意解析中..." : "🎙️ 語音 ｜ ⌨️ 文字 ｜ 🎵 長錄音（會聽台語）"}
       </span>
 
       {/* Live transcript */}
@@ -226,12 +319,6 @@ export function VoiceInputButton({ mode, onResult, className = "" }: VoiceInputB
             }
             rows={2}
             className="flex-1 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleManualSubmit();
-              }
-            }}
           />
           <button
             type="button"

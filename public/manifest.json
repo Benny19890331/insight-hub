@@ -1,8 +1,13 @@
 {
   "name": "RICH系統 名單管理",
   "short_name": "RICH系統",
+  "description": "人脈名單整合管理系統",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
+  "lang": "zh-TW",
   "background_color": "#111318",
   "theme_color": "#111318",
   "icons": [
@@ -12,9 +17,15 @@
       "type": "image/png"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

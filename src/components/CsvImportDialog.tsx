@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Contact, HeatLevel } from "@/data/contacts";
+import { Contact, HeatLevel , todayLocal } from "@/data/contacts";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Upload, FileText, AlertTriangle, CheckCircle2 } from "lucide-react";
@@ -113,7 +113,7 @@ function parseOrgChartCsv(text: string): { contacts: Contact[]; errors: string[]
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   const contacts: Contact[] = [];
   const errors: string[] = [];
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const seenIds = new Set<string>();
 
   for (let i = 0; i < lines.length; i++) {
@@ -179,7 +179,7 @@ function parseCsv(text: string, existingContacts: Contact[]): { contacts: Contac
   const nameIdx = fieldIndices.find(f => f.field === "name");
   if (!nameIdx) return { contacts: [], errors: ["找不到「姓名」或「name」欄位"] };
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const contacts: Contact[] = [];
   const errors: string[] = [];
 

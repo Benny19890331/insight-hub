@@ -275,6 +275,17 @@ const Index = () => {
     setSavingProfile(false);
   }, [displayNameInput, memberCodeInput, user]);
 
+  // 支援從網絡圖等頁面用 ?contact=id 直接開啟聯絡人
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cid = params.get("contact");
+    if (cid && contacts.some((c) => c.id === cid)) {
+      setSelectedContactId(cid);
+      window.history.replaceState({}, "", "/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contacts.length]);
+
   const currentSelected = selectedContactId ? contacts.find((c) => c.id === selectedContactId) ?? null : null;
 
   // Themed button styles

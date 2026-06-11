@@ -49,6 +49,36 @@ const steps = [
     desc: "右上角「工具」可匯入/匯出名單為 CSV 檔，也能查看數據報表，登出帳號。",
   },
   {
+    icon: "⌨️",
+    title: "三種建檔方式",
+    desc: "新增名單時：🎙️ 即時語音｜⌨️ 打字輸入（按 Enter 不會誤送出）｜🎵 長錄音聽寫——會說台語也聽得懂，慢慢講沒關係，說完 AI 幫你聽寫成文字。",
+  },
+  {
+    icon: "📇",
+    title: "數位名片診斷",
+    desc: "把名片系統輸出的文字整段貼上，AI 自動拆解填入欄位，不用一格一格打字。",
+  },
+  {
+    icon: "✅",
+    title: "完成課程歸檔",
+    desc: "朋友來上課之後，點「完成」填寫心得感想，系統自動歸檔到互動紀錄，下次邀約欄位也會清空。",
+  },
+  {
+    icon: "❤️",
+    title: "家人朋友關係",
+    desc: "在聯絡人頁把名單裡的兩個人連起來（配偶、父母、好友⋯），點名字就能跳到對方資料，經營全家人脈更輕鬆。",
+  },
+  {
+    icon: "💝",
+    title: "AI 教練的悄悄話",
+    desc: "數據報表裡點「請教練幫我看看」，AI 會看你的經營成果，給你暖心的鼓勵和小方向。",
+  },
+  {
+    icon: "🕸",
+    title: "人脈網絡圖",
+    desc: "報表頁點「人脈網絡圖」，整個人脈圈一目了然——圈圈越大代表連結越多、越是關鍵人物。",
+  },
+  {
     icon: "🗑",
     title: "資源回收桶",
     desc: "刪除的聯絡人會移至回收桶，30 天後自動永久清除。進入回收桶可手動還原或立即刪除。",
@@ -58,6 +88,14 @@ const steps = [
 export function TutorialButton() {
   const { theme: t, themeIndex } = useTheme();
   const [open, setOpen] = useState(false);
+
+  // 第一次使用自動打開新手教學
+  useEffect(() => {
+    if (!localStorage.getItem("tutorial-seen")) {
+      setOpen(true);
+      localStorage.setItem("tutorial-seen", "1");
+    }
+  }, []);
   const [visible, setVisible] = useState(true);
   const isLight = themeIndex <= 1 || themeIndex === 6;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

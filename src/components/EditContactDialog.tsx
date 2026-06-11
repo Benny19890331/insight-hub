@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BirthdayInput } from "@/components/BirthdayInput";
 import { Contact, HeatLevel, heatOptions, heatOptionsRaw, productOptions, statusOptions, birthdayReminderOptions, BirthdayReminder, Gender, genderOptions } from "@/data/contacts";
 import { getStatusColor } from "@/data/statusColors";
 import { useAuth } from "@/hooks/useAuth";
@@ -165,6 +166,14 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     heat !== contact.heat ||
     JSON.stringify([...selectedStatuses].sort()) !== JSON.stringify([...(contact.statuses ?? [])].sort()) ||
     JSON.stringify([...selectedTags].sort()) !== JSON.stringify([...(contact.productTags ?? [])].sort());
+
+  // 視窗開啟且有未儲存修改時，關閉分頁/瀏覽器/重新整理會跳出系統確認
+  useEffect(() => {
+    if (!open || !isDirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [open, isDirty]);
 
   const requestClose = (v: boolean) => {
     if (!v && isDirty) {
@@ -340,7 +349,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           {/* Birthday + reminder */}
           <Field label="生日 / 重要紀念日">
             <div className="flex gap-2">
-              <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className={`${fieldClass} flex-1`} />
+              <BirthdayInput value={birthday} onChange={setBirthday} className="flex-1" inputClassName={`${fieldClass} w-full`} />
               <select
                 value={birthdayReminder}
                 onChange={(e) => setBirthdayReminder(e.target.value as BirthdayReminder)}

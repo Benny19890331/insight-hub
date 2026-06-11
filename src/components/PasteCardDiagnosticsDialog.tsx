@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -22,6 +22,24 @@ interface Props {
 export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Props) {
   const [raw, setRaw] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const isDirty = raw.trim().length > 0;
+
+  // 貼了內容還沒解析時，關閉分頁/瀏覽器/重新整理會跳出系統確認
+  useEffect(() => {
+    if (!open || !isDirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [open, isDirty]);
+
+  const requestClose = (v: boolean) => {
+    if (!v && isDirty) {
+      if (!window.confirm("您貼上的內容尚未解析，確定要離開嗎？")) return;
+    }
+    if (!v) setRaw("");
+    onOpenChange(v);
+  };
 
   const handleParse = async () => {
     if (!raw.trim()) { toast.error("請貼上數位名片診斷結果內容"); return; }
@@ -70,7 +88,7 @@ export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Pro
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) setRaw(""); onOpenChange(v); }}>
+    <Dialog open={open} onOpenChange={requestClose}>
       <DialogContent className="max-w-lg !top-[calc(env(safe-area-inset-top)+2dvh)] !translate-y-0 sm:!top-[50%] sm:!translate-y-[-50%]" style={{ maxHeight: 'calc(96dvh - env(safe-area-inset-top))' }}>
         <DialogHeader>
           <DialogTitle>📇 數位名片診斷結果</DialogTitle>
@@ -84,7 +102,7 @@ export function PasteCardDiagnosticsDialog({ open, onOpenChange, onParsed }: Pro
           className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
         />
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={() => { setRaw(""); onOpenChange(false); }} disabled={loading}
+          <button onClick={() => requestClose(false)} disabled={loading}
             className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">
             取消
           </button>

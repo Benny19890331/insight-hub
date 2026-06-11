@@ -122,18 +122,41 @@ const sendViaGmailSmtp = async ({
   }
 }
 
+
+// ===== 主要寄信路徑:Resend HTTPS API(穩定,雲端函式標準做法)=====
+// 需要 secrets:RESEND_API_KEY + RESET_FROM_EMAIL(例:RICH系統 <noreply@你的網域>)
+async function sendViaResend(opts: { to: string; subject: string; html: string }) {
+  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+  const RESET_FROM_EMAIL = Deno.env.get('RESET_FROM_EMAIL')
+  if (!RESEND_API_KEY || !RESET_FROM_EMAIL) return false // 未設定 → 交給備援
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: RESET_FROM_EMAIL,
+      to: [opts.to],
+      subject: opts.subject,
+      html: opts.html,
+    }),
+  })
+  if (!res.ok) {
+    const detail = await res.text()
+    console.error('Resend send failed:', res.status, detail)
+    throw new Error(`Resend 寄信失敗 (${res.status})`)
+  }
+  return true
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const GMAIL_USER = Deno.env.get('GMAIL_USER')
-    if (!GMAIL_USER) throw new Error('GMAIL_USER not configured')
-
-    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')
-    if (!GMAIL_APP_PASSWORD) throw new Error('GMAIL_APP_PASSWORD not configured')
-
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
@@ -193,13 +216,27 @@ Deno.serve(async (req) => {
   <p>RICH系統 敬上</p>
 </div>`
 
-    await sendViaGmailSmtp({
-      username: GMAIL_USER,
-      password: GMAIL_APP_PASSWORD,
+    const sentByResend = await sendViaResend({
       to: email,
       subject: '重設您的 RICH 系統密碼',
       html: emailHtml,
     })
+
+    if (!sentByResend) {
+      // 備援:Gmail SMTP(僅在 Resend 未設定時使用)
+      const GMAIL_USER = Deno.env.get('GMAIL_USER')
+      const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')
+      if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+        throw new Error('未設定任何寄信服務（RESEND_API_KEY+RESET_FROM_EMAIL 或 GMAIL_USER+GMAIL_APP_PASSWORD）')
+      }
+      await sendViaGmailSmtp({
+        username: GMAIL_USER,
+        password: GMAIL_APP_PASSWORD,
+        to: email,
+        subject: '重設您的 RICH 系統密碼',
+        html: emailHtml,
+      })
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

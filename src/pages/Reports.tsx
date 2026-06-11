@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ReportCoachCard } from "@/components/ReportCoachCard";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, UserPlus, MessageSquare, Cake, Loader2 } from "lucide-react";
 import { useContacts } from "@/hooks/useContacts";
@@ -244,6 +245,10 @@ export default function Reports() {
         >
           <ArrowLeft className="h-4 w-4" /> 返回
         </button>
+          <button onClick={() => navigate("/network")}
+            className="inline-flex items-center gap-1 text-sm bg-primary/10 text-primary border border-primary/30 px-3 py-1.5 rounded-md hover:bg-primary/20 transition-colors">
+            🕸 人脈網絡圖
+          </button>
         <h1 className="text-base font-semibold tracking-tight" style={{ color: t.titleColor }}>
           數據報表總覽
         </h1>
@@ -259,6 +264,9 @@ export default function Reports() {
             sub={stats.total ? `平均 ${stats.avgInteractions} 次/人` : undefined} />
           <KpiCard icon={<Cake className="h-5 w-5" />} label="本月壽星" value={stats.birthdayList.length} t={t} />
         </section>
+
+        {/* AI 教練:溫暖鼓勵的數據回饋 */}
+        <ReportCoachCard stats={stats} />
 
         {/* 本月壽星名單 — 可點擊跳到該名單 */}
         {stats.birthdayList.length > 0 && (

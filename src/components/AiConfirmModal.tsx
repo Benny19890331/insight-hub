@@ -172,6 +172,7 @@ export function AiConfirmModal({ open, onOpenChange, data, mode, onConfirm }: Ai
                           defaultValue={Array.isArray(value) ? value.join("、") : String(value || "")}
                           onBlur={(e) => handleFieldEdit(key, e.target.value)}
                           onKeyDown={(e) => {
+                            if (e.nativeEvent.isComposing) return; // 中文輸入法選字中，Enter 不觸發
                             if (e.key === "Enter") handleFieldEdit(key, (e.target as HTMLInputElement).value);
                           }}
                           className="w-full bg-background/80 border border-primary/40 rounded-md px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
