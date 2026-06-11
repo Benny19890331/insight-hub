@@ -20,8 +20,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
     const { stats } = await req.json();
     if (!stats || typeof stats !== 'object') {
@@ -35,30 +35,30 @@ ${JSON.stringify(stats, null, 2)}
 
 請依照規則，給出你的鼓勵與輕量建議。`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userPrompt }],
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt },
+        ],
       }),
     });
 
     const data = await response.json();
     if (!response.ok) {
-      console.error('Anthropic API error:', data);
+      console.error('AI gateway error:', data);
       return new Response(JSON.stringify({ error: '教練暫時連不上線' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const result = data.content?.[0]?.text ?? '';
+    const result = data.choices?.[0]?.message?.content ?? '';
     await logAiUsage(req.headers.get('Authorization'), 'report-coach');
 
     return new Response(JSON.stringify({ result }), {
