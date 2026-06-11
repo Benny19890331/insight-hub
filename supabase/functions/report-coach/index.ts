@@ -43,7 +43,11 @@ ${JSON.stringify(stats, null, 2)}
         body: JSON.stringify({
           system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-          generationConfig: { maxOutputTokens: 600 },
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.9,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );
