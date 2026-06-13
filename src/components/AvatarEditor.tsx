@@ -132,12 +132,13 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
             <ZoomIn className="h-4 w-4 text-muted-foreground" />
             <Slider
               min={0.2}
-              max={4}
+              max={10}
               step={0.01}
               value={[scale]}
               onValueChange={(v) => setScale(v[0])}
               className="flex-1"
             />
+            <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">{scale.toFixed(1)}x</span>
             <button
               type="button"
               onClick={reset}
