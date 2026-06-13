@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { Contact, Interaction, HeatLevel, BirthdayReminder, Gender } from "@/data/contacts";
@@ -40,6 +40,11 @@ interface DbInteraction {
   summary: string;
 }
 
+interface DbInsightTags {
+  contact_id: string;
+  tags: string[] | null;
+}
+
 function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>, insightTagsMap: Map<string, string[]>): Contact {
   const interactions = interactionMap.get(db.id) ?? [];
   return {
@@ -70,6 +75,24 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     insightTags: insightTagsMap.get(db.id) ?? [],
     updatedAt: (db as any).updated_at ?? undefined,
   };
+}
+
+function buildInteractionMap(interactions: DbInteraction[]): Map<string, DbInteraction[]> {
+  const interactionMap = new Map<string, DbInteraction[]>();
+  for (const interaction of interactions) {
+    const existing = interactionMap.get(interaction.contact_id) ?? [];
+    existing.push(interaction);
+    interactionMap.set(interaction.contact_id, existing);
+  }
+  return interactionMap;
+}
+
+function buildInsightTagsMap(insights: DbInsightTags[]): Map<string, string[]> {
+  const insightTagsMap = new Map<string, string[]>();
+  for (const insight of insights) {
+    insightTagsMap.set(insight.contact_id, insight.tags ?? []);
+  }
+  return insightTagsMap;
 }
 
 function contactToDbPayload(c: Contact) {
@@ -135,42 +158,98 @@ export function useContacts() {
   const { user } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchVersionRef = useRef(0);
+  const hydrationPromiseRef = useRef<Promise<void> | null>(null);
+  const hydratedUserIdRef = useRef<string | null>(null);
 
   const fetchContacts = useCallback(async () => {
-    if (!user) { setContacts([]); setLoading(false); return; }
+    if (!user) {
+      fetchVersionRef.current += 1;
+      hydrationPromiseRef.current = null;
+      hydratedUserIdRef.current = null;
+      setContacts([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchVersion = ++fetchVersionRef.current;
     setLoading(true);
+    const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,avatar_url,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
+
     try {
-      const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,avatar_url,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
-      const [allContacts, allInteractions, allInsights] = await Promise.all([
-        fetchPaginated<DbContact>(
-          (from, to) => supabase.from("contacts").select(CONTACT_COLS).eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
-          MAX_CONTACTS
-        ),
+      const allContacts = await fetchPaginated<DbContact>(
+        (from, to) => supabase.from("contacts").select(CONTACT_COLS).eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
+        MAX_CONTACTS
+      );
+
+      if (fetchVersion !== fetchVersionRef.current) return;
+
+      setContacts(allContacts.map((c) => dbToContact(c, new Map(), new Map())));
+      setLoading(false);
+    } catch (err) {
+      console.error("fetchContacts failed:", err);
+      toast.error("載入資料失敗");
+      setLoading(false);
+      return;
+    }
+
+    if (hydratedUserIdRef.current === user.id || hydrationPromiseRef.current) {
+      return;
+    }
+
+    const hydrationPromise = (async () => {
+      const [interactionsResult, insightsResult] = await Promise.allSettled([
         fetchPaginated<DbInteraction>(
           (from, to) => supabase.from("interactions").select("id,contact_id,user_id,date,summary").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
           MAX_INTERACTIONS
         ),
-        supabase.from("contact_insights").select("contact_id, tags").eq("user_id", user.id).then(({ data }) => data ?? []) as Promise<{ contact_id: string; tags: string[] }[]>,
+        supabase
+          .from("contact_insights")
+          .select("contact_id, tags")
+          .eq("user_id", user.id)
+          .then(({ data, error }) => {
+            if (error) throw error;
+            return (data ?? []) as DbInsightTags[];
+          }),
       ]);
 
-      const interactionMap = new Map<string, DbInteraction[]>();
-      for (const i of allInteractions) {
-        const arr = interactionMap.get(i.contact_id) ?? [];
-        arr.push(i);
-        interactionMap.set(i.contact_id, arr);
+      if (fetchVersion !== fetchVersionRef.current) return;
+
+      if (interactionsResult.status === "rejected") {
+        console.error("background interactions hydration failed:", interactionsResult.reason);
+      }
+      if (insightsResult.status === "rejected") {
+        console.error("background insight hydration failed:", insightsResult.reason);
       }
 
-      const insightTagsMap = new Map<string, string[]>();
-      for (const ins of allInsights) {
-        insightTagsMap.set(ins.contact_id, ins.tags ?? []);
-      }
+      const interactionMap = interactionsResult.status === "fulfilled"
+        ? buildInteractionMap(interactionsResult.value)
+        : null;
+      const insightTagsMap = insightsResult.status === "fulfilled"
+        ? buildInsightTagsMap(insightsResult.value)
+        : null;
 
-      setContacts(allContacts.map((c) => dbToContact(c, interactionMap, insightTagsMap)));
-    } catch (err) {
-      console.error("fetchContacts failed:", err);
-      toast.error("載入資料失敗");
-    }
-    setLoading(false);
+      setContacts((prev) => prev.map((contact) => ({
+        ...contact,
+        interactions: interactionMap
+          ? (interactionMap.get(contact.id) ?? []).map((item) => ({ id: item.id, date: item.date, summary: item.summary }))
+          : contact.interactions,
+        insightTags: insightTagsMap
+          ? (insightTagsMap.get(contact.id) ?? [])
+          : (contact.insightTags ?? []),
+      })));
+
+      if (interactionsResult.status === "fulfilled" && insightsResult.status === "fulfilled") {
+        hydratedUserIdRef.current = user.id;
+      }
+    })();
+
+    hydrationPromiseRef.current = hydrationPromise;
+    void hydrationPromise.finally(() => {
+      if (hydrationPromiseRef.current === hydrationPromise) {
+        hydrationPromiseRef.current = null;
+      }
+    });
   }, [user]);
 
   useEffect(() => { fetchContacts(); }, [fetchContacts]);
