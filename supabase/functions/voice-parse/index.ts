@@ -13,7 +13,6 @@ serve(async (req) => {
   try {
     logAiUsage(req.headers.get("Authorization"), "voice-parse").catch(() => {});
     const { text, mode } = await req.json();
-    // mode: "contact" or "interaction"
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       return new Response(JSON.stringify({ error: "請提供語音文字內容" }), {
@@ -22,8 +21,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_KEY");
+    if (!GOOGLE_AI_KEY) throw new Error("GOOGLE_AI_KEY is not configured");
 
     const DOMAIN_KNOWLEDGE = await getDomainKnowledgeIfRelevant(text);
     const systemPrompt = mode === "interaction"
@@ -68,21 +67,23 @@ JSON 必須包含以下欄位：
 
 範例輸出：{"name":"王小明","nickname":"小明","region":"台北市","background":"工程師","birthday":"1990-05-15","gender":"male","contactMethod":"LINE: wang_ming","products":["識霸","水素水"],"heat":"warm","notes":"對健康保健有興趣"}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-lite-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: text },
-        ],
-        stream: false,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.3,
+            maxOutputTokens: 1024,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -91,14 +92,8 @@ JSON 必須包含以下欄位：
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI 額度不足，請加值後再試" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("Google AI error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI 解析失敗" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -106,9 +101,7 @@ JSON 必須包含以下欄位：
     }
 
     const data = await response.json();
-    let content = data.choices?.[0]?.message?.content ?? "";
-    
-    // Strip markdown code fences if present
+    let content = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
     content = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
 
     try {

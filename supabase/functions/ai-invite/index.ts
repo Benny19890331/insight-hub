@@ -14,9 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_KEY");
+    if (!GOOGLE_AI_KEY) {
+      throw new Error("GOOGLE_AI_KEY is not configured");
     }
 
     logAiUsage(req.headers.get("Authorization"), "ai-invite").catch(() => {});
@@ -45,7 +45,6 @@ serve(async (req) => {
       loyal: "忠實（老客戶、已多次購買、可發展為經銷夥伴）",
     };
 
-    // 省 token：依聯絡人欄位是否提到產品/直銷術語才注入完整知識
     const probeText = [
       contact.name, contact.nickname, contact.background, contact.notes,
       Array.isArray(contact.products) ? contact.products.join(" ") : contact.products,
@@ -57,6 +56,15 @@ serve(async (req) => {
 
 你是一位善於人際互動的文案高手。請為「${honorific}」生成 **三段不同語氣** 的邀約訊息草稿，方便領袖依場合直接複製傳訊息。
 
+嚴格只回傳 JSON（無 markdown），格式如下：
+{
+  "scripts": [
+    { "tone": "親切寒暄", "script": "..." },
+    { "tone": "專業邀約", "script": "..." },
+    { "tone": "好友直球", "script": "..." }
+  ]
+}
+
 每段訊息要求：
 - 自然口語、有溫度，像真正朋友傳訊息，不要罐頭感
 - 根據熱度等級調整語氣（冷=破冰／溫=關心話題／熱=熱情邀約／忠實=老朋友深聊）
@@ -67,7 +75,7 @@ serve(async (req) => {
 - 繁體中文、台灣口語
 - 不要用「親愛的」、「您好」等制式開頭，直接用稱呼開始
 
-三段語氣定義（必須回三段）：
+三段語氣定義（必須剛好三段，tone 值必須完全相符）：
 1. tone="親切寒暄"：先關心近況、輕鬆破冰，再自然帶到邀約
 2. tone="專業邀約"：直接、有條理、強調價值與時間，適合忙碌或理性的對象
 3. tone="好友直球"：像熟朋友直接開口，口語、有感情，適合熱度高或交情好的對象
@@ -101,52 +109,22 @@ ${genderText ? `性別：${genderText}` : ""}
 聯絡方式：${contact.contactMethod || contact.contact_method || "未知"}
 最後聯絡日期：${contact.lastContactDate || contact.last_contact_date || "未知"}
 ${insightsBlock}
-請呼叫 submit_invite_scripts 工具回傳三段不同語氣的邀約訊息。`;
+請依照 JSON 格式回傳三段不同語氣的邀約訊息。`;
 
     const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_KEY}`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-3.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "submit_invite_scripts",
-                description: "Submit three invitation scripts in different tones",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    scripts: {
-                      type: "array",
-                      description: "三段不同語氣的邀約訊息，必須剛好 3 個",
-                      items: {
-                        type: "object",
-                        properties: {
-                          tone: { type: "string", enum: ["親切寒暄", "專業邀約", "好友直球"] },
-                          script: { type: "string" },
-                        },
-                        required: ["tone", "script"],
-                        additionalProperties: false,
-                      },
-                    },
-                  },
-                  required: ["scripts"],
-                  additionalProperties: false,
-                },
-              },
-            },
-          ],
-          tool_choice: { type: "function", function: { name: "submit_invite_scripts" } },
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.9,
+            maxOutputTokens: 3072,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );
@@ -157,23 +135,27 @@ ${insightsBlock}
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI 額度不足，請至設定頁面加值" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
+      console.error("Google AI error:", response.status, text);
       return new Response(JSON.stringify({ error: "AI 生成失敗，請稍後再試" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiResult = await response.json();
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("No tool call in AI response");
-    const parsed = JSON.parse(toolCall.function.arguments);
-    const scripts = Array.isArray(parsed.scripts) ? parsed.scripts : [];
+    let content = aiResult.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+    content = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+
+    let scripts: Array<{ tone: string; script: string }> = [];
+    try {
+      const parsed = JSON.parse(content);
+      scripts = Array.isArray(parsed.scripts) ? parsed.scripts : [];
+    } catch {
+      console.error("Failed to parse invite JSON:", content);
+      return new Response(JSON.stringify({ error: "AI 回傳格式異常，請重試" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(JSON.stringify({ scripts }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
