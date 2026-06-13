@@ -214,7 +214,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
           <div className="flex items-center gap-4">
             <div
               className="relative h-16 w-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden cursor-pointer group"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={openEditorForExisting}
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="avatar" className="h-full w-full object-cover" />
@@ -226,8 +226,32 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
               </div>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-            <span className="text-xs text-blue-900/80">點擊頭像更換照片</span>
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-md bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors w-fit"
+              >
+                <Camera className="h-3 w-3" /> {avatarUrl ? "換張照片" : "選擇照片"}
+              </button>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={openEditorForExisting}
+                  className="text-xs text-blue-900/80 hover:text-foreground w-fit"
+                >
+                  📐 調整大小與位置
+                </button>
+              )}
+            </div>
           </div>
+
+          <AvatarEditor
+            open={editorOpen}
+            onOpenChange={setEditorOpen}
+            source={editorSource}
+            onConfirm={(dataUrl) => setAvatarUrl(dataUrl)}
+          />
 
           <Field label="姓名"><input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} /></Field>
           <Field label="綽號 / 稱呼"><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="例：宏哥、美玲姐" className={fieldClass} /></Field>

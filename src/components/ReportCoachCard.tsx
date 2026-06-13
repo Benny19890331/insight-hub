@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/hooks/useTheme";
 import { Sparkles, Loader2, RefreshCw } from "lucide-react";
@@ -7,7 +7,23 @@ import { toast } from "sonner";
 /**
  * AI 報表教練：讀取報表數據，用溫暖鼓勵的語氣給予肯定與輕量建議。
  * 設計原則：讚美優先、絕不施壓，讓看報表變成被打氣而不是被檢討。
+ *
+ * 上次的建議會用 localStorage 保留在本機（換裝置或清資料就會消失）。
  */
+
+const STORAGE_KEY = "report-coach-last-result";
+const STORAGE_AT = "report-coach-last-at";
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "剛剛";
+  if (m < 60) return `${m} 分鐘前`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} 小時前`;
+  const d = Math.floor(h / 24);
+  return `${d} 天前`;
+}
 
 interface Props {
   stats: any;
@@ -17,13 +33,26 @@ interface Props {
 
 export function ReportCoachCard({ stats, demoResult }: Props) {
   const { theme: t } = useTheme();
-  const [result, setResult] = useState<string>(demoResult ?? "");
+  const [result, setResult] = useState<string>(() => {
+    if (demoResult) return demoResult;
+    try {
+      return localStorage.getItem(STORAGE_KEY) ?? "";
+    } catch {
+      return "";
+    }
+  });
+  const [lastAt, setLastAt] = useState<string>(() => {
+    try {
+      return localStorage.getItem(STORAGE_AT) ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [loading, setLoading] = useState(false);
 
   const askCoach = async () => {
     setLoading(true);
     try {
-      // 只送統計摘要，不送任何聯絡人個資
       const compact = {
         名單總數: stats.total,
         本月新增: stats.newThisMonth,
@@ -43,6 +72,12 @@ export function ReportCoachCard({ stats, demoResult }: Props) {
         return;
       }
       setResult(data.result);
+      const now = new Date().toISOString();
+      setLastAt(now);
+      try {
+        localStorage.setItem(STORAGE_KEY, data.result);
+        localStorage.setItem(STORAGE_AT, now);
+      } catch {}
     } finally {
       setLoading(false);
     }
@@ -76,6 +111,9 @@ export function ReportCoachCard({ stats, demoResult }: Props) {
             {result.split(/\n+/).filter(Boolean).map((para, i) => (
               <p key={i} className="text-sm leading-relaxed text-foreground/90">{para}</p>
             ))}
+            {lastAt && (
+              <p className="text-[11px] text-muted-foreground pt-1">上次更新於 {timeAgo(lastAt)}</p>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-4">
