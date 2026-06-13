@@ -140,13 +140,14 @@ export function useContacts() {
     if (!user) { setContacts([]); setLoading(false); return; }
     setLoading(true);
     try {
+      const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,avatar_url,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
       const [allContacts, allInteractions, allInsights] = await Promise.all([
         fetchPaginated<DbContact>(
-          (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
+          (from, to) => supabase.from("contacts").select(CONTACT_COLS).eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
           MAX_CONTACTS
         ),
         fetchPaginated<DbInteraction>(
-          (from, to) => supabase.from("interactions").select("*").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
+          (from, to) => supabase.from("interactions").select("id,contact_id,user_id,date,summary").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
           MAX_INTERACTIONS
         ),
         supabase.from("contact_insights").select("contact_id, tags").eq("user_id", user.id).then(({ data }) => data ?? []) as Promise<{ contact_id: string; tags: string[] }[]>,
@@ -165,7 +166,8 @@ export function useContacts() {
       }
 
       setContacts(allContacts.map((c) => dbToContact(c, interactionMap, insightTagsMap)));
-    } catch {
+    } catch (err) {
+      console.error("fetchContacts failed:", err);
       toast.error("載入資料失敗");
     }
     setLoading(false);
