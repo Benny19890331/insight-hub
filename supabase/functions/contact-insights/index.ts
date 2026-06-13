@@ -30,7 +30,6 @@ serve(async (req) => {
     const { contact_id } = await req.json();
     if (!contact_id) throw new Error("Missing contact_id");
 
-    // Fetch contact & interactions in parallel
     const [contactRes, interactionsRes] = await Promise.all([
       supabase.from("contacts").select("name,nickname,region,background,statuses,heat,product_tags,notes,gender,last_contact_date").eq("id", contact_id).eq("user_id", user.id).single(),
       supabase.from("interactions").select("date, summary").eq("contact_id", contact_id).eq("user_id", user.id).order("date", { ascending: false }).limit(20),
@@ -52,8 +51,8 @@ serve(async (req) => {
       interactions: interactionsRes.data ?? [],
     };
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_KEY");
+    if (!GOOGLE_AI_KEY) throw new Error("GOOGLE_AI_KEY not configured");
 
     const contactName = contact.nickname || contact.name;
     const probeText = [
@@ -67,7 +66,14 @@ serve(async (req) => {
 
 你是一位頂尖的人脈經營顧問，擅長從有限資料中萃取關鍵洞察。這份分析報告是給「領袖」快速了解「${contactName}」這個人，必須一眼看懂、條列清楚。
 
-嚴格使用 tool calling 回傳結果，欄位說明：
+嚴格只回傳 JSON（無 markdown），格式如下：
+{
+  "summary": "重點條列摘要字串",
+  "tags": ["標籤1", "標籤2"],
+  "next_action": "下一步建議"
+}
+
+欄位說明：
 
 - summary: **重點條列式**摘要（不是段落文章）。每一項一行，使用「• 項目名稱：內容」格式，項目之間用單一換行符號 \\n 分隔（**不要連續多個換行、不要在結尾加多餘的 \\n 或空的 •**）。請依照下列固定順序輸出，但**只列出有實質內容、且資料中真的提到或可合理推論的項目**，其餘**完全省略**（不要寫「資料不足」、「無」、「未知」、「待補」，也不要保留空白項目）：
   • 姓名
@@ -93,40 +99,23 @@ serve(async (req) => {
 - 只根據提供的資料分析，不要編造；資料不足的 summary 項目直接省略整行
 - summary **結尾不可有多餘的換行或空 bullet**，最後一行就是最後一個有內容的項目`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: JSON.stringify(contactData) },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "submit_insights",
-              description: "Submit the analyzed insights for the contact",
-              parameters: {
-                type: "object",
-                properties: {
-                  summary: { type: "string", description: "重點條列摘要" },
-                  tags: { type: "array", items: { type: "string" }, description: "特性標籤" },
-                  next_action: { type: "string", description: "下一步建議" },
-                },
-                required: ["summary", "tags", "next_action"],
-                additionalProperties: false,
-              },
-            },
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text: JSON.stringify(contactData) }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.6,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "submit_insights" } },
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -134,23 +123,23 @@ serve(async (req) => {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI 額度不足，請補充點數" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("AI error:", response.status, t);
-      throw new Error("AI gateway error");
+      console.error("Google AI error:", response.status, t);
+      throw new Error("AI 服務暫時無法使用");
     }
 
     const aiResult = await response.json();
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("No tool call in AI response");
+    let content = aiResult.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+    content = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
 
-    const insights = JSON.parse(toolCall.function.arguments);
+    let insights: { summary: string; tags: string[]; next_action: string };
+    try {
+      insights = JSON.parse(content);
+    } catch {
+      console.error("Failed to parse insights JSON:", content);
+      throw new Error("AI 回傳格式異常");
+    }
 
-    // Sanitize summary: normalize escaped newlines, drop empty bullets/headers, and strip trailing junk
     if (typeof insights.summary === "string") {
       insights.summary = insights.summary
         .replace(/\\r\\n/g, "\n")
@@ -162,25 +151,19 @@ serve(async (req) => {
         .filter((l: string) => {
           const stripped = l.replace(/^[•\-\*]\s*/, "").trim();
           if (!stripped) return false;
-          // pure punctuation / dangling bullet
-          if (/^[•\-\*：:\s]*$/.test(stripped)) return false;
-          // "項目：" with no content
-          if (/^[^：:]{1,12}[：:]\s*$/.test(stripped)) return false;
-          // explicit "no data" lines
+          if (/^[•\-\*:\s]*$/.test(stripped)) return false;
+          if (/^[^:]{1,12}[:]\s*$/.test(stripped)) return false;
           if (/(資料不足|無資料|尚無資料|無相關資料|未提供|未知|待補)/.test(stripped)) return false;
           return true;
         })
         .join("\n")
-        // collapse any accidental double newlines
         .replace(/\n{2,}/g, "\n")
-        // strip trailing bullets / whitespace, including escaped newlines from model output
         .replace(/(?:\\n|\n)+$/g, "")
         .replace(/(?:\\n|\n)[•\-\*\s]*$/g, "")
         .replace(/[\s•\-\*]+$/g, "")
         .trim();
     }
 
-    // Upsert into contact_insights (invite_scripts now lives in ai-invite, store empty array)
     const { error: upsertErr } = await supabase
       .from("contact_insights")
       .upsert({
