@@ -1,92 +1,41 @@
-## 目標
-在「新增聯絡人」視窗中，新增一個「貼上名片診斷結果」按鈕。使用者貼上你的名片系統輸出的純文字後，系統會自動把欄位拆解、分散填入新增表單對應的位置，省去手動輸入。
+# 修復「手機/桌機登入後永遠卡在骨架畫面」
 
----
+## 根本原因（已確認）
+DB 日誌顯示 `canceling statement due to statement timeout`，PostgREST 抓 `contacts` 時被資料庫切掉；前端 `useContacts.fetchContacts` 拋錯顯示「載入資料失敗」，於是畫面只剩骨架。
+- RLS 政策 `auth.uid() = user_id` 會對每一列重新呼叫 `auth.uid()`（Supabase 已知效能反模式）。
+- `order by created_at desc` 沒有匹配的部分索引，要做 sort。
+- `select("*")` 把所有欄位（含 created_at、updated_at 等不需要的）一起傳。
+- 自開機以來已累積 93,544 次 rollback，幾乎都是這個逾時造成的。
 
-## 使用流程
+## 修改內容
 
-1. 點「新增聯絡人」開啟視窗。
-2. 視窗最上方（語音輸入按鈕旁）新增一顆按鈕：📇 **貼上名片診斷**。
-3. 彈出小視窗，提供一個大型文字框讓使用者貼上完整診斷文字 → 按「解析並帶入」。
-4. 系統自動填入下列欄位，使用者可再修改後存檔。
+### 1. SQL migration：優化 RLS + 補索引
+針對 `contacts`、`interactions`、`contact_insights` 三張表，把 RLS 政策中的 `auth.uid()` 包成 `(select auth.uid())`（讓 Postgres 只計算一次）。
 
----
+新增部分索引給最常打的查詢：
+```sql
+create index if not exists idx_contacts_user_active_created
+  on public.contacts (user_id, created_at desc)
+  where deleted_at is null;
 
-## 欄位對應規則
-
-| 名片診斷欄位 | 帶入「新增聯絡人」的欄位 |
-|---|---|
-| 👤 受測者 | **姓名** |
-| 🎯 興趣 | 併入 **背景／職業**（前綴「興趣：」） |
-| 🧠 內在狀態 | 用來推斷 **熱度**（見下方規則）並寫入 **特殊註記** |
-| 🧬 類型（領航／穩健／執行／溫暖…） | 寫入 **特殊註記** 第一行作為人格標籤 |
-| 🧩 10 題選擇 | **不逐題保存**，改由規則 + AI 萃取出 2–3 句人格摘要寫進 **特殊註記** |
-| 🌿 溫柔小練習 | 寫入 **特殊註記** 結尾（標為「建議切入點」） |
-| 🆔 lead_id | 忽略，不存 |
-
-### 熱度推斷（從「內在狀態」關鍵字）
-- 含「想突破 / 想賺 / 想改變 / 機會」→ `hot`
-- 含「觀望 / 想了解 / 考慮」→ `warm`
-- 含「累 / 卡 / 迷惘 / 不確定」→ `cold`
-- 其他 → 維持預設 `cold`，使用者自行調整
-
-### 特殊註記最終格式範例
-```
-🧬 領航為主｜🎯 團隊經營/複製系統
-🧠 狀態：我想突破事業
-
-【AI 人格摘要】
-偏好抓趨勢、先出手再優化，重視 SOP 與未來藍圖；
-不耐慢節奏，遇卡關傾向換路找新風口。
-
-🌿 切入建議：先給一個能放大的方法，不要硬推。
+create index if not exists idx_interactions_user_date
+  on public.interactions (user_id, date desc);
 ```
 
----
+### 2. `src/hooks/useContacts.ts` 瘦身
+- `contacts` 的 `select("*")` 改成明列需要的欄位（去掉 created_at 等沒用到的，減少 payload 與 JSON 序列化時間）。
+- `interactions` 的 `select("*")` 同樣改成 `id, contact_id, date, summary`。
+- 在 catch 區塊加上 `console.error(err)` 方便日後追蹤實際錯誤訊息。
 
-## 解析策略（先規則、失敗再 AI）
+### 3. 不動以下項目
+- PWA / service worker（畫面有渲染、不是 SW 卡住）。
+- AI Edge Functions（與此問題無關）。
+- 認證流程（登入本身正常）。
 
-**第一階段：規則解析（零成本、即時）**
-- 用正規表達式抓取固定 emoji 標頭（👤 / 🎯 / 🧠 / 🧬）後的文字。
-- 抓 10 題作答（`→ ...` 後的內容）做為 AI 輸入素材。
-- 抓「🫶 你的狀態：」後一句作為切入建議。
+## 預期效果
+- RLS 子查詢化後，1800 筆查詢的執行時間預期從「偶爾逾時 (>8s)」降到穩定 <200ms。
+- 部分索引讓 `order by created_at desc where deleted_at is null` 不需 sort。
+- 手機 / 桌機登入後骨架會在 1 秒內被資料填滿。
 
-**第二階段：AI 補位（僅在需要時）**
-- 規則抓到的姓名、類型、狀態任一缺失 → 呼叫 `voice-parse` 或新建一個 `card-parse` edge function，用 Gemini 3 Flash 從原文補齊。
-- 10 題作答永遠交給 AI，請它輸出「2–3 句人格摘要（≤80字）」。
-- 共用既有 `domain-knowledge` 觸發機制，沒命中關鍵字就不注入，省 token。
-
----
-
-## 技術細節（給工程參考）
-
-### 新檔
-- `src/lib/cardDiagnosticsParser.ts`
-  - `parseCardDiagnostics(raw: string): { name?, interest?, state?, type?, answers?: string[], practice?, heatGuess?: HeatLevel, needsAI: boolean }`
-  - 純正規表達式，無依賴。
-
-- `src/components/PasteCardDiagnosticsDialog.tsx`
-  - 大型 textarea + 「解析並帶入」按鈕
-  - 解析後呼叫 `onParsed(data)` 把結果傳回 `AddContactDialog`
-
-- `supabase/functions/card-parse/index.ts`（僅在規則失敗或需要摘要時呼叫）
-  - 輸入：原文 + 已抓到的部分欄位
-  - 輸出：`{ name, type, state, summary: string, heat: HeatLevel }`
-  - 使用 `getDomainKnowledgeIfRelevant` 控管 token
-
-### 修改
-- `src/components/AddContactDialog.tsx`
-  - 在語音輸入按鈕旁加 📇 按鈕 → 開啟貼上視窗
-  - 收到解析結果後呼叫各個 setter（name / background / notes / heat）
-  - 顯示 toast「已帶入名片診斷結果，可再調整」
-
-### 不動到
-- 資料庫 schema（所有資訊都塞進現有欄位，不另開欄）
-- 既有語音輸入流程
-- 名片系統本身
-
----
-
-## 風險與備註
-- 名片系統未來若調整 emoji 或標題格式，規則解析會失敗，會自動降級到 AI 補位，不影響使用。
-- 不存 `lead_id`，若日後想做「名片系統 ↔ RICH 系統」資料對接，需要再開一個欄位，這次先不做。
+## 後續建議（不在本次修改內，供參考）
+如果之後總筆數持續往 5000+ 成長，可考慮在 Lovable Cloud → Backend → Advanced settings 升級資料庫實例大小，以承載更高的併發。
