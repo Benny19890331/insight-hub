@@ -174,7 +174,8 @@ export function useContacts() {
 
     const fetchVersion = ++fetchVersionRef.current;
     setLoading(true);
-    const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,avatar_url,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
+    // 注意：刻意不抓 avatar_url（base64 大頭像會把 payload 炸到數 MB），詳情頁再 lazy load
+    const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
 
     try {
       const allContacts = await fetchPaginated<DbContact>(

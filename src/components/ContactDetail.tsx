@@ -77,6 +77,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpActionDate, setFollowUpActionDate] = useState("");
   const [followUpActionContent, setFollowUpActionContent] = useState("");
   const [cachedInsights, setCachedInsights] = useState<{ summary: string; tags: string[]; next_action: string } | null>(null);
+  // 頭像獨立 lazy load（主清單不再夾帶 base64 大圖，避免拖垮載入速度）
+  const [lazyAvatarUrl, setLazyAvatarUrl] = useState<string | null>(contact?.avatarUrl ?? null);
 
   const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
   const iconClass = t.accent;
@@ -91,6 +93,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
 
   useEffect(() => {
     if (!contact) return;
+    // 1) AI insights
     supabase
       .from("contact_insights")
       .select("summary, tags, next_action")
@@ -99,6 +102,18 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       .then(({ data }) => {
         setCachedInsights(data ? { summary: (data as any).summary, tags: (data as any).tags, next_action: (data as any).next_action } : null);
       });
+    // 2) 頭像（單筆 row，~80KB 內，不會卡）
+    setLazyAvatarUrl(contact.avatarUrl ?? null);
+    if (!contact.avatarUrl) {
+      supabase
+        .from("contacts")
+        .select("avatar_url")
+        .eq("id", contact.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data && (data as any).avatar_url) setLazyAvatarUrl((data as any).avatar_url);
+        });
+    }
   }, [contact?.id]);
 
   const referrerChain = useMemo(() => contact ? getReferrerChain(contact, contacts, 3) : [], [contact, contacts]);
@@ -144,9 +159,9 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       <div className="flex items-start gap-5">
         {/* Large Avatar */}
         <div className="w-1/2 flex justify-center">
-          <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-2xl border-2 text-3xl font-bold glow-border shrink-0 overflow-hidden" style={{ background: contact.avatarUrl ? undefined : `${t.titleColor}18`, borderColor: contact.avatarUrl ? undefined : `${t.titleColor}40`, color: t.titleColor }}>
-            {contact.avatarUrl ? (
-              <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
+          <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-2xl border-2 text-3xl font-bold glow-border shrink-0 overflow-hidden" style={{ background: lazyAvatarUrl ? undefined : `${t.titleColor}18`, borderColor: lazyAvatarUrl ? undefined : `${t.titleColor}40`, color: t.titleColor }}>
+            {lazyAvatarUrl ? (
+              <img src={lazyAvatarUrl} alt={contact.name} className="h-full w-full object-cover" />
             ) : (
               contact.name.charAt(0)
             )}
