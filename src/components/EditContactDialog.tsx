@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Camera, Search, X, UserCircle } from "lucide-react";
+import { AvatarEditor } from "@/components/AvatarEditor";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -50,6 +51,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [referrerOpen, setReferrerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const referrerRef = useRef<HTMLDivElement>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorSource, setEditorSource] = useState<File | string | null>(null);
 
   useEffect(() => {
     setName(contact.name);
@@ -109,9 +112,19 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setAvatarUrl(reader.result as string);
-      reader.readAsDataURL(file);
+      setEditorSource(file);
+      setEditorOpen(true);
+    }
+    // 清空 input value 讓同一張可以再次選擇
+    e.target.value = "";
+  };
+
+  const openEditorForExisting = () => {
+    if (avatarUrl) {
+      setEditorSource(avatarUrl);
+      setEditorOpen(true);
+    } else {
+      fileInputRef.current?.click();
     }
   };
 
