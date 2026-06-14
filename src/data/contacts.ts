@@ -69,6 +69,7 @@ export interface Contact {
   productTags: string[];
   contactMethod?: string;
   avatarUrl?: string;
+  avatarThumbUrl?: string;
   referrerId?: string;
   referrerName?: string;
   birthday?: string;
