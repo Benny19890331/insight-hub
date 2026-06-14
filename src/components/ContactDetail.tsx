@@ -158,14 +158,15 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       {/* Header: Avatar 50% + Text 50% */}
       <div className="flex items-start gap-5">
         {/* Large Avatar */}
-        <div className="w-1/2 flex justify-center">
-          <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-2xl border-2 text-3xl font-bold glow-border shrink-0 overflow-hidden" style={{ background: lazyAvatarUrl ? undefined : `${t.titleColor}18`, borderColor: lazyAvatarUrl ? undefined : `${t.titleColor}40`, color: t.titleColor }}>
+        <div className="w-1/2 flex flex-col items-center gap-2">
+          <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-full text-3xl font-bold shrink-0 overflow-hidden" style={{ background: lazyAvatarUrl ? undefined : `${t.titleColor}18`, color: t.titleColor, boxShadow: `0 0 0 2px ${t.titleColor}30, 0 0 20px -8px hsl(var(--glow-primary) / 0.15)` }}>
             {lazyAvatarUrl ? (
               <img src={lazyAvatarUrl} alt={contact.name} className="h-full w-full object-cover" />
             ) : (
               contact.name.charAt(0)
             )}
           </div>
+          <span className="text-sm font-medium" style={{ color: t.titleColor }}>{contact.name}</span>
         </div>
         {/* Name + Status */}
         <div className="w-1/2 min-w-0 flex flex-col justify-center">
