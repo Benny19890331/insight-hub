@@ -23,6 +23,7 @@ interface DbContact {
   next_follow_up_time: string | null;
   contact_method: string | null;
   avatar_url: string | null;
+  avatar_thumb_url: string | null;
   referrer_id: string | null;
   referrer_name: string | null;
   birthday: string | null;
@@ -65,6 +66,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     nextFollowUpTime: db.next_follow_up_time ?? undefined,
     contactMethod: db.contact_method ?? undefined,
     avatarUrl: db.avatar_url ?? undefined,
+    avatarThumbUrl: db.avatar_thumb_url ?? undefined,
     referrerId: db.referrer_id ?? undefined,
     referrerName: db.referrer_name ?? undefined,
     birthday: db.birthday ?? undefined,
@@ -113,6 +115,7 @@ function contactToDbPayload(c: Contact) {
     next_follow_up_time: c.nextFollowUpTime || null,
     contact_method: c.contactMethod || null,
     avatar_url: c.avatarUrl || null,
+    avatar_thumb_url: c.avatarThumbUrl || null,
     referrer_id: c.referrerId || null,
     referrer_name: c.referrerName || null,
     birthday: c.birthday || null,
@@ -175,7 +178,8 @@ export function useContacts() {
     const fetchVersion = ++fetchVersionRef.current;
     setLoading(true);
     // 注意：刻意不抓 avatar_url（base64 大頭像會把 payload 炸到數 MB），詳情頁再 lazy load
-    const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
+    // 注意：avatar_url（原圖）不抓，僅抓 avatar_thumb_url（~3KB 縮圖）
+    const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,avatar_thumb_url,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
 
     try {
       const allContacts = await fetchPaginated<DbContact>(
