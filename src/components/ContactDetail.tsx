@@ -78,7 +78,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
   const [followUpActionContent, setFollowUpActionContent] = useState("");
   const [cachedInsights, setCachedInsights] = useState<{ summary: string; tags: string[]; next_action: string } | null>(null);
   // 頭像獨立 lazy load（主清單不再夾帶 base64 大圖，避免拖垮載入速度）
-  const [lazyAvatarUrl, setLazyAvatarUrl] = useState<string | null>(contact?.avatarUrl ?? null);
+  const [lazyAvatarUrl, setLazyAvatarUrl] = useState<string | null>(contact?.avatarUrl ?? contact?.avatarThumbUrl ?? null);
 
   const iconBoxClass = `${t.accentBg} ${t.accentBorder} border`;
   const iconClass = t.accent;
@@ -103,7 +103,8 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
         setCachedInsights(data ? { summary: (data as any).summary, tags: (data as any).tags, next_action: (data as any).next_action } : null);
       });
     // 2) 頭像（單筆 row，~80KB 內，不會卡）
-    setLazyAvatarUrl(contact.avatarUrl ?? null);
+    // 頭像：先顯示縮圖（已在主列表載入過），再背景抓原圖
+    setLazyAvatarUrl(contact.avatarUrl ?? contact.avatarThumbUrl ?? null);
     if (!contact.avatarUrl) {
       supabase
         .from("contacts")
@@ -158,7 +159,7 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
       {/* Header: Avatar 50% + Text 50% */}
       <div className="flex items-start gap-5">
         {/* Large Avatar */}
-        <div className="w-1/2 flex flex-col items-center gap-2">
+        <div className="w-1/2 flex items-center justify-center">
           <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-full text-3xl font-bold shrink-0 overflow-hidden" style={{ background: lazyAvatarUrl ? undefined : `${t.titleColor}18`, color: t.titleColor, boxShadow: `0 0 0 2px ${t.titleColor}30, 0 0 20px -8px hsl(var(--glow-primary) / 0.15)` }}>
             {lazyAvatarUrl ? (
               <img src={lazyAvatarUrl} alt={contact.name} className="h-full w-full object-cover" />
@@ -166,7 +167,6 @@ export function ContactDetail({ contact, contacts = [], onBack, onUpdateContact,
               contact.name.charAt(0)
             )}
           </div>
-          <span className="text-sm font-medium" style={{ color: t.titleColor }}>{contact.name}</span>
         </div>
         {/* Name + Status */}
         <div className="w-1/2 min-w-0 flex flex-col justify-center">
