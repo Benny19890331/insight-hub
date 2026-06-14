@@ -8,6 +8,7 @@ import { useTheme, themes } from "@/hooks/useTheme";
 import { toast } from "sonner";
 import { Camera, Search, X, UserCircle } from "lucide-react";
 import { AvatarEditor } from "@/components/AvatarEditor";
+import { compressImage } from "@/lib/compressImage";
 import bgGirl from "@/assets/bg-girl.jpg";
 import bgYouth from "@/assets/bg-youth.jpg";
 import bgPrime from "@/assets/bg-prime.jpg";
@@ -43,6 +44,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.productTags ?? []);
   const [contactMethod, setContactMethod] = useState(contact.contactMethod ?? "");
   const [avatarUrl, setAvatarUrl] = useState(contact.avatarUrl ?? "");
+  const [avatarThumbUrl, setAvatarThumbUrl] = useState(contact.avatarThumbUrl ?? "");
   const [referrerId, setReferrerId] = useState(contact.referrerId ?? "");
   const [birthday, setBirthday] = useState(contact.birthday ?? "");
   const [birthdayReminder, setBirthdayReminder] = useState<BirthdayReminder>(contact.birthdayReminder ?? "none");
@@ -67,6 +69,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
     setSelectedTags(contact.productTags ?? []);
     setContactMethod(contact.contactMethod ?? "");
     setAvatarUrl(contact.avatarUrl ?? "");
+    setAvatarThumbUrl(contact.avatarThumbUrl ?? "");
     setReferrerId(contact.referrerId ?? "");
     setBirthday(contact.birthday ?? "");
     setBirthdayReminder(contact.birthdayReminder ?? "none");
@@ -144,6 +147,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
       productTags: selectedTags,
       contactMethod,
       avatarUrl,
+      avatarThumbUrl,
       referrerId: referrerId === "self" ? undefined : (referrerId || undefined),
       referrerName: referrerId === "self" ? userName : (selectedReferrer?.name ?? undefined),
       birthday: birthday || undefined,
@@ -250,7 +254,16 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             open={editorOpen}
             onOpenChange={setEditorOpen}
             source={editorSource}
-            onConfirm={(dataUrl) => setAvatarUrl(dataUrl)}
+            onConfirm={async (dataUrl) => {
+              setAvatarUrl(dataUrl);
+              // 同步生成 96px 小縮圖供主列表使用（~2-4KB）
+              try {
+                const thumb = await compressImage(dataUrl, 96, 0.72);
+                setAvatarThumbUrl(thumb);
+              } catch {
+                setAvatarThumbUrl(dataUrl);
+              }
+            }}
           />
 
           <Field label="姓名"><input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} /></Field>

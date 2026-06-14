@@ -220,8 +220,8 @@ export function ContactList({
                 >
                   <div className="flex items-center gap-3">
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${t.accentBg} ${t.accentBorder} border ${t.accent}`}>
-                      {contact.avatarUrl ? (
-                        <img src={contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" />
+                      {(contact.avatarThumbUrl || contact.avatarUrl) ? (
+                        <img src={contact.avatarThumbUrl || contact.avatarUrl} alt={contact.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         contact.name.charAt(0)
                       )}
