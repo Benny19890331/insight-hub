@@ -144,6 +144,7 @@ export type Database = {
       }
       contacts: {
         Row: {
+          avatar_thumb_url: string | null
           avatar_url: string | null
           background: string
           birthday: string | null
@@ -173,6 +174,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_thumb_url?: string | null
           avatar_url?: string | null
           background?: string
           birthday?: string | null
@@ -202,6 +204,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_thumb_url?: string | null
           avatar_url?: string | null
           background?: string
           birthday?: string | null
