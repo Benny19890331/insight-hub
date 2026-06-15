@@ -19,6 +19,9 @@ interface AvatarEditorProps {
 function getDistance(a: Touch, b: Touch) {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
+function getCenter(a: Touch, b: Touch) {
+  return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+}
 
 export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEditorProps) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -27,7 +30,7 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
   const [dragging, setDragging] = useState(false);
   const [isPinching, setIsPinching] = useState(false);
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
-  const pinchStart = useRef<{ initialDistance: number; initialScale: number } | null>(null);
+  const pinchStart = useRef<{ initialDistance: number; initialScale: number; centerX: number; centerY: number; ox: number; oy: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef(scale);
@@ -83,16 +86,30 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
         e.preventDefault();
       } else if (e.touches.length >= 2) {
         setIsPinching(true);
-        pinchStart.current = { initialDistance: getDistance(e.touches[0], e.touches[1]), initialScale: scaleRef.current };
+        setDragging(false);
+        const c = getCenter(e.touches[0], e.touches[1]);
+        pinchStart.current = {
+          initialDistance: getDistance(e.touches[0], e.touches[1]),
+          initialScale: scaleRef.current,
+          centerX: c.x,
+          centerY: c.y,
+          ox: offsetRef.current.x,
+          oy: offsetRef.current.y,
+        };
         e.preventDefault();
       }
     };
     const onTouchMove = (e: TouchEvent) => {
       if (isPinchingRef.current && e.touches.length >= 2 && pinchStart.current) {
         const d = getDistance(e.touches[0], e.touches[1]);
+        const c = getCenter(e.touches[0], e.touches[1]);
         const ratio = d / pinchStart.current.initialDistance;
         const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStart.current.initialScale * ratio));
         setScale(newScale);
+        setOffset({
+          x: pinchStart.current.ox + (c.x - pinchStart.current.centerX),
+          y: pinchStart.current.oy + (c.y - pinchStart.current.centerY),
+        });
         e.preventDefault();
       } else if (draggingRef.current && dragStart.current && e.touches.length === 1) {
         const t = e.touches[0];
