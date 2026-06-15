@@ -102,9 +102,14 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
     const onTouchMove = (e: TouchEvent) => {
       if (isPinchingRef.current && e.touches.length >= 2 && pinchStart.current) {
         const d = getDistance(e.touches[0], e.touches[1]);
+        const c = getCenter(e.touches[0], e.touches[1]);
         const ratio = d / pinchStart.current.initialDistance;
         const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStart.current.initialScale * ratio));
         setScale(newScale);
+        setOffset({
+          x: pinchStart.current.ox + (c.x - pinchStart.current.centerX),
+          y: pinchStart.current.oy + (c.y - pinchStart.current.centerY),
+        });
         e.preventDefault();
       } else if (draggingRef.current && dragStart.current && e.touches.length === 1) {
         const t = e.touches[0];
