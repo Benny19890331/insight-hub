@@ -141,7 +141,8 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
       el.removeEventListener("touchend", onTouchEnd);
       el.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, []);
+  }, [open]);
+
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "touch") return;
@@ -194,7 +195,8 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>調整頭像</DialogTitle>
-          <DialogDescription>拖曳移動位置、雙指捏合縮放，確認後會自動壓縮上傳</DialogDescription>
+          <DialogDescription className="sr-only">調整頭像位置與縮放</DialogDescription>
+
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 pt-2">
@@ -210,33 +212,16 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
             <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} />
           </div>
 
-          <div className="w-full flex items-center justify-center gap-2 px-2">
-            <button
-              type="button"
-              onClick={() => setScale((s) => Math.max(MIN_SCALE, s - STEP))}
-              className="inline-flex items-center justify-center rounded-full border border-border bg-muted/50 w-8 h-8 text-sm hover:bg-muted"
-              aria-label="縮小"
-            >
-              <Minus className="h-3.5 w-3.5" />
-            </button>
-            <span className="text-sm text-muted-foreground">雙指捏合縮放</span>
-            <span className="text-xs text-muted-foreground tabular-nums w-12 text-right">{scale.toFixed(1)}x</span>
-            <button
-              type="button"
-              onClick={() => setScale((s) => Math.min(MAX_SCALE, s + STEP))}
-              className="inline-flex items-center justify-center rounded-full border border-border bg-muted/50 w-8 h-8 text-sm hover:bg-muted"
-              aria-label="放大"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </button>
+          <div className="w-full flex items-center justify-center px-2">
             <button
               type="button"
               onClick={reset}
-              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 ml-1"
+              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
             >
               <RotateCcw className="h-3 w-3" /> 重設
             </button>
           </div>
+
 
           <div className="flex gap-3 w-full pt-2">
             <button
