@@ -30,7 +30,7 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
   const [dragging, setDragging] = useState(false);
   const [isPinching, setIsPinching] = useState(false);
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
-  const pinchStart = useRef<{ initialDistance: number; initialScale: number } | null>(null);
+  const pinchStart = useRef<{ initialDistance: number; initialScale: number; centerX: number; centerY: number; ox: number; oy: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef(scale);
