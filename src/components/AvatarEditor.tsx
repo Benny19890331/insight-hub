@@ -19,6 +19,9 @@ interface AvatarEditorProps {
 function getDistance(a: Touch, b: Touch) {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
+function getCenter(a: Touch, b: Touch) {
+  return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+}
 
 export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEditorProps) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
