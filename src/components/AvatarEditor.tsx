@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { loadImageFromSource } from "@/lib/compressImage";
-import { RotateCcw, Check, X, Plus, Minus } from "lucide-react";
+import { RotateCcw, Check, X } from "lucide-react";
 
 const CANVAS_SIZE = 320;
 const OUTPUT_SIZE = 512;
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 2;
-const STEP = 0.2;
 
 interface AvatarEditorProps {
   open: boolean;
@@ -16,32 +15,38 @@ interface AvatarEditorProps {
   onConfirm: (dataUrl: string) => void;
 }
 
-function getDistance(a: Touch, b: Touch) {
-  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-}
-function getCenter(a: Touch, b: Touch) {
-  return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+interface PointerInfo {
+  x: number;
+  y: number;
 }
 
 export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEditorProps) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const [isPinching, setIsPinching] = useState(false);
-  const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
-  const pinchStart = useRef<{ initialDistance: number; initialScale: number; centerX: number; centerY: number; ox: number; oy: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Active pointers
+  const pointersRef = useRef<Map<number, PointerInfo>>(new Map());
+  // Gesture start snapshot
+  const gestureRef = useRef<{
+    mode: "drag" | "pinch" | null;
+    startCenter: { x: number; y: number };
+    startDistance: number;
+    startScale: number;
+    startOffset: { x: number; y: number };
+  }>({
+    mode: null,
+    startCenter: { x: 0, y: 0 },
+    startDistance: 0,
+    startScale: 1,
+    startOffset: { x: 0, y: 0 },
+  });
   const scaleRef = useRef(scale);
   const offsetRef = useRef(offset);
-  const draggingRef = useRef(dragging);
-  const isPinchingRef = useRef(isPinching);
-
   useEffect(() => { scaleRef.current = scale; }, [scale]);
   useEffect(() => { offsetRef.current = offset; }, [offset]);
-  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
-  useEffect(() => { isPinchingRef.current = isPinching; }, [isPinching]);
 
   useEffect(() => {
     if (!open || !source) return;
@@ -75,93 +80,95 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
     ctx.restore();
   }, [img, scale, offset]);
 
+  // Pointer-based gestures (works for touch, pen, mouse)
   useEffect(() => {
+    if (!open) return;
     const el = wrapperRef.current;
     if (!el) return;
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 1) {
-        const t = e.touches[0];
-        dragStart.current = { x: t.clientX, y: t.clientY, ox: offsetRef.current.x, oy: offsetRef.current.y };
-        setDragging(true);
-        e.preventDefault();
-      } else if (e.touches.length >= 2) {
-        setIsPinching(true);
-        setDragging(false);
-        const c = getCenter(e.touches[0], e.touches[1]);
-        pinchStart.current = {
-          initialDistance: getDistance(e.touches[0], e.touches[1]),
-          initialScale: scaleRef.current,
-          centerX: c.x,
-          centerY: c.y,
-          ox: offsetRef.current.x,
-          oy: offsetRef.current.y,
+
+    const snapshotGesture = () => {
+      const pts = Array.from(pointersRef.current.values());
+      if (pts.length === 1) {
+        gestureRef.current = {
+          mode: "drag",
+          startCenter: { x: pts[0].x, y: pts[0].y },
+          startDistance: 0,
+          startScale: scaleRef.current,
+          startOffset: { ...offsetRef.current },
         };
-        e.preventDefault();
+      } else if (pts.length >= 2) {
+        const [a, b] = pts;
+        const cx = (a.x + b.x) / 2;
+        const cy = (a.y + b.y) / 2;
+        const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        gestureRef.current = {
+          mode: "pinch",
+          startCenter: { x: cx, y: cy },
+          startDistance: dist,
+          startScale: scaleRef.current,
+          startOffset: { ...offsetRef.current },
+        };
+      } else {
+        gestureRef.current.mode = null;
       }
     };
-    const onTouchMove = (e: TouchEvent) => {
-      if (isPinchingRef.current && e.touches.length >= 2 && pinchStart.current) {
-        const d = getDistance(e.touches[0], e.touches[1]);
-        const c = getCenter(e.touches[0], e.touches[1]);
-        const ratio = d / pinchStart.current.initialDistance;
-        const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStart.current.initialScale * ratio));
+
+    const onPointerDown = (e: PointerEvent) => {
+      el.setPointerCapture?.(e.pointerId);
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      snapshotGesture();
+      e.preventDefault();
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!pointersRef.current.has(e.pointerId)) return;
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const pts = Array.from(pointersRef.current.values());
+      const g = gestureRef.current;
+      if (g.mode === "pinch" && pts.length >= 2) {
+        const [a, b] = pts;
+        const cx = (a.x + b.x) / 2;
+        const cy = (a.y + b.y) / 2;
+        const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        const ratio = dist / g.startDistance;
+        const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.startScale * ratio));
         setScale(newScale);
         setOffset({
-          x: pinchStart.current.ox + (c.x - pinchStart.current.centerX),
-          y: pinchStart.current.oy + (c.y - pinchStart.current.centerY),
+          x: g.startOffset.x + (cx - g.startCenter.x),
+          y: g.startOffset.y + (cy - g.startCenter.y),
         });
         e.preventDefault();
-      } else if (draggingRef.current && dragStart.current && e.touches.length === 1) {
-        const t = e.touches[0];
+      } else if (g.mode === "drag" && pts.length === 1) {
         setOffset({
-          x: dragStart.current.ox + (t.clientX - dragStart.current.x),
-          y: dragStart.current.oy + (t.clientY - dragStart.current.y),
+          x: g.startOffset.x + (pts[0].x - g.startCenter.x),
+          y: g.startOffset.y + (pts[0].y - g.startCenter.y),
         });
         e.preventDefault();
       }
     };
-    const onTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length === 0) {
-        setDragging(false);
-        setIsPinching(false);
-      } else if (e.touches.length === 1 && isPinchingRef.current) {
-        setIsPinching(false);
-        const t = e.touches[0];
-        dragStart.current = { x: t.clientX, y: t.clientY, ox: offsetRef.current.x, oy: offsetRef.current.y };
-        setDragging(true);
-      }
+
+    const onPointerEnd = (e: PointerEvent) => {
+      pointersRef.current.delete(e.pointerId);
+      el.releasePointerCapture?.(e.pointerId);
+      // Re-snapshot so remaining finger continues smoothly
+      snapshotGesture();
     };
-    el.addEventListener("touchstart", onTouchStart, { passive: false });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd);
-    el.addEventListener("touchcancel", onTouchEnd);
+
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerEnd);
+    el.addEventListener("pointercancel", onPointerEnd);
+    el.addEventListener("pointerleave", onPointerEnd);
+
     return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchEnd);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerEnd);
+      el.removeEventListener("pointercancel", onPointerEnd);
+      el.removeEventListener("pointerleave", onPointerEnd);
+      pointersRef.current.clear();
     };
-  }, [open]);
-
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch") return;
-    setDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch" || !dragging || !dragStart.current) return;
-    setOffset({
-      x: dragStart.current.ox + (e.clientX - dragStart.current.x),
-      y: dragStart.current.oy + (e.clientY - dragStart.current.y),
-    });
-  };
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch") return;
-    setDragging(false);
-    dragStart.current = null;
-  };
+  }, [open, img]);
 
   const reset = () => {
     if (!img) return;
@@ -196,20 +203,23 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
         <DialogHeader>
           <DialogTitle>調整頭像</DialogTitle>
           <DialogDescription className="sr-only">調整頭像位置與縮放</DialogDescription>
-
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 pt-2">
           <div
             ref={wrapperRef}
-            className="relative rounded-full border-2 border-primary/40 overflow-hidden touch-none cursor-grab active:cursor-grabbing"
-            style={{ width: CANVAS_SIZE, height: CANVAS_SIZE, maxWidth: "100%", touchAction: "none" }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
+            className="relative rounded-full border-2 border-primary/40 overflow-hidden cursor-grab active:cursor-grabbing select-none"
+            style={{
+              width: CANVAS_SIZE,
+              height: CANVAS_SIZE,
+              maxWidth: "100%",
+              touchAction: "none",
+              WebkitUserSelect: "none",
+              WebkitTouchCallout: "none",
+              overscrollBehavior: "contain",
+            }}
           >
-            <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} />
+            <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} style={{ touchAction: "none", pointerEvents: "none" }} />
           </div>
 
           <div className="w-full flex items-center justify-center px-2">
@@ -221,7 +231,6 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
               <RotateCcw className="h-3 w-3" /> 重設
             </button>
           </div>
-
 
           <div className="flex gap-3 w-full pt-2">
             <button
