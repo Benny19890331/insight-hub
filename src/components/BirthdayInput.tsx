@@ -1,15 +1,16 @@
 /**
- * 生日輸入欄：直接顯示「年 / 月 / 日」三欄滾輪（所見即所得）。
- * 所見即所選，對長輩友善；不再彈出系統日期選擇器。
+ * 生日輸入欄：平時只顯示日期文字，點擊後從底部彈出 iPhone 風格三欄滾輪。
  */
 import { useEffect, useMemo, useState } from "react";
 import { ScrollPicker } from "@/components/ScrollPicker";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { X } from "lucide-react";
 
 interface BirthdayInputProps {
-  value: string;                      // ISO 格式 yyyy-mm-dd（與資料庫一致）
+  value: string;
   onChange: (v: string) => void;
-  className?: string;                 // 外層容器樣式
-  inputClassName?: string;            // 外層容器額外樣式（沿用各視窗主題）
+  className?: string;
+  inputClassName?: string;
 }
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -22,90 +23,115 @@ const DEFAULT_M = "01";
 const DEFAULT_D = "01";
 
 export function BirthdayInput({ value, onChange, className = "", inputClassName }: BirthdayInputProps) {
-  // 解析 value
-  const parsed = useMemo(() => {
+  const [open, setOpen] = useState(false);
+
+  // 暫存滾輪選擇
+  const initial = useMemo(() => {
     const [y, m, d] = value.split("-");
     return { y: y || DEFAULT_Y, m: m || DEFAULT_M, d: d || DEFAULT_D };
   }, [value]);
 
-  const [y, setY] = useState(parsed.y);
-  const [m, setM] = useState(parsed.m);
-  const [d, setD] = useState(parsed.d);
+  const [y, setY] = useState(initial.y);
+  const [m, setM] = useState(initial.m);
+  const [d, setD] = useState(initial.d);
 
-  // 外部 value 變動時同步
+  // 開啟時帶入目前值
   useEffect(() => {
-    setY(parsed.y);
-    setM(parsed.m);
-    setD(parsed.d);
-  }, [parsed.y, parsed.m, parsed.d]);
+    if (open) {
+      setY(initial.y);
+      setM(initial.m);
+      setD(initial.d);
+    }
+  }, [open, initial.y, initial.m, initial.d]);
 
-  // 動態當月天數
   const days = useMemo(() => {
     const max = daysInMonth(parseInt(y), parseInt(m));
     return Array.from({ length: max }, (_, i) => String(i + 1).padStart(2, "0"));
   }, [y, m]);
 
-  // 若日超過該月最大天數，自動 clamp
+  // 日 clamp
   useEffect(() => {
-    if (!days.includes(d)) {
-      const last = days[days.length - 1];
-      setD(last);
-      if (value) onChange(`${y}-${m}-${last}`);
-    }
-  }, [days, d, y, m, value, onChange]);
+    if (!days.includes(d)) setD(days[days.length - 1]);
+  }, [days, d]);
 
-  const emit = (ny: string, nm: string, nd: string) => {
-    const max = daysInMonth(parseInt(ny), parseInt(nm));
-    const safeD = parseInt(nd) > max ? String(max).padStart(2, "0") : nd;
-    onChange(`${ny}-${nm}-${safeD}`);
+  const triggerClass = inputClassName
+    ? inputClassName
+    : "w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm";
+
+  const handleConfirm = () => {
+    const max = daysInMonth(parseInt(y), parseInt(m));
+    const safeD = parseInt(d) > max ? String(max).padStart(2, "0") : d;
+    onChange(`${y}-${m}-${safeD}`);
+    setOpen(false);
   };
-
-  const containerClass = inputClassName
-    ? `${inputClassName} p-2`
-    : "rounded-lg border border-border bg-muted/50 p-2";
 
   return (
     <div className={`relative ${className}`}>
-      <div className={containerClass}>
-        <div className="grid grid-cols-3 gap-1.5">
-          <div>
-            <div className="text-[10px] text-muted-foreground text-center mb-0.5">年</div>
-            <ScrollPicker
-              items={YEARS}
-              value={y}
-              onChange={(nv) => { setY(nv); emit(nv, m, d); }}
-            />
-          </div>
-          <div>
-            <div className="text-[10px] text-muted-foreground text-center mb-0.5">月</div>
-            <ScrollPicker
-              items={MONTHS}
-              value={m}
-              onChange={(nv) => { setM(nv); emit(y, nv, d); }}
-            />
-          </div>
-          <div>
-            <div className="text-[10px] text-muted-foreground text-center mb-0.5">日</div>
-            <ScrollPicker
-              items={days}
-              value={days.includes(d) ? d : days[days.length - 1]}
-              onChange={(nv) => { setD(nv); emit(y, m, nv); }}
-            />
-          </div>
-        </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`${triggerClass} text-left flex items-center justify-between gap-2`}
+      >
+        <span className={value ? "font-mono" : "text-muted-foreground"}>
+          {value || "點此選擇生日"}
+        </span>
         {value && (
-          <div className="mt-1.5 flex justify-center">
-            <button
-              type="button"
-              onClick={() => onChange("")}
-              aria-label="清除生日"
-              className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
-            >
-              ✕ 清除生日
-            </button>
-          </div>
+          <span
+            role="button"
+            aria-label="清除生日"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange("");
+            }}
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </span>
         )}
-      </div>
+      </button>
+
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerContent className="px-4 pb-6">
+          <div className="mx-auto w-full max-w-md">
+            <div className="flex items-center justify-between py-3">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="text-sm text-muted-foreground px-2 py-1"
+              >
+                取消
+              </button>
+              <DrawerTitle className="text-base">選擇生日</DrawerTitle>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                className="text-sm font-semibold text-primary px-2 py-1"
+              >
+                完成
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <div>
+                <div className="text-xs text-muted-foreground text-center mb-1">年</div>
+                <ScrollPicker items={YEARS} value={y} onChange={setY} height={180} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground text-center mb-1">月</div>
+                <ScrollPicker items={MONTHS} value={m} onChange={setM} height={180} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground text-center mb-1">日</div>
+                <ScrollPicker
+                  items={days}
+                  value={days.includes(d) ? d : days[days.length - 1]}
+                  onChange={setD}
+                  height={180}
+                />
+              </div>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
