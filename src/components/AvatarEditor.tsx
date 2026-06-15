@@ -86,7 +86,16 @@ export function AvatarEditor({ open, onOpenChange, source, onConfirm }: AvatarEd
         e.preventDefault();
       } else if (e.touches.length >= 2) {
         setIsPinching(true);
-        pinchStart.current = { initialDistance: getDistance(e.touches[0], e.touches[1]), initialScale: scaleRef.current };
+        setDragging(false);
+        const c = getCenter(e.touches[0], e.touches[1]);
+        pinchStart.current = {
+          initialDistance: getDistance(e.touches[0], e.touches[1]),
+          initialScale: scaleRef.current,
+          centerX: c.x,
+          centerY: c.y,
+          ox: offsetRef.current.x,
+          oy: offsetRef.current.y,
+        };
         e.preventDefault();
       }
     };
