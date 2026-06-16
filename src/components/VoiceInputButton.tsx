@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 import { Mic, Keyboard, Send, AudioLines, Square, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AiConfirmModal } from "@/components/AiConfirmModal";
@@ -10,6 +10,8 @@ interface VoiceInputButtonProps {
   className?: string;
   /** 通知父層目前文字建檔框是否有未送出的草稿（用於離開確認） */
   onDraftChange?: (hasDraft: boolean) => void;
+  /** 額外按鈕（例如「數位名片診斷」），會與三顆主按鈕並排佔同寬 */
+  extraButton?: ReactNode;
 }
 
 const VOICE_PARSE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-parse`;
