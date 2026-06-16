@@ -241,15 +241,12 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           } disabled:cursor-not-allowed`}
           title={listening ? "點擊停止錄音" : "AI 智慧語音建檔"}
         >
-          <div className="flex flex-col items-center justify-center gap-0.5">
+          <div className="flex items-center justify-center">
             {parsing ? (
               <SoundwaveAnimation />
             ) : (
-              <Mic className={`h-4 w-4 transition-colors ${listening ? "text-destructive" : "text-primary"}`} />
+              <Mic className={`h-6 w-6 transition-colors ${listening ? "text-destructive" : "text-primary"}`} />
             )}
-            <span className="text-[10px] leading-tight break-keep">
-              {parsing ? "解析中" : listening ? "聆聽中" : "AI語音"}
-            </span>
           </div>
           {listening && (
             <>
@@ -274,9 +271,8 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           title="手動輸入文字"
         >
-          <div className="flex flex-col items-center justify-center gap-0.5">
-            <Keyboard className="h-4 w-4" />
-            <span className="text-[10px] leading-tight break-keep">{showTextInput ? "輸入中" : "文字"}</span>
+          <div className="flex items-center justify-center">
+            <Keyboard className="h-6 w-6" />
           </div>
         </button>
 
@@ -292,28 +288,21 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
               ? "bg-amber-500/15 border-amber-400/60"
               : "bg-muted/40 border-border hover:border-amber-400/60 hover:bg-amber-500/10"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
-          title={recording ? "點擊結束錄音" : "長錄音聽寫（會說台語）"}
+          title={recording ? "點擊結束錄音" : "長錄音聽寫（會聽台語）"}
         >
           <div className="flex flex-col items-center justify-center gap-0.5">
             {transcribing ? (
-              <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
             ) : recording ? (
-              <Square className="h-4 w-4 text-destructive" />
+              <>
+                <Square className="h-4 w-4 text-destructive" />
+                <span className="text-[10px] leading-tight font-mono text-destructive">
+                  {`${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}`}
+                </span>
+              </>
             ) : (
-              <AudioLines className="h-4 w-4 text-amber-400" />
+              <AudioLines className="h-6 w-6 text-amber-400" />
             )}
-            <span className="text-[10px] leading-tight break-keep">
-              {recording
-                ? `${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}`
-                : transcribing
-                ? "聽寫中"
-                : (
-                  <>
-                    <span className="block">長錄音</span>
-                    <span className="block">（會聽台語）</span>
-                  </>
-                )}
-            </span>
           </div>
         </button>
 
