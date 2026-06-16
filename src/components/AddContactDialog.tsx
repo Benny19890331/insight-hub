@@ -189,10 +189,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
   }, [open]);
 
   const requestClose = (v: boolean) => {
-    if (!v && isDirty) {
-      if (!window.confirm("您有尚未儲存的內容，確定要離開嗎？")) return;
-    }
-    if (!v) reset();
+    // 關閉時不再清空表單或刪除草稿；草稿一律保留到「成功儲存」或使用者主動點擊「清除」為止
     onOpenChange(v);
   };
 
@@ -239,9 +236,12 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
                   style={{ background: "linear-gradient(120deg, #22d3ee, #818cf8, #e879f9, #22d3ee)", backgroundSize: "300% 300%", animation: "rainbow-bg 8s linear infinite" }}
                   title="貼上數位名片診斷結果"
                 >
-                  <span className="inline-flex w-full h-full items-center justify-center rounded-[10px] bg-background/85 backdrop-blur-sm px-1 text-[10px] font-semibold transition-colors group-hover:bg-background/70">
-                    <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent break-keep text-center leading-tight">
-                      數位名片診斷
+                  <span className="inline-flex flex-col w-full h-full items-center justify-center rounded-[10px] bg-background/85 backdrop-blur-sm px-1 font-bold transition-colors group-hover:bg-background/70 leading-[1.05]">
+                    <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent break-keep text-center text-[15px]">
+                      數位名片
+                    </span>
+                    <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent break-keep text-center text-[15px]">
+                      診斷
                     </span>
                   </span>
                 </button>
