@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
           contents: [{
             parts: [
               { inline_data: { mime_type: mimeType, data: audio } },
-              { text: '請把這段錄音完整聽寫成繁體中文文字。說話的人可能講台語、國語，或國台語夾雜，語速可能很慢、有停頓，請耐心聽完整段。台語內容請翻譯成通順的中文書寫。只輸出聽寫後的文字，不要加任何說明或標點以外的符號。' },
+              { text: '請完整聽寫這段錄音為繁體中文。說話者可能說台語、國語，或國台語夾雜，語速可能很慢、有長停頓，請耐心聽完整段不要漏字。若聽到台語請翻成自然通順的繁體中文書寫；人名、產品名、品牌名請保留原音。只輸出聽寫後的文字本身，不要加任何說明、引號或前後綴。' },
             ],
           }],
         }),

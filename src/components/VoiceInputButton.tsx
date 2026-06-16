@@ -295,7 +295,7 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
       </div>
 
       {/* Status text */}
-      <span className="text-[10px] text-muted-foreground font-medium">
+      <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap max-w-full overflow-x-auto px-1">
         {recording ? `🔴 錄音中 ${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}（說完點 ⏹ 結束，慢慢講沒關係）` : transcribing ? "👂 AI 正在仔細聽寫，長錄音需要一點時間⋯" : listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 語意解析中..." : "🎙️ 語音 ｜ ⌨️ 文字 ｜ 🎵 長錄音（會聽台語）"}
       </span>
 
