@@ -182,7 +182,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
         </DialogHeader>
         <div className="space-y-4 pt-2">
           {/* AI Voice Input */}
-          <div className="flex justify-center py-2 border-b border-border/50 mb-2">
+          <div className="py-2 border-b border-border/50 mb-2">
             <VoiceInputButton
               mode="contact"
               onDraftChange={setHasVoiceDraft}
@@ -201,20 +201,22 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
                 if (data.heat && ["cold", "warm", "hot", "loyal"].includes(data.heat)) setHeat(data.heat);
                 if (data.notes) setNotes(data.notes);
               }}
+              extraButton={
+                <button
+                  type="button"
+                  onClick={() => setPasteOpen(true)}
+                  className="group relative inline-flex items-center justify-center rounded-xl p-[2px] w-full h-12 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{ background: "linear-gradient(120deg, #22d3ee, #818cf8, #e879f9, #22d3ee)", backgroundSize: "300% 300%", animation: "rainbow-bg 8s linear infinite" }}
+                  title="貼上數位名片診斷結果"
+                >
+                  <span className="inline-flex w-full h-full items-center justify-center rounded-[10px] bg-background/85 backdrop-blur-sm px-2 text-xs font-semibold transition-colors group-hover:bg-background/70">
+                    <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent whitespace-nowrap">
+                      數位名片診斷
+                    </span>
+                  </span>
+                </button>
+              }
             />
-            <button
-              type="button"
-              onClick={() => setPasteOpen(true)}
-              className="group ml-3 relative inline-flex items-center gap-2 rounded-full p-[1.5px] transition-transform duration-200 hover:scale-[1.04] active:scale-[0.98]"
-              style={{ background: "linear-gradient(120deg, #22d3ee, #818cf8, #e879f9, #22d3ee)", backgroundSize: "300% 300%", animation: "rainbow-bg 8s linear infinite" }}
-            >
-              <span className="inline-flex items-center gap-2 rounded-full bg-background/85 backdrop-blur-sm px-4 py-2 text-sm font-semibold text-foreground transition-colors group-hover:bg-background/70">
-                <span className="text-base leading-none">📇</span>
-                <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent whitespace-nowrap">
-                  數位名片診斷
-                </span>
-              </span>
-            </button>
           </div>
           <PasteCardDiagnosticsDialog
             open={pasteOpen}
