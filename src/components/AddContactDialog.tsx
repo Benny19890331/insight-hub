@@ -20,6 +20,8 @@ const bgWhite = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vc
 
 const bgImages = [bgGirl, bgViolet, bgYouth, bgPrime, bgWisdom, bgBlack, bgWhite];
 
+const DRAFT_KEY = "addContactDraft:v1";
+
 interface AddContactDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -66,6 +68,7 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes(""); setTaboos("");
     setSelectedTags([]); setContactMethod(""); setReferrerId("");
     setBirthday(""); setBirthdayReminder("none"); setReferrerSearch(""); setHasVoiceDraft(false);
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
   };
 
   const handleSave = () => {
@@ -113,6 +116,47 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [open, isDirty]);
+
+  // 草稿自動保存：手機切 App / 切分頁回來頁面被釋放重載時不會白打
+  useEffect(() => {
+    if (!open) return;
+    if (!isDirty) return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          name, nickname, region, background, interest, selectedStatuses, heat,
+          gender, notes, taboos, selectedTags, contactMethod, referrerId,
+          birthday, birthdayReminder,
+        }));
+      } catch {}
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [open, isDirty, name, nickname, region, background, interest, selectedStatuses, heat, gender, notes, taboos, selectedTags, contactMethod, referrerId, birthday, birthdayReminder]);
+
+  // 開啟 dialog 時，若 localStorage 有未完成草稿則詢問是否續編
+  useEffect(() => {
+    if (!open) return;
+    if (isDirty) return; // 已經有內容（例如語音剛填好）就不蓋掉
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      const hasContent = d && (d.name || d.nickname || d.region || d.background || d.interest || d.notes || d.taboos || d.contactMethod || d.birthday || (d.selectedStatuses?.length) || (d.selectedTags?.length) || d.referrerId);
+      if (!hasContent) { localStorage.removeItem(DRAFT_KEY); return; }
+      if (window.confirm("發現上次未完成的新增聯絡人草稿，要繼續編輯嗎？\n（按取消會清除草稿）")) {
+        setName(d.name ?? ""); setNickname(d.nickname ?? ""); setRegion(d.region ?? "");
+        setBackground(d.background ?? ""); setInterest(d.interest ?? "");
+        setSelectedStatuses(d.selectedStatuses ?? []); setHeat(d.heat ?? "cold");
+        setGender(d.gender ?? ""); setNotes(d.notes ?? ""); setTaboos(d.taboos ?? "");
+        setSelectedTags(d.selectedTags ?? []); setContactMethod(d.contactMethod ?? "");
+        setReferrerId(d.referrerId ?? ""); setBirthday(d.birthday ?? "");
+        setBirthdayReminder(d.birthdayReminder ?? "none");
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    } catch { localStorage.removeItem(DRAFT_KEY); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const requestClose = (v: boolean) => {
     if (!v && isDirty) {
