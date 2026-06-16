@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 import { Mic, Keyboard, Send, AudioLines, Square, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AiConfirmModal } from "@/components/AiConfirmModal";
@@ -10,6 +10,8 @@ interface VoiceInputButtonProps {
   className?: string;
   /** 通知父層目前文字建檔框是否有未送出的草稿（用於離開確認） */
   onDraftChange?: (hasDraft: boolean) => void;
+  /** 額外按鈕（例如「數位名片診斷」），會與三顆主按鈕並排佔同寬 */
+  extraButton?: ReactNode;
 }
 
 const VOICE_PARSE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-parse`;
@@ -33,7 +35,7 @@ function SoundwaveAnimation() {
   );
 }
 
-export function VoiceInputButton({ mode, onResult, className = "", onDraftChange }: VoiceInputButtonProps) {
+export function VoiceInputButton({ mode, onResult, className = "", onDraftChange, extraButton }: VoiceInputButtonProps) {
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -224,13 +226,13 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
 
   return (
     <div className={`flex flex-col items-center gap-2 w-full ${className}`}>
-      <div className="flex items-center gap-3">
+      <div className={`grid ${extraButton ? "grid-cols-4" : "grid-cols-3"} gap-2 w-full`}>
         {/* Mic button */}
         <button
           type="button"
           onClick={handleClick}
           disabled={parsing}
-          className={`relative group inline-flex items-center justify-center rounded-full w-12 h-12 transition-all duration-300 ${
+          className={`relative group inline-flex items-center justify-center rounded-xl w-full h-12 transition-all duration-300 ${
             listening
               ? "bg-destructive/20 border-2 border-destructive shadow-[0_0_20px_hsl(var(--destructive)/0.4)]"
               : parsing
@@ -246,12 +248,12 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           )}
           {listening && (
             <>
-              <span className="absolute inset-0 rounded-full border-2 border-destructive animate-ping opacity-30" />
+              <span className="absolute inset-0 rounded-xl border-2 border-destructive animate-ping opacity-30" />
               <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-destructive animate-pulse" />
             </>
           )}
           {parsing && (
-            <span className="absolute inset-0 rounded-full border-2 border-primary/60 animate-pulse" />
+            <span className="absolute inset-0 rounded-xl border-2 border-primary/60 animate-pulse" />
           )}
         </button>
 
@@ -260,14 +262,14 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           type="button"
           onClick={() => setShowTextInput(!showTextInput)}
           disabled={parsing || listening}
-          className={`inline-flex items-center justify-center rounded-full w-10 h-10 transition-all duration-200 border ${
+          className={`inline-flex items-center justify-center rounded-xl w-full h-12 transition-all duration-200 border-2 ${
             showTextInput
               ? "bg-primary/15 border-primary/40 text-primary"
               : "bg-muted/30 border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           title="手動輸入文字"
         >
-          <Keyboard className="h-4 w-4" />
+          <Keyboard className="h-5 w-5" />
         </button>
 
         {/* 長錄音模式:整段交給 AI 聽寫,支援台語與慢語速 */}
@@ -275,7 +277,7 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           type="button"
           onClick={recording ? stopRecording : startRecording}
           disabled={parsing || transcribing || listening}
-          className={`relative inline-flex items-center justify-center rounded-full w-10 h-10 border-2 transition-all duration-300 ${
+          className={`relative inline-flex items-center justify-center rounded-xl w-full h-12 border-2 transition-all duration-300 ${
             recording
               ? "bg-destructive/20 border-destructive shadow-[0_0_20px_hsl(var(--destructive)/0.4)] animate-pulse"
               : transcribing
@@ -285,19 +287,22 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           title={recording ? "點擊結束錄音" : "長錄音聽寫（會說台語）"}
         >
           {transcribing ? (
-            <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
           ) : recording ? (
-            <Square className="h-4 w-4 text-destructive" />
+            <Square className="h-5 w-5 text-destructive" />
           ) : (
-            <AudioLines className="h-4 w-4 text-amber-400" />
+            <AudioLines className="h-5 w-5 text-amber-400" />
           )}
         </button>
+
+        {extraButton}
       </div>
 
       {/* Status text */}
-      <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap max-w-full overflow-x-auto px-1">
+      <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap max-w-full overflow-x-auto px-1 text-center">
         {recording ? `🔴 錄音中 ${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}（說完點 ⏹ 結束，慢慢講沒關係）` : transcribing ? "👂 AI 正在仔細聽寫，長錄音需要一點時間⋯" : listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 語意解析中..." : "🎙️ 語音 ｜ ⌨️ 文字 ｜ 🎵 長錄音（會聽台語）"}
       </span>
+
 
       {/* Live transcript */}
       {(listening || transcript) && transcript && (
