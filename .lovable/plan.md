@@ -1,21 +1,31 @@
-## 目標
-改成 iPhone 風格：平時欄位只顯示「1990-01-01」這種簡單文字，點一下才從下方彈出年/月/日三欄滾輪（像截圖的計時器），選好按「完成」收起，欄位就只剩數字。
+## 修正範圍
 
-## 變更
+### 1. 手機切換 App 後資料不消失（草稿自動保存）
 
-### `src/components/BirthdayInput.tsx`（改寫）
-- 平時呈現：一個可點擊的輸入框，顯示 `value`（例如 `1990-01-01`），未填顯示淺色「點此選擇生日」。右側保留小 ✕ 清除鈕（有值時才出現）。
-- 點擊欄位 → 用 shadcn `Drawer`（手機從底部滑出，桌機亦相容）彈出滾輪面板：
-  - 標題列：左「取消」、中「選擇生日」、右「完成」（綠色）。
-  - 內容：三欄並排 `ScrollPicker`（年 1925~今年、月 01~12、日依年月動態，含閏年 clamp）。
-  - 滾輪用「暫存 state」操作，按「完成」才 `onChange` 寫回，按「取消」或關閉則丟棄。
-  - 首次開啟若 `value` 為空 → 預設 1990/01/01；有值則帶入。
-- 移除目前直接外露的三欄滾輪、外層 padding 容器、「年/月/日」標籤與外層清除按鈕（改放在欄位右側）。
+**`src/components/AddContactDialog.tsx`**
+- 新增 `DRAFT_KEY = "addContactDraft:v1"` 常數。
+- `useEffect` #1：當 dialog 開啟、且任一欄位變動時，把整個表單 state 序列化成 JSON 存進 `localStorage`（用 `setTimeout` 300ms 去抖，避免每次按鍵都寫入）。
+- `useEffect` #2：當 dialog 由關閉變開啟、且當下 state 全空時，讀取 `localStorage` 草稿；若有內容，使用 `window.confirm("發現上次未完成的新增聯絡人草稿，要繼續編輯嗎？")` 詢問。確認 → 還原所有欄位；取消 → 清掉草稿。
+- `handleSave()` 與 `reset()`（被「取消離開」呼叫時）都清掉 `localStorage` 草稿。
+- `EditContactDialog` 不動（編輯既有資料、來源已在資料庫，不需草稿）。
 
-### `src/components/ScrollPicker.tsx`
-- 不動邏輯。Drawer 內寬度比之前充足，視覺更接近 iPhone。
+行為總結：你打到一半切去看別人資料 → 回到本頁面（即使整頁被 iOS 釋放重新載入）→ 再開啟「新增聯絡人」→ 跳出「要不要繼續上次的草稿？」。
 
-## 不變動
-- 對外介面 `{ value, onChange, className, inputClassName }` 不變；`AddContactDialog`、`EditContactDialog` 不需修改。
-- 資料格式仍為 `YYYY-MM-DD`。
-- 生日提醒、橫幅、ICS、CSV、schema 全部不動。
+### 2. 長錄音改善
+
+**`supabase/functions/voice-transcribe/index.ts`**
+- 模型從 `gemini-3.5-flash` 換成 `gemini-2.5-pro`（同金鑰可用，多模態音訊辨識能力遠優於 flash，尤其對台語、慢語速、長停頓）。
+- Prompt 強化：明確要求 **「若聽到台語請翻成自然繁體中文書寫，保留人名/產品名原音；遇停頓請耐心等待整段；輸出只給聽寫文字。」**
+- 其餘 CORS、回傳格式不變。
+
+**`src/components/VoiceInputButton.tsx`**
+- 狀態列 `<span>` 加 `whitespace-nowrap`，並把外層 wrapper 改成 `overflow-x-auto`，避免「🎵 長錄音（會聽台語）」被斷行切開。在窄螢幕會變成可橫向滑動的單行；在桌機正常顯示。
+
+## 不會動到的東西
+- BirthdayInput 滾輪、AvatarEditor、其他 dialog、Auth、資料庫 schema 全部不變。
+- VoiceInputButton 的錄音/即時聽寫流程不變，只改視覺與後端模型。
+
+## 技術細節
+- localStorage key 帶版本號 `:v1`，未來欄位若大幅調整可直接升版避免舊草稿造成型別錯誤。
+- 草稿 JSON 體積極小（純文字欄位），無壓力。
+- Gemini 2.5 Pro 在 Lovable Cloud 已可用同一把 `GEMINI_API_KEY`，呼叫端點只需把 URL 中模型名替換即可，前端不需改動。
