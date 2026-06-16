@@ -241,11 +241,16 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           } disabled:cursor-not-allowed`}
           title={listening ? "點擊停止錄音" : "AI 智慧語音建檔"}
         >
-          {parsing ? (
-            <SoundwaveAnimation />
-          ) : (
-            <Mic className={`h-5 w-5 transition-colors ${listening ? "text-destructive" : "text-primary"}`} />
-          )}
+          <div className="flex flex-col items-center justify-center gap-0.5">
+            {parsing ? (
+              <SoundwaveAnimation />
+            ) : (
+              <Mic className={`h-4 w-4 transition-colors ${listening ? "text-destructive" : "text-primary"}`} />
+            )}
+            <span className="text-[10px] leading-tight break-keep">
+              {parsing ? "解析中" : listening ? "聆聽中" : "AI語音"}
+            </span>
+          </div>
           {listening && (
             <>
               <span className="absolute inset-0 rounded-xl border-2 border-destructive animate-ping opacity-30" />
@@ -269,7 +274,10 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           title="手動輸入文字"
         >
-          <Keyboard className="h-5 w-5" />
+          <div className="flex flex-col items-center justify-center gap-0.5">
+            <Keyboard className="h-4 w-4" />
+            <span className="text-[10px] leading-tight break-keep">{showTextInput ? "輸入中" : "文字"}</span>
+          </div>
         </button>
 
         {/* 長錄音模式:整段交給 AI 聽寫,支援台語與慢語速 */}
@@ -286,22 +294,32 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
           } disabled:opacity-40 disabled:cursor-not-allowed`}
           title={recording ? "點擊結束錄音" : "長錄音聽寫（會說台語）"}
         >
-          {transcribing ? (
-            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
-          ) : recording ? (
-            <Square className="h-5 w-5 text-destructive" />
-          ) : (
-            <AudioLines className="h-5 w-5 text-amber-400" />
-          )}
+          <div className="flex flex-col items-center justify-center gap-0.5">
+            {transcribing ? (
+              <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+            ) : recording ? (
+              <Square className="h-4 w-4 text-destructive" />
+            ) : (
+              <AudioLines className="h-4 w-4 text-amber-400" />
+            )}
+            <span className="text-[10px] leading-tight break-keep">
+              {recording
+                ? `${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}`
+                : transcribing
+                ? "聽寫中"
+                : (
+                  <>
+                    <span className="block">長錄音</span>
+                    <span className="block">（會聽台語）</span>
+                  </>
+                )}
+            </span>
+          </div>
         </button>
 
         {extraButton}
       </div>
 
-      {/* Status text */}
-      <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap max-w-full overflow-x-auto px-1 text-center">
-        {recording ? `🔴 錄音中 ${Math.floor(recordSec / 60)}:${String(recordSec % 60).padStart(2, "0")}（說完點 ⏹ 結束，慢慢講沒關係）` : transcribing ? "👂 AI 正在仔細聽寫，長錄音需要一點時間⋯" : listening ? "🔴 聆聽中，說完請點擊停止" : parsing ? "🧠 AI 語意解析中..." : "🎙️ 語音 ｜ ⌨️ 文字 ｜ 🎵 長錄音（會聽台語）"}
-      </span>
 
 
       {/* Live transcript */}

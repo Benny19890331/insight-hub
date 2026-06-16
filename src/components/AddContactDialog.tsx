@@ -209,8 +209,8 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
                   style={{ background: "linear-gradient(120deg, #22d3ee, #818cf8, #e879f9, #22d3ee)", backgroundSize: "300% 300%", animation: "rainbow-bg 8s linear infinite" }}
                   title="貼上數位名片診斷結果"
                 >
-                  <span className="inline-flex w-full h-full items-center justify-center rounded-[10px] bg-background/85 backdrop-blur-sm px-2 text-xs font-semibold transition-colors group-hover:bg-background/70">
-                    <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent whitespace-nowrap">
+                  <span className="inline-flex w-full h-full items-center justify-center rounded-[10px] bg-background/85 backdrop-blur-sm px-1 text-[10px] font-semibold transition-colors group-hover:bg-background/70">
+                    <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent break-keep text-center leading-tight">
                       數位名片診斷
                     </span>
                   </span>
