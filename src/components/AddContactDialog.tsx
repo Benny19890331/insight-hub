@@ -117,11 +117,24 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
     return () => window.removeEventListener("beforeunload", warn);
   }, [open, isDirty]);
 
-  // 草稿自動保存：手機切 App / 切分頁回來頁面被釋放重載時不會白打
+  // 草稿即時保存：每次輸入立即寫入 localStorage（不 debounce，避免手機快速切換時遺失）
   useEffect(() => {
     if (!open) return;
     if (!isDirty) return;
-    const timer = setTimeout(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        name, nickname, region, background, interest, selectedStatuses, heat,
+        gender, notes, taboos, selectedTags, contactMethod, referrerId,
+        birthday, birthdayReminder,
+      }));
+    } catch {}
+  }, [open, isDirty, name, nickname, region, background, interest, selectedStatuses, heat, gender, notes, taboos, selectedTags, contactMethod, referrerId, birthday, birthdayReminder]);
+
+  // 手機切 App / 切分頁 / 即將釋放頁面時，再保險寫入一次
+  useEffect(() => {
+    if (!open) return;
+    const flush = () => {
+      if (!isDirty) return;
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
           name, nickname, region, background, interest, selectedStatuses, heat,
@@ -129,11 +142,19 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           birthday, birthdayReminder,
         }));
       } catch {}
-    }, 300);
-    return () => clearTimeout(timer);
+    };
+    const onVis = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("blur", flush);
+    return () => {
+      window.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener("blur", flush);
+    };
   }, [open, isDirty, name, nickname, region, background, interest, selectedStatuses, heat, gender, notes, taboos, selectedTags, contactMethod, referrerId, birthday, birthdayReminder]);
 
-  // 開啟 dialog 時，若 localStorage 有未完成草稿則詢問是否續編
+  // 開啟 dialog 時，自動還原 localStorage 中的草稿（不再用 confirm 阻擋；用 toast 提示可清除）
   useEffect(() => {
     if (!open) return;
     if (isDirty) return; // 已經有內容（例如語音剛填好）就不蓋掉
@@ -143,17 +164,26 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
       const d = JSON.parse(raw);
       const hasContent = d && (d.name || d.nickname || d.region || d.background || d.interest || d.notes || d.taboos || d.contactMethod || d.birthday || (d.selectedStatuses?.length) || (d.selectedTags?.length) || d.referrerId);
       if (!hasContent) { localStorage.removeItem(DRAFT_KEY); return; }
-      if (window.confirm("發現上次未完成的新增聯絡人草稿，要繼續編輯嗎？\n（按取消會清除草稿）")) {
-        setName(d.name ?? ""); setNickname(d.nickname ?? ""); setRegion(d.region ?? "");
-        setBackground(d.background ?? ""); setInterest(d.interest ?? "");
-        setSelectedStatuses(d.selectedStatuses ?? []); setHeat(d.heat ?? "cold");
-        setGender(d.gender ?? ""); setNotes(d.notes ?? ""); setTaboos(d.taboos ?? "");
-        setSelectedTags(d.selectedTags ?? []); setContactMethod(d.contactMethod ?? "");
-        setReferrerId(d.referrerId ?? ""); setBirthday(d.birthday ?? "");
-        setBirthdayReminder(d.birthdayReminder ?? "none");
-      } else {
-        localStorage.removeItem(DRAFT_KEY);
-      }
+      setName(d.name ?? ""); setNickname(d.nickname ?? ""); setRegion(d.region ?? "");
+      setBackground(d.background ?? ""); setInterest(d.interest ?? "");
+      setSelectedStatuses(d.selectedStatuses ?? []); setHeat(d.heat ?? "cold");
+      setGender(d.gender ?? ""); setNotes(d.notes ?? ""); setTaboos(d.taboos ?? "");
+      setSelectedTags(d.selectedTags ?? []); setContactMethod(d.contactMethod ?? "");
+      setReferrerId(d.referrerId ?? ""); setBirthday(d.birthday ?? "");
+      setBirthdayReminder(d.birthdayReminder ?? "none");
+      toast("已為您還原上次未完成的草稿", {
+        action: {
+          label: "清除",
+          onClick: () => {
+            setName(""); setNickname(""); setRegion(""); setBackground(""); setInterest("");
+            setSelectedStatuses([]); setHeat("cold"); setGender(""); setNotes(""); setTaboos("");
+            setSelectedTags([]); setContactMethod(""); setReferrerId("");
+            setBirthday(""); setBirthdayReminder("none");
+            try { localStorage.removeItem(DRAFT_KEY); } catch {}
+          },
+        },
+        duration: 6000,
+      });
     } catch { localStorage.removeItem(DRAFT_KEY); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
