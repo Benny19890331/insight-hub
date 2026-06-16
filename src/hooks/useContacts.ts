@@ -189,7 +189,19 @@ export function useContacts() {
 
       if (fetchVersion !== fetchVersionRef.current) return;
 
-      setContacts(allContacts.map((c) => dbToContact(c, new Map(), new Map())));
+      // 保留先前已 hydrate 的 interactions / insightTags，避免重抓 contacts 時畫面瞬間清空
+      setContacts((prev) => {
+        const prevById = new Map(prev.map((c) => [c.id, c]));
+        return allContacts.map((c) => {
+          const fresh = dbToContact(c, new Map(), new Map());
+          const old = prevById.get(c.id);
+          if (old) {
+            fresh.interactions = old.interactions ?? [];
+            fresh.insightTags = old.insightTags ?? [];
+          }
+          return fresh;
+        });
+      });
       setLoading(false);
     } catch (err) {
       console.error("fetchContacts failed:", err);
@@ -198,7 +210,8 @@ export function useContacts() {
       return;
     }
 
-    if (hydratedUserIdRef.current === user.id || hydrationPromiseRef.current) {
+    // 每次都重新同步 interactions / insights，僅用 hydrationPromiseRef 防止並發重複
+    if (hydrationPromiseRef.current) {
       return;
     }
 
