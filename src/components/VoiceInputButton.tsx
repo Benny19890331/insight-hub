@@ -320,8 +320,6 @@ export function VoiceInputButton({ mode, onResult, className = "", onDraftChange
         {extraButton}
       </div>
 
-
-
       {/* Live transcript */}
       {(listening || transcript) && transcript && (
         <div className="w-full rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-foreground max-h-20 overflow-y-auto">
