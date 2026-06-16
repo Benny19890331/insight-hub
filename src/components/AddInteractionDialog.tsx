@@ -74,7 +74,7 @@ export function AddInteractionDialog({ open, onOpenChange, contactName, contacts
             </DialogHeader>
             <div className="space-y-4 pt-2">
               {/* AI Voice Input */}
-              <div className="flex justify-center py-2 border-b border-border/50 mb-2">
+              <div className="py-2 border-b border-border/50 mb-2">
                 <VoiceInputButton
                   mode="interaction"
                   onResult={(data: any) => {
