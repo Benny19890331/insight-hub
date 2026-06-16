@@ -35,7 +35,7 @@ function SoundwaveAnimation() {
   );
 }
 
-export function VoiceInputButton({ mode, onResult, className = "", onDraftChange }: VoiceInputButtonProps) {
+export function VoiceInputButton({ mode, onResult, className = "", onDraftChange, extraButton }: VoiceInputButtonProps) {
   const [listening, setListening] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [transcript, setTranscript] = useState("");
