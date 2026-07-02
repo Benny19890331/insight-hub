@@ -456,32 +456,6 @@ export default function Auth() {
                   {isLogin ? "使用 Google 帳號登入" : "使用 Google 帳號註冊"}
                 </button>
 
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => {
-                    lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: appBaseUrl,
-                    }).then((result) => {
-                      if (result.error) {
-                        toast.error("Apple 登入失敗，請稍後再試");
-                        console.error("Apple OAuth error:", result.error);
-                      }
-                      if (result.redirected) return;
-                      setLoading(false);
-                    }).catch((err) => {
-                      toast.error("Apple 登入失敗");
-                      console.error(err);
-                      setLoading(false);
-                    });
-                  }}
-                  className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 border backdrop-blur-sm ${t.authCard} ${t.authCardText}`}
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.11 4.45-3.74 4.25z"/>
-                  </svg>
-                  {isLogin ? "使用 Apple 帳號登入" : "使用 Apple 帳號註冊"}
-                </button>
               </div>
 
               {isLogin && (
@@ -495,14 +469,6 @@ export default function Auth() {
             </>
           )}
 
-          {!recoveryMode && !customResetMode && (
-            <p className={`text-center text-xs ${t.authSubtext}`}>
-              {isLogin ? "還沒有帳號？" : "已有帳號？"}
-              <button onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); setShowConfirmPassword(false); setShowPassword(false); }} className={`${t.authLink} ml-1 underline-offset-2 hover:underline`}>
-                {isLogin ? "立即註冊" : "返回登入"}
-              </button>
-            </p>
-          )}
         </div>
 
         {!isStandalone && (
