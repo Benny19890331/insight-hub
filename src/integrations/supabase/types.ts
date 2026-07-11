@@ -100,6 +100,63 @@ export type Database = {
           },
         ]
       }
+      contact_merge_jobs: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          duplicate_contacts: number
+          duplicate_groups: number
+          error_message: string | null
+          heartbeat_at: string | null
+          id: string
+          merged_contacts: number
+          progress_processed: number
+          requested_at: string
+          result: Json
+          started_at: string | null
+          status: string
+          total_contacts: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          duplicate_contacts?: number
+          duplicate_groups?: number
+          error_message?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          merged_contacts?: number
+          progress_processed?: number
+          requested_at?: string
+          result?: Json
+          started_at?: string | null
+          status?: string
+          total_contacts?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          duplicate_contacts?: number
+          duplicate_groups?: number
+          error_message?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          merged_contacts?: number
+          progress_processed?: number
+          requested_at?: string
+          result?: Json
+          started_at?: string | null
+          status?: string
+          total_contacts?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_relationships: {
         Row: {
           contact_id: string
@@ -370,6 +427,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_contact_merge_job: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -378,6 +436,7 @@ export type Database = {
         Returns: boolean
       }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      run_contact_merge_job: { Args: { job_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"

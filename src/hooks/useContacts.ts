@@ -3,43 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { Contact, Interaction, HeatLevel, BirthdayReminder, Gender } from "@/data/contacts";
 import { toast } from "sonner";
+import type { Database, Json } from "@/integrations/supabase/types";
+import { fetchAllPages, type PageResult } from "@/lib/fetchAllPages";
+import {
+  normalizeContactName,
+  normalizeMemberId,
+  planContactMerges,
+  type ContactMergeGroup,
+} from "@/lib/contactDedup";
+import { isMissingMergeRpc, parseContactMergeRpcResult } from "@/lib/contactMergeJob";
 
-interface DbContact {
-  id: string;
-  user_id: string;
-  name: string;
-  nickname: string | null;
-  member_id: string | null;
-  region: string;
-  background: string;
-  interest: string | null;
-  statuses: string[];
-  heat: string;
-  notes: string;
-  taboos: string | null;
-  last_contact_date: string;
-  next_follow_up_date: string | null;
-  next_follow_up_note: string | null;
-  next_follow_up_time: string | null;
-  contact_method: string | null;
-  avatar_url: string | null;
-  avatar_thumb_url: string | null;
-  referrer_id: string | null;
-  referrer_name: string | null;
-  birthday: string | null;
-  birthday_reminder: string;
-  gender: string | null;
-  product_tags: string[];
-  created_at: string;
-}
-
-interface DbInteraction {
-  id: string;
-  contact_id: string;
-  user_id: string;
-  date: string;
-  summary: string;
-}
+type DbContact = Database["public"]["Tables"]["contacts"]["Row"];
+type DbContactInsert = Database["public"]["Tables"]["contacts"]["Insert"];
+type DbContactUpdate = Database["public"]["Tables"]["contacts"]["Update"];
+type DbInteraction = Database["public"]["Tables"]["interactions"]["Row"];
+type DbInsight = Database["public"]["Tables"]["contact_insights"]["Row"];
+type DbInsightInsert = Database["public"]["Tables"]["contact_insights"]["Insert"];
+type DbRelationship = Database["public"]["Tables"]["contact_relationships"]["Row"];
+type DbRelationshipInsert = Database["public"]["Tables"]["contact_relationships"]["Insert"];
 
 interface DbInsightTags {
   contact_id: string;
@@ -55,11 +36,11 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     memberId: db.member_id ?? undefined,
     region: db.region,
     background: db.background,
-    interest: (db as any).interest ?? undefined,
+    interest: db.interest ?? undefined,
     statuses: db.statuses ?? [],
     heat: (db.heat as HeatLevel) ?? "cold",
     notes: db.notes,
-    taboos: (db as any).taboos ?? "",
+    taboos: db.taboos ?? "",
     lastContactDate: db.last_contact_date,
     nextFollowUpDate: db.next_follow_up_date ?? undefined,
     nextFollowUpNote: db.next_follow_up_note ?? undefined,
@@ -75,7 +56,7 @@ function dbToContact(db: DbContact, interactionMap: Map<string, DbInteraction[]>
     interactions: interactions.map((i) => ({ id: i.id, date: i.date, summary: i.summary })),
     productTags: db.product_tags ?? [],
     insightTags: insightTagsMap.get(db.id) ?? [],
-    updatedAt: (db as any).updated_at ?? undefined,
+    updatedAt: db.updated_at ?? undefined,
   };
 }
 
@@ -97,7 +78,7 @@ function buildInsightTagsMap(insights: DbInsightTags[]): Map<string, string[]> {
   return insightTagsMap;
 }
 
-function contactToDbPayload(c: Contact) {
+function contactToDbPayload(c: Contact): DbContactUpdate {
   return {
     name: c.name,
     nickname: c.nickname || null,
@@ -125,25 +106,155 @@ function contactToDbPayload(c: Contact) {
   };
 }
 
-const PAGE_SIZE = 1000;
-const MAX_CONTACTS = 3000;
-const MAX_INTERACTIONS = 10000;
-const PARALLEL_BATCH = 10; // concurrent DB operations
+const MAX_CONTACTS = 20_000;
+const MAX_INTERACTIONS = 100_000;
+const MAX_MERGE_CONTACTS = 100_000;
+const PARALLEL_BATCH = 5;
+const UPSERT_BATCH = 200;
 
-async function fetchPaginated<T>(
-  queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>,
-  maxRows: number
-): Promise<T[]> {
-  let all: T[] = [];
-  let from = 0;
-  while (from < maxRows) {
-    const { data, error } = await queryFn(from, from + PAGE_SIZE - 1);
-    if (error) throw error;
-    all = [...all, ...(data ?? [])];
-    if (!data || data.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
+const toPageResult = <T,>(
+  data: T[] | null,
+  error: { message?: string } | null,
+): PageResult<T> => ({ data, error });
+
+function chunksOf<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+}
+
+function mergeUniqueStrings(values: Array<string | null | undefined>): string {
+  const lines = values
+    .flatMap((value) => (value ?? "").split("\n"))
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return Array.from(new Set(lines)).join("\n");
+}
+
+function mergeStringArrays(values: Array<string[] | null | undefined>): string[] {
+  return Array.from(new Set(values.flatMap((value) => value ?? []).filter(Boolean)));
+}
+
+function latestNonEmpty<T>(rows: DbContact[], read: (row: DbContact) => T | null | undefined): T | null {
+  const sorted = [...rows].sort((a, b) =>
+    new Date(b.updated_at ?? b.created_at).getTime() - new Date(a.updated_at ?? a.created_at).getTime()
+  );
+  for (const row of sorted) {
+    const value = read(row);
+    if (typeof value === "string" ? value.trim().length > 0 : value != null) return value as T;
   }
-  return all;
+  return null;
+}
+
+function mergeJsonArrays(values: Json[]): Json {
+  const seen = new Set<string>();
+  const merged: Json[] = [];
+  for (const value of values) {
+    if (!Array.isArray(value)) continue;
+    for (const item of value) {
+      const key = JSON.stringify(item);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(item);
+    }
+  }
+  return merged;
+}
+
+const heatRank: Record<HeatLevel, number> = { cold: 0, warm: 1, hot: 2, loyal: 3 };
+
+function consolidateImportedContact(current: Contact, incoming: Contact): Contact {
+  const latestHeat = heatRank[incoming.heat] >= heatRank[current.heat] ? incoming.heat : current.heat;
+  return {
+    ...current,
+    ...incoming,
+    id: current.id,
+    name: incoming.name.trim() || current.name,
+    nickname: incoming.nickname || current.nickname,
+    memberId: incoming.memberId || current.memberId,
+    region: incoming.region || current.region,
+    background: incoming.background || current.background,
+    interest: incoming.interest || current.interest,
+    statuses: mergeStringArrays([current.statuses, incoming.statuses]),
+    heat: latestHeat,
+    notes: mergeUniqueStrings([current.notes, incoming.notes]),
+    taboos: mergeUniqueStrings([current.taboos, incoming.taboos]) || undefined,
+    lastContactDate: [current.lastContactDate, incoming.lastContactDate].filter(Boolean).sort().at(-1) || current.lastContactDate,
+    nextFollowUpDate: incoming.nextFollowUpDate || current.nextFollowUpDate,
+    nextFollowUpNote: incoming.nextFollowUpNote || current.nextFollowUpNote,
+    nextFollowUpTime: incoming.nextFollowUpTime || current.nextFollowUpTime,
+    interactions: [...(current.interactions ?? []), ...(incoming.interactions ?? [])],
+    productTags: mergeStringArrays([current.productTags, incoming.productTags]),
+    contactMethod: incoming.contactMethod || current.contactMethod,
+    avatarUrl: incoming.avatarUrl || current.avatarUrl,
+    avatarThumbUrl: incoming.avatarThumbUrl || current.avatarThumbUrl,
+    referrerId: incoming.referrerId || current.referrerId,
+    referrerName: incoming.referrerName || current.referrerName,
+    birthday: incoming.birthday || current.birthday,
+    birthdayReminder: incoming.birthdayReminder || current.birthdayReminder,
+    insightTags: mergeStringArrays([current.insightTags, incoming.insightTags]),
+  };
+}
+
+type AvatarFields = Pick<DbContact, "id" | "avatar_url" | "avatar_thumb_url">;
+
+function buildMergedContactUpdate(
+  group: ContactMergeGroup<DbContact>,
+  avatars: Map<string, AvatarFields>,
+): DbContactUpdate {
+  const rows = group.all;
+  const primary = group.primary;
+  const followUpRows = rows
+    .filter((row) => row.next_follow_up_date)
+    .sort((a, b) => (a.next_follow_up_date ?? "").localeCompare(b.next_follow_up_date ?? ""));
+  const followUp = followUpRows[0] ?? null;
+  const bestHeat = rows.reduce<HeatLevel>((best, row) => {
+    const current = (row.heat in heatRank ? row.heat : "cold") as HeatLevel;
+    return heatRank[current] > heatRank[best] ? current : best;
+  }, "cold");
+
+  const avatarRows = [...rows].sort((a, b) =>
+    new Date(b.updated_at ?? b.created_at).getTime() - new Date(a.updated_at ?? a.created_at).getTime()
+  );
+  const primaryAvatar = avatars.get(primary.id);
+  const avatarUrl = primaryAvatar?.avatar_url
+    || avatarRows.map((row) => avatars.get(row.id)?.avatar_url).find(Boolean)
+    || null;
+  const avatarThumbUrl = primaryAvatar?.avatar_thumb_url
+    || avatarRows.map((row) => avatars.get(row.id)?.avatar_thumb_url).find(Boolean)
+    || null;
+
+  const memberIds = group.kind === "member"
+    ? Array.from(new Set(rows.map((row) => row.member_id).filter((value): value is string => Boolean(value))))
+    : [];
+  const rightsNote = memberIds.length > 1 ? `[多經營權: ${memberIds.join(", ")}]` : "";
+
+  return {
+    name: primary.name,
+    nickname: latestNonEmpty(rows, (row) => row.nickname),
+    member_id: primary.member_id,
+    region: latestNonEmpty(rows, (row) => row.region) ?? "",
+    background: mergeUniqueStrings(rows.map((row) => row.background)),
+    interest: mergeUniqueStrings(rows.map((row) => row.interest)),
+    statuses: mergeStringArrays(rows.map((row) => row.statuses)),
+    heat: bestHeat,
+    notes: mergeUniqueStrings([...rows.map((row) => row.notes), rightsNote]),
+    taboos: mergeUniqueStrings(rows.map((row) => row.taboos)),
+    last_contact_date: rows.map((row) => row.last_contact_date).filter(Boolean).sort().at(-1) ?? primary.last_contact_date,
+    next_follow_up_date: followUp?.next_follow_up_date ?? null,
+    next_follow_up_note: followUp?.next_follow_up_note ?? null,
+    next_follow_up_time: followUp?.next_follow_up_time ?? null,
+    contact_method: latestNonEmpty(rows, (row) => row.contact_method),
+    avatar_url: avatarUrl,
+    avatar_thumb_url: avatarThumbUrl,
+    referrer_id: primary.referrer_id ?? latestNonEmpty(rows, (row) => row.referrer_id),
+    referrer_name: primary.referrer_name ?? latestNonEmpty(rows, (row) => row.referrer_name),
+    birthday: latestNonEmpty(rows, (row) => row.birthday),
+    birthday_reminder: latestNonEmpty(rows, (row) => row.birthday_reminder) ?? "none",
+    gender: latestNonEmpty(rows, (row) => row.gender),
+    product_tags: mergeStringArrays(rows.map((row) => row.product_tags)),
+    deleted_at: null,
+  };
 }
 
 /** Run an array of async tasks with concurrency limit */
@@ -182,9 +293,17 @@ export function useContacts() {
     const CONTACT_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,avatar_thumb_url,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at";
 
     try {
-      const allContacts = await fetchPaginated<DbContact>(
-        (from, to) => supabase.from("contacts").select(CONTACT_COLS).eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).range(from, to) as any,
-        MAX_CONTACTS
+      const allContacts = await fetchAllPages<DbContact>(
+        (from, to) => supabase
+          .from("contacts")
+          .select(CONTACT_COLS)
+          .eq("user_id", user.id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to)
+          .then(({ data, error }) => toPageResult(data as unknown as DbContact[] | null, error)),
+        { maxRows: MAX_CONTACTS, label: "聯絡人" },
       );
 
       if (fetchVersion !== fetchVersionRef.current) return;
@@ -217,18 +336,27 @@ export function useContacts() {
 
     const hydrationPromise = (async () => {
       const [interactionsResult, insightsResult] = await Promise.allSettled([
-        fetchPaginated<DbInteraction>(
-          (from, to) => supabase.from("interactions").select("id,contact_id,user_id,date,summary").eq("user_id", user.id).order("date", { ascending: false }).range(from, to) as any,
-          MAX_INTERACTIONS
+        fetchAllPages<DbInteraction>(
+          (from, to) => supabase
+            .from("interactions")
+            .select("id,contact_id,user_id,date,summary,created_at")
+            .eq("user_id", user.id)
+            .order("date", { ascending: false })
+            .order("id", { ascending: false })
+            .range(from, to)
+            .then(({ data, error }) => toPageResult(data as DbInteraction[] | null, error)),
+          { maxRows: MAX_INTERACTIONS, label: "互動紀錄" },
         ),
-        supabase
-          .from("contact_insights")
-          .select("contact_id, tags")
-          .eq("user_id", user.id)
-          .then(({ data, error }) => {
-            if (error) throw error;
-            return (data ?? []) as DbInsightTags[];
-          }),
+        fetchAllPages<DbInsightTags>(
+          (from, to) => supabase
+            .from("contact_insights")
+            .select("contact_id,tags")
+            .eq("user_id", user.id)
+            .order("contact_id", { ascending: true })
+            .range(from, to)
+            .then(({ data, error }) => toPageResult(data as DbInsightTags[] | null, error)),
+          { maxRows: MAX_CONTACTS, label: "AI 標籤" },
+        ),
       ]);
 
       if (fetchVersion !== fetchVersionRef.current) return;
@@ -301,7 +429,7 @@ export function useContacts() {
     if (!user) return;
     // Soft delete: mark deleted_at instead of hard delete (30-day recovery window)
     const { error } = await supabase.from("contacts")
-      .update({ deleted_at: new Date().toISOString() } as any)
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id).eq("user_id", user.id);
     if (error) { toast.error("刪除失敗"); return; }
     toast.success("已移至回收筒（30 天內可還原）");
@@ -314,13 +442,13 @@ export function useContacts() {
       .select("*").eq("user_id", user.id).not("deleted_at", "is", null)
       .order("deleted_at", { ascending: false });
     if (error) { toast.error("讀取回收筒失敗"); return []; }
-    return (data ?? []).map((c: any) => dbToContact(c as DbContact, new Map(), new Map()));
+    return (data ?? []).map((contact) => dbToContact(contact, new Map(), new Map()));
   }, [user]);
 
   const restoreContact = useCallback(async (id: string) => {
     if (!user) return;
     const { error } = await supabase.from("contacts")
-      .update({ deleted_at: null } as any)
+      .update({ deleted_at: null })
       .eq("id", id).eq("user_id", user.id);
     if (error) { toast.error("還原失敗"); return; }
     toast.success("已還原");
@@ -351,7 +479,7 @@ export function useContacts() {
       .order("date", { ascending: false }).limit(1);
     const latest = data && data.length > 0 ? data[0].date : new Date().toISOString().slice(0, 10);
     await supabase.from("contacts")
-      .update({ last_contact_date: latest, updated_at: new Date().toISOString() } as any)
+      .update({ last_contact_date: latest, updated_at: new Date().toISOString() })
       .eq("id", contactId).eq("user_id", user.id);
   }, [user]);
 
@@ -415,206 +543,391 @@ export function useContacts() {
 
 
   const importContacts = useCallback(async (imported: Contact[]) => {
-    if (!user) return;
-    const { data: existing } = await supabase
-      .from("contacts").select("id, member_id, name").eq("user_id", user.id);
+    if (!user) throw new Error("登入狀態已失效，請重新登入後再匯入");
+
+    // A single Supabase select commonly returns at most 1,000 rows. Fetch all
+    // existing contacts so a 4,000+ row account does not create false duplicates.
+    const existing = await fetchAllPages<{ id: string; member_id: string | null; name: string }>(
+      (from, to) => supabase
+        .from("contacts")
+        .select("id,member_id,name")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to)
+        .then(({ data, error }) => toPageResult(data, error)),
+      { maxRows: MAX_MERGE_CONTACTS, label: "既有名單" },
+    );
 
     const existingByMemberId = new Map<string, string>();
     const existingByName = new Map<string, string>();
     const duplicateNames = new Set<string>();
-    for (const e of (existing ?? [])) {
-      if (e.member_id) existingByMemberId.set(e.member_id, e.id);
-      if (existingByName.has(e.name)) {
-        duplicateNames.add(e.name);
+    for (const row of existing) {
+      const memberId = normalizeMemberId(row.member_id);
+      const name = normalizeContactName(row.name);
+      if (memberId) existingByMemberId.set(memberId, row.id);
+      if (existingByName.has(name)) {
+        duplicateNames.add(name);
       } else {
-        existingByName.set(e.name, e.id);
+        existingByName.set(name, row.id);
       }
+    }
+
+    // Consolidate duplicates inside the same file before sending any request.
+    // The old implementation queued insert and update concurrently, allowing an
+    // update to race ahead of the row it depended on.
+    const importedByKey = new Map<string, Contact>();
+    for (const contact of imported) {
+      const memberId = normalizeMemberId(contact.memberId);
+      const name = normalizeContactName(contact.name);
+      const key = memberId ? `member:${memberId}` : `name:${name}`;
+      const current = importedByKey.get(key);
+      importedByKey.set(key, current ? consolidateImportedContact(current, contact) : contact);
     }
 
     let merged = 0;
     let added = 0;
+    const rows: DbContactInsert[] = [];
 
-    // Build all tasks first, then run in parallel batches
-    const tasks: (() => Promise<void>)[] = [];
-
-    for (const c of imported) {
-      const memberMatch = c.memberId ? existingByMemberId.get(c.memberId) : null;
+    for (const contact of importedByKey.values()) {
+      const memberId = normalizeMemberId(contact.memberId);
+      const name = normalizeContactName(contact.name);
+      const memberMatch = memberId ? existingByMemberId.get(memberId) : null;
       // Only match by name if the name is unique in existing contacts
-      const nameMatch = (!memberMatch && !duplicateNames.has(c.name)) ? (existingByName.get(c.name) || null) : null;
+      const nameMatch = (!memberMatch && !duplicateNames.has(name)) ? (existingByName.get(name) || null) : null;
       const matchId = memberMatch || nameMatch;
-      const payload: Record<string, any> = {
-        nickname: c.nickname || null, member_id: c.memberId || null,
-        region: c.region, background: c.background, statuses: c.statuses,
-        heat: c.heat, notes: c.notes, last_contact_date: c.lastContactDate,
-        next_follow_up_date: c.nextFollowUpDate || null,
-        contact_method: c.contactMethod || null,
-        birthday: c.birthday || null, birthday_reminder: c.birthdayReminder || "none",
-        product_tags: c.productTags,
+
+      const row: DbContactInsert = {
+        id: matchId || contact.id,
+        user_id: user.id,
+        name: contact.name.trim(),
+        nickname: contact.nickname || null,
+        member_id: contact.memberId || null,
+        region: contact.region,
+        background: contact.background,
+        interest: contact.interest ?? "",
+        statuses: contact.statuses,
+        heat: contact.heat,
+        notes: contact.notes,
+        taboos: contact.taboos ?? "",
+        last_contact_date: contact.lastContactDate,
+        next_follow_up_date: contact.nextFollowUpDate || null,
+        next_follow_up_note: contact.nextFollowUpNote || null,
+        next_follow_up_time: contact.nextFollowUpTime || null,
+        contact_method: contact.contactMethod || null,
+        birthday: contact.birthday || null,
+        birthday_reminder: contact.birthdayReminder || "none",
+        gender: contact.gender || null,
+        product_tags: contact.productTags,
       };
+
       if (matchId) {
-        if (!memberMatch) payload.name = c.name;
-        tasks.push(async () => {
-          await supabase.from("contacts").update(payload).eq("id", matchId).eq("user_id", user.id);
-        });
         merged++;
       } else {
-        payload.name = c.name;
-        tasks.push(async () => {
-          await supabase.from("contacts").insert({ ...payload, name: c.name, id: c.id, user_id: user.id } as any);
-        });
         added++;
       }
+      rows.push(row);
     }
 
-    await runParallel(tasks, PARALLEL_BATCH);
+    // A few bulk upserts are substantially more reliable than 4,000 individual
+    // requests. Every response is checked before the UI reports success.
+    let completed = 0;
+    for (const batch of chunksOf(rows, UPSERT_BATCH)) {
+      const { error } = await supabase
+        .from("contacts")
+        .upsert(batch, { onConflict: "id" });
+      if (error) {
+        throw new Error(`匯入在第 ${completed + 1}～${completed + batch.length} 筆失敗：${error.message}`);
+      }
+      completed += batch.length;
+    }
 
-    if (merged > 0) { toast.success(`已合併 ${merged} 筆重複名單，新增 ${added} 筆`); }
     await fetchContacts();
+    return {
+      added,
+      merged,
+      consolidated: imported.length - importedByKey.size,
+    };
+  }, [user, fetchContacts]);
+
+  // Browser implementation retained as a deployment-order fallback. Once the
+  // database migration is installed, the public action below always uses the
+  // transactional RPC instead.
+  const deduplicateContactsInBrowser = useCallback(async () => {
+    if (!user) throw new Error("登入狀態已失效，請重新登入後再合併");
+
+    // Keep the first scan lightweight: avatar base64 fields can otherwise turn
+    // a 4,000-row merge into a multi-megabyte response.
+    const DEDUPE_COLS = "id,user_id,name,nickname,member_id,region,background,interest,statuses,heat,notes,taboos,last_contact_date,next_follow_up_date,next_follow_up_note,next_follow_up_time,contact_method,referrer_id,referrer_name,birthday,birthday_reminder,gender,product_tags,created_at,updated_at,deleted_at";
+    const allContacts = await fetchAllPages<DbContact>(
+      (from, to) => supabase
+        .from("contacts")
+        .select(DEDUPE_COLS)
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to)
+        .then(({ data, error }) => toPageResult(
+          (data ?? []).map((row) => ({ ...row, avatar_url: null, avatar_thumb_url: null })) as DbContact[],
+          error,
+        )),
+      { maxRows: MAX_MERGE_CONTACTS, label: "待合併名單" },
+    );
+
+    const groups = planContactMerges(allContacts);
+    if (groups.length === 0) return { merged: 0, groups: 0 };
+
+    const idsToDelete = groups.flatMap((group) => group.duplicates.map((row) => row.id));
+    const duplicateToPrimary = new Map<string, string>();
+    for (const group of groups) {
+      for (const duplicate of group.duplicates) duplicateToPrimary.set(duplicate.id, group.primary.id);
+    }
+
+    // Fetch large avatar fields only for rows that are actually being merged.
+    const avatars = new Map<string, AvatarFields>();
+    const mergeContactIds = groups.flatMap((group) => group.all.map((row) => row.id));
+    for (const batch of chunksOf(mergeContactIds, 100)) {
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("id,avatar_url,avatar_thumb_url")
+        .eq("user_id", user.id)
+        .in("id", batch);
+      if (error) throw new Error(`讀取重複名單照片失敗：${error.message}`);
+      for (const row of data ?? []) avatars.set(row.id, row);
+    }
+
+    const [allInsights, allRelationships] = await Promise.all([
+      fetchAllPages<DbInsight>(
+        (from, to) => supabase
+          .from("contact_insights")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, to)
+          .then(({ data, error }) => toPageResult(data, error)),
+        { maxRows: MAX_MERGE_CONTACTS, label: "AI 分析資料" },
+      ),
+      fetchAllPages<DbRelationship>(
+        (from, to) => supabase
+          .from("contact_relationships")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, to)
+          .then(({ data, error }) => toPageResult(data, error)),
+        { maxRows: MAX_MERGE_CONTACTS, label: "人物關係資料" },
+      ),
+    ]);
+
+    const mergedUpdates = new Map<string, DbContactUpdate>();
+    const mergeTasks = groups.map((group) => async () => {
+      const payload = buildMergedContactUpdate(group, avatars);
+      mergedUpdates.set(group.primary.id, payload);
+      const { error } = await supabase
+        .from("contacts")
+        .update(payload)
+        .eq("id", group.primary.id)
+        .eq("user_id", user.id);
+      if (error) throw new Error(`「${group.primary.name}」主資料合併失敗：${error.message}`);
+    });
+    await runParallel(mergeTasks, PARALLEL_BATCH);
+
+    // Merge all AI analysis into the primary row before duplicate contacts are
+    // deleted. Text lines and JSON scripts are de-duplicated, making retries safe.
+    const insightsByContact = new Map<string, DbInsight>();
+    for (const insight of allInsights) insightsByContact.set(insight.contact_id, insight);
+    const mergedInsightRows: DbInsightInsert[] = [];
+    for (const group of groups) {
+      const insights = group.all
+        .map((row) => insightsByContact.get(row.id))
+        .filter((row): row is DbInsight => Boolean(row));
+      if (insights.length === 0) continue;
+      const newest = [...insights].sort((a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+      mergedInsightRows.push({
+        contact_id: group.primary.id,
+        user_id: user.id,
+        summary: mergeUniqueStrings(insights.map((row) => row.summary)),
+        tags: mergeStringArrays(insights.map((row) => row.tags)),
+        next_action: newest.find((row) => row.next_action.trim())?.next_action ?? "",
+        invite_scripts: mergeJsonArrays(insights.map((row) => row.invite_scripts)),
+        updated_at: new Date().toISOString(),
+      });
+    }
+    for (const batch of chunksOf(mergedInsightRows, 100)) {
+      const { error } = await supabase
+        .from("contact_insights")
+        .upsert(batch, { onConflict: "contact_id" });
+      if (error) throw new Error(`合併 AI 分析失敗：${error.message}`);
+    }
+
+    // Re-create relationship edges with canonical IDs before ON DELETE CASCADE
+    // removes the old edges. Self-relations are intentionally discarded.
+    const remappedRelationships = new Map<string, DbRelationshipInsert>();
+    for (const relation of allRelationships) {
+      const contactId = duplicateToPrimary.get(relation.contact_id) ?? relation.contact_id;
+      const relatedContactId = duplicateToPrimary.get(relation.related_contact_id) ?? relation.related_contact_id;
+      if (contactId === relation.contact_id && relatedContactId === relation.related_contact_id) continue;
+      if (contactId === relatedContactId) continue;
+      const key = `${contactId}:${relatedContactId}`;
+      if (!remappedRelationships.has(key)) {
+        remappedRelationships.set(key, {
+          user_id: user.id,
+          contact_id: contactId,
+          related_contact_id: relatedContactId,
+          relation_type: relation.relation_type,
+          created_at: relation.created_at,
+        });
+      }
+    }
+    for (const batch of chunksOf(Array.from(remappedRelationships.values()), 100)) {
+      const { error } = await supabase
+        .from("contact_relationships")
+        .upsert(batch, {
+          onConflict: "user_id,contact_id,related_contact_id",
+          ignoreDuplicates: true,
+        });
+      if (error) throw new Error(`轉移人物關係失敗：${error.message}`);
+    }
+
+    // Transfer every interaction in group-sized operations. This is idempotent:
+    // if a retry is needed, already transferred rows simply no longer match.
+    const interactionTasks = groups.flatMap((group) =>
+      chunksOf(group.duplicates.map((row) => row.id), 100).map((batch) => async () => {
+        const { error } = await supabase
+          .from("interactions")
+          .update({ contact_id: group.primary.id })
+          .eq("user_id", user.id)
+          .in("contact_id", batch);
+        if (error) throw new Error(`「${group.primary.name}」互動紀錄轉移失敗：${error.message}`);
+      })
+    );
+    await runParallel(interactionTasks, PARALLEL_BATCH);
+
+    // Update every referral pointer that referenced a duplicate. If the primary
+    // would point to itself after mapping, clear that invalid loop.
+    const referrerTasks = groups.flatMap((group) => {
+      const duplicateIds = group.duplicates.map((row) => row.id);
+      const tasks = chunksOf(duplicateIds, 100).map((batch) => async () => {
+        const { error } = await supabase
+          .from("contacts")
+          .update({ referrer_id: group.primary.id, referrer_name: group.primary.name })
+          .eq("user_id", user.id)
+          .in("referrer_id", batch)
+          .neq("id", group.primary.id);
+        if (error) throw new Error(`「${group.primary.name}」推薦關係轉移失敗：${error.message}`);
+      });
+      const selectedReferrer = mergedUpdates.get(group.primary.id)?.referrer_id;
+      if (selectedReferrer === group.primary.id || duplicateIds.includes(String(selectedReferrer))) {
+        tasks.push(async () => {
+          const { error } = await supabase
+            .from("contacts")
+            .update({ referrer_id: null, referrer_name: null })
+            .eq("id", group.primary.id)
+            .eq("user_id", user.id);
+          if (error) throw new Error(`「${group.primary.name}」循環推薦關係修正失敗：${error.message}`);
+        });
+      }
+      return tasks;
+    });
+    await runParallel(referrerTasks, PARALLEL_BATCH);
+
+    // Deletion is deliberately the final phase. If an earlier phase fails, all
+    // original contacts remain and the operation can safely be retried.
+    for (const batch of chunksOf(idsToDelete, 100)) {
+      const { error } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("user_id", user.id)
+        .in("id", batch);
+      if (error) throw new Error(`刪除已轉移的重複名單失敗：${error.message}`);
+    }
+
+    await fetchContacts();
+    return {
+      merged: idsToDelete.length,
+      groups: groups.length,
+      mode: "browser_fallback" as const,
+    };
   }, [user, fetchContacts]);
 
   const deduplicateContacts = useCallback(async () => {
-    if (!user) return { merged: 0 };
+    if (!user) throw new Error("登入狀態已失效，請重新登入後再合併");
 
-    const allContacts = await fetchPaginated<DbContact>(
-      (from, to) => supabase.from("contacts").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).range(from, to) as any,
-      MAX_CONTACTS
-    );
-    if (!allContacts || allContacts.length === 0) return { merged: 0 };
+    const { data: createData, error: createError } = await supabase
+      .rpc("create_contact_merge_job");
 
-    const getBaseMemberId = (mid: string | null) => {
-      if (!mid) return null;
-      const match = mid.match(/^(\d+)-\d+$/);
-      return match ? match[1] : mid;
-    };
-
-    const byBaseMemberId = new Map<string, typeof allContacts>();
-    const byName = new Map<string, typeof allContacts>();
-
-    for (const c of allContacts) {
-      const base = getBaseMemberId(c.member_id);
-      if (base) {
-        const existing = byBaseMemberId.get(base) || [];
-        existing.push(c);
-        byBaseMemberId.set(base, existing);
-      } else {
-        const existing = byName.get(c.name) || [];
-        existing.push(c);
-        byName.set(c.name, existing);
+    // This keeps the web app usable if code is deployed a few minutes before
+    // the SQL migration. Other database errors must never be hidden.
+    if (createError) {
+      if (isMissingMergeRpc(createError)) {
+        return deduplicateContactsInBrowser();
       }
+      throw new Error(`建立安全合併工作失敗：${createError.message}`);
     }
 
-    const idsToDelete: string[] = [];
-    // Collect all merge operations to run in parallel
-    const mergeTasks: (() => Promise<void>)[] = [];
-    const transferTasks: (() => Promise<void>)[] = [];
-    const insightPairs: Array<{ from: string; to: string }> = [];
-
-    // Process member ID groups
-    for (const [_, group] of byBaseMemberId) {
-      if (group.length <= 1) continue;
-      group.sort((a, b) => {
-        const aIs001 = a.member_id?.endsWith('-001') ? 0 : 1;
-        const bIs001 = b.member_id?.endsWith('-001') ? 0 : 1;
-        if (aIs001 !== bIs001) return aIs001 - bIs001;
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      });
-
-      const primary = group[0];
-      const newest = group[group.length - 1];
-      const allMemberIds = group.map(c => c.member_id).filter(Boolean).join(', ');
-
-      const merged = {
-        ...primary,
-        ...newest,
-        id: primary.id,
-        member_id: primary.member_id,
-        notes: primary.notes
-          ? `${primary.notes}\n[多經營權: ${allMemberIds}]`
-          : `[多經營權: ${allMemberIds}]`,
+    const created = parseContactMergeRpcResult(createData);
+    if (created.status === "completed") {
+      return {
+        merged: 0,
+        groups: 0,
+        jobId: created.jobId,
+        mode: "database_transaction" as const,
       };
-
-      mergeTasks.push(async () => {
-        await supabase.from("contacts").update(merged).eq("id", primary.id);
-      });
-
-      for (let i = 1; i < group.length; i++) {
-        const dupId = group[i].id;
-        idsToDelete.push(dupId);
-        transferTasks.push(async () => {
-          await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", dupId).eq("user_id", user.id);
-        });
-        insightPairs.push({ from: dupId, to: primary.id });
-      }
     }
 
-    // Process name groups
-    for (const [_, group] of byName) {
-      if (group.length <= 1) continue;
-      const primary = group[0];
-      const newest = group[group.length - 1];
-      const merged = { ...primary, ...newest, id: primary.id };
+    const { data: runData, error: runError } = await supabase
+      .rpc("run_contact_merge_job", { job_id: created.jobId });
 
-      mergeTasks.push(async () => {
-        await supabase.from("contacts").update(merged).eq("id", primary.id);
-      });
-
-      for (let i = 1; i < group.length; i++) {
-        const dupId = group[i].id;
-        idsToDelete.push(dupId);
-        transferTasks.push(async () => {
-          await supabase.from("interactions").update({ contact_id: primary.id }).eq("contact_id", dupId).eq("user_id", user.id);
-        });
-        insightPairs.push({ from: dupId, to: primary.id });
-      }
-    }
-
-    // Phase 1: Update primary contacts (parallel)
-    await runParallel(mergeTasks, PARALLEL_BATCH);
-
-    // Phase 2: Transfer interactions (parallel)
-    await runParallel(transferTasks, PARALLEL_BATCH);
-
-    // Phase 3: Merge insights (parallel)
-    const insightTasks = insightPairs.map((pair) => async () => {
-      const { data: secondaryInsight } = await supabase
-        .from("contact_insights")
-        .select("id, summary, tags, next_action")
-        .eq("contact_id", pair.from)
+    if (runError) {
+      // The request may have completed in PostgreSQL even if the browser lost
+      // the response. Read the durable job before telling the user it failed.
+      const { data: savedJob } = await supabase
+        .from("contact_merge_jobs")
+        .select("status,result,error_message")
+        .eq("id", created.jobId)
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!secondaryInsight) return;
-
-      const { data: primaryInsight } = await supabase
-        .from("contact_insights")
-        .select("id, summary, tags, next_action")
-        .eq("contact_id", pair.to)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (primaryInsight) {
-        const mergedTags = Array.from(new Set([...(primaryInsight.tags || []), ...(secondaryInsight.tags || [])]));
-        const mergedSummary = [primaryInsight.summary, secondaryInsight.summary].filter(Boolean).join("\n");
-        const mergedNext = primaryInsight.next_action || secondaryInsight.next_action || "";
-        await supabase.from("contact_insights").update({ summary: mergedSummary, tags: mergedTags, next_action: mergedNext }).eq("id", primaryInsight.id);
-        await supabase.from("contact_insights").delete().eq("id", secondaryInsight.id);
-      } else {
-        await supabase.from("contact_insights").update({ contact_id: pair.to }).eq("id", secondaryInsight.id);
+      if (savedJob?.status === "completed") {
+        const recovered = parseContactMergeRpcResult(savedJob.result);
+        await fetchContacts();
+        return {
+          merged: recovered.merged,
+          groups: recovered.groups,
+          jobId: recovered.jobId,
+          mode: "database_transaction" as const,
+        };
       }
-    });
-    await runParallel(insightTasks, PARALLEL_BATCH);
 
-    // Phase 4: Batch delete duplicates
-    if (idsToDelete.length > 0) {
-      for (let i = 0; i < idsToDelete.length; i += 100) {
-        const batch = idsToDelete.slice(i, i + 100);
-        await supabase.from("contacts").delete().in("id", batch);
+      if (savedJob?.status === "failed") {
+        throw new Error(savedJob.error_message || `資料庫合併失敗：${runError.message}`);
       }
+
+      throw new Error("合併工作已安全保留，但連線中斷；請稍後再按一次合併即可續跑");
+    }
+
+    const completed = parseContactMergeRpcResult(runData);
+    if (completed.status === "failed") {
+      throw new Error(completed.error || "資料庫已取消這次合併，原始名單沒有被刪除");
+    }
+    if (completed.status !== "completed") {
+      throw new Error("合併工作尚未完成，請稍後再試");
     }
 
     await fetchContacts();
-    return { merged: idsToDelete.length };
-  }, [user, fetchContacts]);
+    return {
+      merged: completed.merged,
+      groups: completed.groups,
+      jobId: completed.jobId,
+      mode: "database_transaction" as const,
+    };
+  }, [user, fetchContacts, deduplicateContactsInBrowser]);
 
   return { contacts, loading, addContact, updateContact, deleteContact, addInteraction, updateInteraction, deleteInteraction, importContacts, deduplicateContacts, refetch: fetchContacts, fetchTrash, restoreContact, permanentlyDeleteContact, emptyTrash };
 }
