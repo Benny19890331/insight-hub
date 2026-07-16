@@ -431,8 +431,11 @@ export default function Auth() {
                   disabled={loading}
                   onClick={() => {
                     const action = isLogin ? "登入" : "註冊";
+                    const nextParam = new URLSearchParams(window.location.search).get("next");
+                    const safeNext = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "";
+                    const redirectTarget = safeNext ? `${window.location.origin}${safeNext}` : appBaseUrl;
                     lovable.auth.signInWithOAuth("google", {
-                      redirect_uri: appBaseUrl,
+                      redirect_uri: redirectTarget,
                     }).then((result) => {
                       if (result.error) {
                         toast.error(`Google ${action}失敗，請稍後再試`);
