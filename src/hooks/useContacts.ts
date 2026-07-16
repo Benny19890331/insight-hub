@@ -404,7 +404,7 @@ export function useContacts() {
     if (!user) return;
     const payload = contactToDbPayload(contact);
     const insertRow = { ...payload, id: contact.id, user_id: user.id };
-    const { error } = await supabase.from("contacts").insert(insertRow);
+    const { error } = await supabase.from("contacts").insert(insertRow as never);
     if (error) { toast.error("新增失敗"); return; }
     if (contact.interactions?.length) {
       await supabase.from("interactions").insert(
