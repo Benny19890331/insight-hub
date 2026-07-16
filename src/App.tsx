@@ -30,8 +30,10 @@ function AuthRoute() {
   const params = new URLSearchParams(window.location.search);
   const isRecoveryLink = params.get("type") === "recovery" && !!params.get("token_hash");
   const isCustomResetLink = !!params.get("reset_token");
+  const next = params.get("next");
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">載入中⋯</div>;
-  if (user && !recoveryMode && !isRecoveryLink && !isCustomResetLink) return <Navigate to="/" replace />;
+  if (user && !recoveryMode && !isRecoveryLink && !isCustomResetLink) return <Navigate to={safeNext} replace />;
   return <Auth />;
 }
 
