@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://zoyslhfaqxydwkrhaofe.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "rich-list-mcp",
+      "version": "0.1.0",
+      "title": "RICH 系統名單管理"
+    },
+    "tools": [
+      {
+        "name": "list_contacts",
+        "title": "列出聯絡人",
+        "description": "列出目前登入使用者在 RICH 系統中的聯絡人（可用 heat 或關鍵字過濾，預設回傳最近更新的 50 筆）。",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "回傳筆數上限（預設 50，最多 200）",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "heat": {
+              "description": "依熱度篩選",
+              "type": "string",
+              "enum": [
+                "cold",
+                "warm",
+                "hot",
+                "loyal"
+              ]
+            },
+            "search": {
+              "description": "在姓名 / 綽號 / 會員編號模糊搜尋",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_contact",
+        "title": "取得聯絡人完整資訊",
+        "description": "取得指定聯絡人的所有欄位，含最近 10 筆互動紀錄與 AI 洞察。",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "contact_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "聯絡人 UUID"
+            }
+          },
+          "required": [
+            "contact_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_interactions",
+        "title": "列出互動紀錄",
+        "description": "列出登入使用者最近的互動紀錄（可指定 contact_id 或日期範圍）。",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "contact_id": {
+              "description": "只列出這位聯絡人的互動",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "since": {
+              "description": "起始日期 YYYY-MM-DD",
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "limit": {
+              "description": "回傳筆數上限（預設 50）",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_interaction",
+        "title": "新增互動紀錄",
+        "description": "為指定聯絡人新增一筆互動紀錄。",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "contact_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "聯絡人 UUID"
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "description": "互動內容摘要"
+            },
+            "date": {
+              "description": "互動日期 YYYY-MM-DD，預設今日",
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          "required": [
+            "contact_id",
+            "summary"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
