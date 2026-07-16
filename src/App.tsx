@@ -14,6 +14,7 @@ import UpdatePassword from "./pages/UpdatePassword";
 import Trash from "./pages/Trash";
 import Reports from "./pages/Reports";
 import DomainKnowledge from "./pages/DomainKnowledge";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -29,8 +30,10 @@ function AuthRoute() {
   const params = new URLSearchParams(window.location.search);
   const isRecoveryLink = params.get("type") === "recovery" && !!params.get("token_hash");
   const isCustomResetLink = !!params.get("reset_token");
+  const next = params.get("next");
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">載入中⋯</div>;
-  if (user && !recoveryMode && !isRecoveryLink && !isCustomResetLink) return <Navigate to="/" replace />;
+  if (user && !recoveryMode && !isRecoveryLink && !isCustomResetLink) return <Navigate to={safeNext} replace />;
   return <Auth />;
 }
 
@@ -51,6 +54,7 @@ const App = () => (
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
 <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
