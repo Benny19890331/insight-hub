@@ -60,7 +60,11 @@ export function ScrollPicker({ items, value, onChange, height = 108 }: ScrollPic
         ref={ref}
         onScroll={handleScroll}
         className="h-full overflow-y-auto scrollbar-none"
-        style={{ scrollSnapType: "y mandatory", WebkitOverflowScrolling: "touch" }}
+        style={{
+          scrollSnapType: "y mandatory",
+          scrollPaddingTop: padCount * ITEM_H,
+          WebkitOverflowScrolling: "touch",
+        }}
       >
         {/* top padding */}
         {Array.from({ length: padCount }).map((_, i) => (
