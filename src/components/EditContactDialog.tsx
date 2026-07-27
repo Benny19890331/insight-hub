@@ -396,21 +396,11 @@ export function EditContactDialog({ open, onOpenChange, contact, onSave, contact
             </div>
           </Field>
 
-          {/* Birthday + reminder */}
-          <Field label="生日 / 重要紀念日">
-            <div className="flex gap-2">
-              <BirthdayInput value={birthday} onChange={setBirthday} className="flex-1" inputClassName={`${fieldClass} w-full`} />
-              <select
-                value={birthdayReminder}
-                onChange={(e) => setBirthdayReminder(e.target.value as BirthdayReminder)}
-                className={`${fieldClass} w-auto min-w-[120px] cursor-pointer`}
-              >
-                {birthdayReminderOptions.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
+          {/* Birthday */}
+          <Field label="生日">
+            <BirthdayInput value={birthday} onChange={setBirthday} className="flex-1" inputClassName={`${fieldClass} w-full`} />
           </Field>
+
 
           {/* Product tags */}
           <Field label="產品關注（點選切換）">
