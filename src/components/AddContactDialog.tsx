@@ -354,19 +354,11 @@ export function AddContactDialog({ open, onOpenChange, onSave, contacts }: AddCo
           </div>
 
           {/* Birthday */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">生日</label>
-              <BirthdayInput value={birthday} onChange={setBirthday} />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">生日提醒</label>
-              <select value={birthdayReminder} onChange={e => setBirthdayReminder(e.target.value as BirthdayReminder)}
-                className="w-full appearance-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer min-h-[38px]">
-                {birthdayReminderOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">生日</label>
+            <BirthdayInput value={birthday} onChange={setBirthday} />
           </div>
+
 
           {/* Referrer search */}
           <div ref={referrerRef} className="relative">
